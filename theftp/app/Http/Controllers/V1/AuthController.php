@@ -100,11 +100,11 @@ class AuthController extends Controller{
 
             $tiempoExpiracion = 120; // 120 minutos
 
-            $tokenBearer = Auth::user()->createToken('token', ["*"], now()->addMinutes($tiempoExpiracion))->plainTextToken;
+            //$tokenBearer = Auth::user()->createToken('token', ["*"], now()->addMinutes($tiempoExpiracion))->plainTextToken;
 
             return response()->json([
                 'message' => 'Inicio de sesión exitoso',
-                'token' => $tokenBearer
+                //'token' => $tokenBearer
             ], 200);
 
         }
