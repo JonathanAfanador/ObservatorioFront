@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('licencias', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('restriccion_lic_id')->constrained('restricciones_lic');
-            $table->foreignId('categoria_lic_id')->constrained('categorias_lic');
+            $table->foreignId('restriccion_lic_id')->constrained('restriccion_lic');
+            $table->foreignId('categoria_lic_id')->constrained('categorias_licencia');
             $table->foreignId('documento_id')->constrained('documentos');
             $table->timestamps();
         });
