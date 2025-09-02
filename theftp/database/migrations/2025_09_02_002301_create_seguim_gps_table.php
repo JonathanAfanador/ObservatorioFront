@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('vehiculo', function (Blueprint $table) {
+        Schema::create('seguim_gps', function (Blueprint $table) {
             $table->id();
-            $table->string('color');
-            $table->string('marca');
-            $table->string('placa');
-            $table->string('modelo');
-            $table->boolean('servicio')->default(false);
-            $table->foreignId('tipo_veh_id')->constrained('tipo_vehiculo');
+            $table->point('ubicacion')->nullable();
+            $table->timestamp('fecha_hora')->nullable();
+            $table->foreignId('vehiculo_id')->constrained('vehiculo');
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('vehiculo');
+        Schema::dropIfExists('seguim_gps');
     }
 };
