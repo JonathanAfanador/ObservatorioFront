@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('kilometraje')->nullable();
             $table->timestamp('fecha_hora')->nullable();
             $table->text('observaciones')->nullable();
-            $table->foreignId('usuario_id')->constrained('usuarios');
+            $table->foreignId('usuario_id')->constrained('users');
             $table->foreignId('vehiculo_id')->constrained('vehiculo');
             $table->timestamps();
         });
