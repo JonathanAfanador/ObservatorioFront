@@ -33,7 +33,10 @@ class personas extends Model
     public const GENDER_HOMBRE = 'Hombre';
 
     // Relación con el modelo TipoIdent
-    public function tipoIdent(){
+
+    public function tipo_ident()
+    {
         return $this->belongsTo(tipo_ident::class, 'tipo_ident_id');
     }
+
 }
