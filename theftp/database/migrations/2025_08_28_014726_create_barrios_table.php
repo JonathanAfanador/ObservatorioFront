@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::create('barrios', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('codigo_dane');
-            $table->geometry('polygon');
+            $table->string('codigo_dane');;
             $table->foreignId('municipios_id')->constrained();
             $table->timestamps();
         });

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('codigo_dane');
-            $table->geometry('polygon');
             $table->timestamps();
         });
     }
