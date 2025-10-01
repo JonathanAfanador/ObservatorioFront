@@ -17,7 +17,6 @@ class barrios extends Model
 
     protected $fillable = [
         'nombre',
-        'codigo_dane',
         'municipio_id',
         'geometry'
     ];
