@@ -5,13 +5,16 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class RolesSeeder extends Seeder
+class PermisosSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
+        // Permisos principales
+        $acciones_base = ['ver', 'crear', 'editar', 'eliminar'];
+
         
     }
 }
