@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -1118,6 +1117,19 @@ $array = [
             ['name' => 'SANTA ROSALÍA', 'codigo_dane' => '99624'],
             ['name' => 'CUMARIBO', 'codigo_dane' => '99773'],
         ];
+
+        // Mapear departamento_id desde la tabla 'departamentos'
+        $deptMap = DB::table('departamentos')->pluck('id', 'codigo_dane'); // ['05' => 1, ...]
+
+        $array = array_map(function($r) use ($deptMap) {
+            $depCode = substr($r['codigo_dane'], 0, 2);
+            if (!isset($deptMap[$depCode])) {
+                throw new \RuntimeException("Departamento no encontrado para código DANE: {$depCode}");
+            }
+            $r['departamentos_id'] = $deptMap[$depCode];
+            return $r;
+        }, $array);
+
         DB::table('municipios')->insert($array);
     }
 }

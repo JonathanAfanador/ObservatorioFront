@@ -14,19 +14,18 @@ class DepartamentosSeeder extends Seeder
     public function run(): void
     {
         $array = [
-            ['name' => 'TOTAL NACIONAL',   'codigo_dane' => '00'],
             ['name' => 'ANTIOQUIA',        'codigo_dane' => '05'],
             ['name' => 'ATLANTICO',        'codigo_dane' => '08'],
             ['name' => 'BOGOTA',           'codigo_dane' => '11'],
-            ['name' => 'BOLIVAR (1)',      'codigo_dane' => '13'],
+            ['name' => 'BOLIVAR',      'codigo_dane' => '13'],
             ['name' => 'BOYACA',           'codigo_dane' => '15'],
             ['name' => 'CALDAS',           'codigo_dane' => '17'],
             ['name' => 'CAQUETA',          'codigo_dane' => '18'],
-            ['name' => 'CAUCA (1)',        'codigo_dane' => '19'],
+            ['name' => 'CAUCA',        'codigo_dane' => '19'],
             ['name' => 'CESAR',            'codigo_dane' => '20'],
-            ['name' => 'CORDOBA (1), (3)','codigo_dane' => '23'],
+            ['name' => 'CORDOBA', 'codigo_dane' => '23'],
             ['name' => 'CUNDINAMARCA',     'codigo_dane' => '25'],
-            ['name' => 'CHOCO (2)',        'codigo_dane' => '27'],
+            ['name' => 'CHOCO',        'codigo_dane' => '27'],
             ['name' => 'HUILA',            'codigo_dane' => '41'],
             ['name' => 'LA GUAJIRA',       'codigo_dane' => '44'],
             ['name' => 'MAGDALENA',        'codigo_dane' => '47'],
