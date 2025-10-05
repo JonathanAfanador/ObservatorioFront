@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('roles_menus', function (Blueprint $table) {
             $table->id();
+            $table->boolean('deleted_at')->default(false);
             $table->foreignId('rol_id')->constrained('rol');
             $table->foreignId('menu_id')->constrained('menus');
             $table->timestamps();

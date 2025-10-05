@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->geography('ubicacion', subtype: 'point', srid: 4326)->nullable();
             $table->timestamp('fecha_hora')->nullable();
+            $table->boolean('deleted_at')->default(false);
             $table->foreignId('vehiculo_id')->constrained('vehiculo');
             $table->timestamps();
         });

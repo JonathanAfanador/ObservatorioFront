@@ -18,6 +18,7 @@ return new class extends Migration
             $table->boolean('read')->default(false);
             $table->boolean('update')->default(false);
             $table->boolean('delete')->default(false);
+            $table->boolean('deleted_at')->default(false);
             $table->foreignId('rol_id')->constrained('rol');
             $table->timestamps();
         });
