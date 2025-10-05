@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('descripcion');
             $table->integer('capacidad')->nullable();
+            $table->boolean('deleted_at')->default(false);
             $table->timestamps();
         });
     }

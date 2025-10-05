@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('phone_number');
             $table->enum('gender', ['Mujer', 'Hombre']);
+            $table->boolean('deleted_at')->default(false);
             $table->foreignId('tipo_ident_id')->constrained('tipo_ident');
             $table->timestamps();
         });

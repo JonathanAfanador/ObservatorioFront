@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('propietarios', function (Blueprint $table) {
             $table->id();
+            $table->boolean('deleted_at')->default(false);
             $table->timestamp('fecha_registro')->useCurrent();
-            $table->foreignId('documento_id')->constrained('documentos');   
+            $table->foreignId('documento_id')->constrained('documentos');
             $table->timestamps();
         });
     }

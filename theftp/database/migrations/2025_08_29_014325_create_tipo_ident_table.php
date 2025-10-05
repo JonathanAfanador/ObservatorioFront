@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('tipo_ident', function (Blueprint $table) {
             $table->id();
             $table->string('descripcion');
+            $table->boolean('deleted_at')->default(false);
             $table->timestamps();
         });
     }

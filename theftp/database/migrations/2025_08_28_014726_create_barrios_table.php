@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('barrios', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->boolean('deleted_at')->default(false);
             $table->foreignId('municipios_id')->constrained();
             $table->timestamps();
         });

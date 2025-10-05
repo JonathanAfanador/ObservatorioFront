@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('inicio_sesion', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('usuario_id')->constrained('users');
+            $table->string('direccion_ip')->nullable();
             $table->timestamp('fecha_hora_inicio')->useCurrent();
             $table->timestamp('fecha_ultima_actividad')->nullable();
-            $table->string('direccion_ip')->nullable();
+            $table->boolean('deleted_at')->default(false);
+            $table->foreignId('usuario_id')->constrained('users');
             $table->timestamps();
         });
     }

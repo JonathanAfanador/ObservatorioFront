@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->text('url');
             $table->text('observaciones');
+            $table->boolean('deleted_at')->default(false);
             $table-> foreignId('tipo_doc_id')->constrained('tipo_doc');
             $table->timestamps();
         });

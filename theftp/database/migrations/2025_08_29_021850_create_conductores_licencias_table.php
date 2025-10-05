@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('conductores_licencias', function (Blueprint $table) {
             $table->id();
+            $table->boolean('deleted_at')->default(false);
             $table->foreignId('licencia_id')->constrained('licencias');
             $table->foreignId('conductor_id')->constrained('conductores');
             $table->timestamps();
