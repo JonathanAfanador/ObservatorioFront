@@ -12,6 +12,12 @@ class RolesSeeder extends Seeder
      */
     public function run(): void
     {
-        
+        $array = [
+            ['descripcion' => 'Administrador'],
+            ['descripcion' => 'Secretaria de transisto'],
+            ['descripcion' => 'Empresa de transporte'],
+            ['descripcion' => 'Usuario UPC'],
+            ['descripcion' => 'Invitado']
+        ];
     }
 }
