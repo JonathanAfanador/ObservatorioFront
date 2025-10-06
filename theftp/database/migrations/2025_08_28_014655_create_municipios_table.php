@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('codigo_dane');
-            $table->boolean('deleted_at')->default(false);
             $table->foreignId('departamentos_id')->constrained();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

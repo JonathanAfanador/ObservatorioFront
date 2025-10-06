@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('conductores', function (Blueprint $table) {
             $table->id();
-            $table->boolean('deleted_at')->default(false);
             $table->foreignId('persona_id')->constrained('personas');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
