@@ -12,6 +12,6 @@ class PersonasSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        
     }
 }

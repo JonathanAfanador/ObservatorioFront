@@ -12,7 +12,7 @@ class BarriosSeeder extends Seeder
      */
     public function run(): void
     {
-        $barrios = [
+        $array = [
             ['name' => 'ACACIAS'],
             ['name' => 'CENTRO'],
             ['name' => 'GRANADA'],
@@ -137,8 +137,8 @@ class BarriosSeeder extends Seeder
         //Añadir municipios_id a cada registro
         $barrios = array_map(function ($b) use ($municipioId) {
             return $b + ['municipios_id' => $municipioId];
-        }, $barrios);
+        }, $array);
 
-        DB::table('barrios')->insert($barrios);
+        DB::table('barrios')->insert($array);
     }
 }
