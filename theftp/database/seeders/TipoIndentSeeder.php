@@ -6,7 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class Tipo_indentSeeder extends Seeder
+class TipoIndentSeeder extends Seeder
 {
     /**
      * Run the database seeds.
