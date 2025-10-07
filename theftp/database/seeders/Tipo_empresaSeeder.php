@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class Tipo_empresaSeeder extends Seeder
 {
@@ -12,6 +13,15 @@ class Tipo_empresaSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $array = [
+            ['descripcion' => 'Pública'],
+            ['descripcion' => 'Privada'],
+            ['descripcion' => 'Mixta'],
+            ['descripcion' => 'Cooperativa'],
+            ['descripcion' => 'Comunitaria'],
+            ['descripcion' => 'Otra'],
+        ];
+
+        DB::table('tipo_empresa')->insert($array);
     }
 }
