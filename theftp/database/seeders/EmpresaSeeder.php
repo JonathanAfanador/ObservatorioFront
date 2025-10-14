@@ -10,13 +10,16 @@ class EmpresaSeeder extends Seeder
     /**
      * Run the database seeds.
      */
+
+    const ID_TIPO_EMPRESA_PUBLICA = 1;
+
     public function run(): void
     {
         // 1) Empresas PÚBLICAS base (no cambiar atributos)
         $base = [
-            ['nit' => '123456', 'name' => 'Atanasio Girardot'],
-            ['nit' => '654321', 'name' => 'Rápido el Carmen'],
-            ['nit' => '112233', 'name' => 'Solo Dios y la Alcadía sabe como se llama la otra :V'],
+            ['nit' => '123456', 'name' => 'Atanasio Girardot', 'tipo_empresa_id' => self::ID_TIPO_EMPRESA_PUBLICA],
+            ['nit' => '654321', 'name' => 'Rápido el Carmen', 'tipo_empresa_id' => self::ID_TIPO_EMPRESA_PUBLICA],
+            // ['nit' => '112233', 'name' => 'Solo Dios y la Alcadía sabe como se llama la otra :V'], // TODO
         ];
 
         // Insertamos tal cual

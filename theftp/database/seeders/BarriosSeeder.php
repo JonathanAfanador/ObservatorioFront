@@ -139,6 +139,6 @@ class BarriosSeeder extends Seeder
             return $b + ['municipios_id' => $municipioId];
         }, $array);
 
-        DB::table('barrios')->insert($array);
+        DB::table('barrios')->insert($barrios);
     }
 }

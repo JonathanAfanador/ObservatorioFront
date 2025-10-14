@@ -10,7 +10,7 @@ class EmpresaUsuarioSeeder extends Seeder
     public function run(): void
     {
         // 1) Empresas base por NIT
-        $baseNits = ['123456', '654321', '112233'];
+        $baseNits = ['123456', '654321'];
         $baseEmpresaIds = DB::table('empresas')
             ->whereIn('nit', $baseNits)
             ->pluck('id')
@@ -20,15 +20,15 @@ class EmpresaUsuarioSeeder extends Seeder
             throw new \RuntimeException("No se encontraron todas las empresas base por NIT. Verifica que EmpresaSeeder corrió antes.");
         }
 
-        // 2) Usuarios con rol 'Secretaria_de_transito' (IDs enteros desde DB)
+        // 2) Usuarios con rol 'Secretaria de tránsito' (IDs enteros desde DB)
         $secretariaUserIds = DB::table('users')
             ->join('rol', 'rol.id', '=', 'users.rol_id')
-            ->where('rol.descripcion', 'Secretaria_de_transito')
+            ->where('rol.descripcion', 'Secretaria de tránsito')
             ->pluck('users.id')
             ->all();
 
         if (empty($secretariaUserIds)) {
-            throw new \RuntimeException("No hay usuarios con rol 'Secretaria_de_transito'. Corre Roles/Users seeder primero.");
+            throw new \RuntimeException("No hay usuarios con rol 'Secretaria de tránsito'. Corre Roles/Users seeder primero.");
         }
 
         // 3) Otras empresas (todas menos las base)

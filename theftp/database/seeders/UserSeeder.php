@@ -64,7 +64,7 @@ class UserSeeder extends Seeder
                 'unable_date'       => null,
                 'email_verified_at' => now(),
                 'persona_id'        => $popPersonaId(),
-                'rol_id'            => $getRolId('Secretaria_de_transito'),
+                'rol_id'            => $getRolId('Secretaria de tránsito'),
                 'remember_token'    => Str::random(10),
             ],
             [
@@ -113,7 +113,7 @@ class UserSeeder extends Seeder
 
         $rolesDisponibles = array_values(array_filter([
             $getRolId('Administrador'),
-            $getRolId('Secretaria_de_transito'),
+            $getRolId('Secretaria de tránsito'),
             $getRolId('Empresa_transporte'),
             $getRolId('Usuario_upc'),
             $getRolId('Invitado'),

@@ -15,7 +15,7 @@ class RolesSeeder extends Seeder
     {
         $array = [
             ['descripcion' => 'Administrador'],
-            ['descripcion' => 'Secretaria de transisto'],
+            ['descripcion' => 'Secretaria de tránsito'],
             ['descripcion' => 'Empresa de transporte'],
             ['descripcion' => 'Usuario UPC'],
             ['descripcion' => 'Invitado']
