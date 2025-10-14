@@ -12,7 +12,7 @@ class MunicipiosSeeder extends Seeder
      */
     public function run(): void
     {
-$array = [
+        $array = [
             ['name' => 'MEDELLÍN', 'codigo_dane' => '05001'],
             ['name' => 'ABEJORRAL', 'codigo_dane' => '05002'],
             ['name' => 'ABRIAQUÍ', 'codigo_dane' => '05004'],
