@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->geometry('linestring');
+            $table->boolean('deleted_at')->default(false);
             $table->foreignId('municipios_id')->constrained();
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

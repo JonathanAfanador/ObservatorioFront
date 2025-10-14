@@ -19,11 +19,11 @@ return new class extends Migration
             $table->boolean('unable')->default(false);
             $table->timestamp('unable_date')->nullable();
             $table->timestamp('email_verified_at')->nullable();
+            $table->boolean('deleted_at')->default(false);
             $table->foreignId('persona_id')->constrained('personas');
             $table->foreignId('rol_id')->constrained('rol');
             $table->rememberToken();
             $table->timestamps();
-            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

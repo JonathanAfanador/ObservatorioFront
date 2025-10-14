@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('nit');
             $table->string('name');
+            $table->boolean('deleted_at')->default(false);
             $table->foreignId('tipo_empresa_id')->constrained('tipo_empresa');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

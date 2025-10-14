@@ -16,9 +16,9 @@ return new class extends Migration
             $table->string('direccion_ip')->nullable();
             $table->timestamp('fecha_hora_inicio')->useCurrent();
             $table->timestamp('fecha_ultima_actividad')->nullable();
+            $table->boolean('deleted_at')->default(false);
             $table->foreignId('usuario_id')->constrained('users');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

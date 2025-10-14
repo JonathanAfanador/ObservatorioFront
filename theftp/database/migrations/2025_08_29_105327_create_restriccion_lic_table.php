@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('restriccion_lic', function (Blueprint $table) {
             $table->id();
+            $table->boolean('deleted_at')->default(false);
             $table->string('descripcion', 150);
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

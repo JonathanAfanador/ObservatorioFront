@@ -19,7 +19,6 @@ return new class extends Migration
             $table->boolean('deleted_at')->default(false);
             $table->foreignId('vehiculo_id')->constrained('vehiculo');
             $table->timestamps();
-            $table->softDeletes();
         });
         DB::statement('CREATE INDEX idx_ubicacion ON seguim_gps USING GIST (ubicacion);');
     }
