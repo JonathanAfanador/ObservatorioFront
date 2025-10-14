@@ -16,9 +16,9 @@ return new class extends Migration
             $table->text('name');
             $table->text('icon')->nullable();
             $table->text('url')->nullable();
-            $table->boolean('deleted_at')->default(false);
             $table->foreignId('padre_id')->constrained('menus');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -16,10 +16,10 @@ return new class extends Migration
             $table->integer('kilometraje')->nullable();
             $table->timestamp('fecha_hora')->nullable();
             $table->text('observaciones')->nullable();
-            $table->boolean('deleted_at')->default(false);
             $table->foreignId('usuario_id')->constrained('users');
             $table->foreignId('vehiculo_id')->constrained('vehiculo');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

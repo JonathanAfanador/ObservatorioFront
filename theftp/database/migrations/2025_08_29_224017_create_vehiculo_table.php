@@ -18,10 +18,10 @@ return new class extends Migration
             $table->string('placa');
             $table->string('modelo');
             $table->boolean('servicio')->default(false);
-            $table->boolean('deleted_at')->default(false);
             $table->foreignId('propietario_id')->constrained('propietarios');
             $table->foreignId('tipo_veh_id')->constrained('tipo_vehiculo');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

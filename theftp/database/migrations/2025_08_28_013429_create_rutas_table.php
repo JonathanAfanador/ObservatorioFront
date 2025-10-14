@@ -16,9 +16,9 @@ return new class extends Migration
             $table->string('name');
             // TODO: Indagar uso de rutas, si es solo visualización se puede optar por solo retornar el .kml. Si no, investigar como guardar rutas en BD espacial (PostGIS)
             $table->text('file_name');
-            $table->boolean('deleted_at')->default(false);
             $table->foreignId('municipios_id')->constrained();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
