@@ -16,7 +16,7 @@ use Illuminate\Validation\Rules\Enum;
 
 class AuthController extends Controller{
 
-    const ROL_PORDEFECTO = 1;
+    const ROL_PORDEFECTO = 5;
 
     public function helloWorld(){
         return response()->json(['message' => 'Hola Mundo desde AuthController']);
