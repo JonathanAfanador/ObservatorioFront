@@ -19,6 +19,7 @@ class rutas extends Model
         'nombre',
         'codigo_dane',
         'municipio_id',
-        'geometry'
+        'file_name',
+        'empresa_id',
     ];
 }

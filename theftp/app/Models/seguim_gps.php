@@ -16,9 +16,10 @@ class seguim_gps extends Model
     protected $table = 'seguim_gps';
 
     protected $fillable = [
-        'ubicacion',
         'fecha_hora',
         'vehiculo_id',
+        'latitud',
+        'longitud',
     ];
 
     // Función para definir la relación con el modelo vehiculos
