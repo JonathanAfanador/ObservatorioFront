@@ -13,12 +13,12 @@ class permisos extends Model
     /**
      * La tabla asociada con el modelo.
      */
-    protected $table = 'perimos';
+    protected $table = 'permisos';
 
     protected $fillable = [
-        'agregar',
-        'eliminar',
-        'modificar',
-        "leer",
+        'create',
+        'read',
+        'update',
+        "delete",
     ];
 }

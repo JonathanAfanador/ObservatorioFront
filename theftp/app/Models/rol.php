@@ -26,4 +26,8 @@ class rol extends Model
     public function users(){
         return $this->hasMany(User::class, 'rol_id');
     }
+
+    public function permisos(){
+        return $this->hasMany(permisos::class, 'rol_id');
+    }
 }
