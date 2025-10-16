@@ -28,7 +28,13 @@ Route::get('/test', function (){
     ];
 
     try{
-        return PermisosService::verificarPermisos($permisos);
+        
+        PermisosService::verificarPermisos($permisos);
+
+        return response()->json([
+            'message' => 'Permisos verificados correctamente'
+        ], 200);
+
     } catch (Exception $e){
         return response()->json([
             'message' => $e->getMessage()
