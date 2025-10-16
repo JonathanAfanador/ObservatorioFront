@@ -13,10 +13,9 @@ class empresas extends Model
     protected $table = 'empresas';
 
     protected $fillable = [
-        'nombre',
-        'ruc',
-        'direccion',
-        'telefono',
+        'nit',
+        'name',
+        'tipo_empresa',
     ];
 
     public function usuarios(){

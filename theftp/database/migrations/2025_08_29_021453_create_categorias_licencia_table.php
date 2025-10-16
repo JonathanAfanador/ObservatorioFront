@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('categorias_licencia', function (Blueprint $table) {
             $table->id();
-            $table->string('descripcion', 150);
-            $table->boolean('servicio')->default(   true);
+            $table->string('codigo', 150);
+            $table->text('descripcion')->default('');
             $table->timestamps();
             $table->softDeletes();
         });

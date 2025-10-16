@@ -16,8 +16,11 @@ class barrios extends Model
     protected $table = 'barrios';
 
     protected $fillable = [
-        'nombre',
-        'municipio_id',
-        'geometry'
+        'name',
+        'municipios'
     ];
+
+    public function municipio(){
+        return $this->belongsTo(municipios::class, 'municipio_id');
+    }
 }

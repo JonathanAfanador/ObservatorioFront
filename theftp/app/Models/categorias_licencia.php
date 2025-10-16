@@ -16,7 +16,7 @@ class categorias_licencia extends Model
     protected $table = 'categorias_licencias';
 
     protected $fillable = [
+        'codigo',
         'descripcion',
-        'servicio',
     ];
 }
