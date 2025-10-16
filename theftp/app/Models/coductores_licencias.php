@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class coductores_licencias extends Model
+class coductores_licencias extends Model implements Auditable
 {
     /** @use HasFactory<\Database\Factories\CoductoresLicenciasFactory> */
     use HasFactory;
+    use \OwenIt\Auditing\Auditable;
 
     /**
     * La tabla asociada con el modelo.
