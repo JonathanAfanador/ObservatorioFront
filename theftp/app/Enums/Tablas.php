@@ -27,6 +27,7 @@ class Tablas{
   const TIPO_VEHICULO = 'tipo_vehiculo';
   const USERS = 'users';
   const VEHICULO = 'vehiculo';
+  const AUDITORIA = 'auditoria';
 
   public static function getValues()
   {
@@ -54,7 +55,8 @@ class Tablas{
           self::TIPO_IDENT,
           self::TIPO_VEHICULO,
           self::USERS,
-          self::VEHICULO
+          self::VEHICULO,
+          self::AUDITORIA,
       ];
 
   }

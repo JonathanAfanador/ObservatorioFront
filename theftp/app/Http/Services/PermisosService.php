@@ -12,7 +12,7 @@ class PermisosService
   const VALIDAR = true; // Cambiar a false para desactivar la validación
 
   /*
-  
+
   Implementación de middleware para los crud de cada tabla, si no se puede crear un servicio global (un archivo .php que contenga una función que reciba un arreglo de permisos. Ej:
   [
     [
@@ -31,11 +31,20 @@ class PermisosService
       ]
     ],
   ]
-  
+
   */
 
   private static function throwNotPermission(){
     throw new Exception("No tiene permisos para realizar esta acción", 403);
+  }
+
+  public static function verificarPermisoIndividual($tabla, ...$permisos){
+    return self::verificarPermisos([
+      [
+        'tabla' => $tabla,
+        'acciones' => $permisos
+      ]
+    ]);
   }
 
   public static function verificarPermisos( $arrayPermisos )
@@ -65,7 +74,7 @@ class PermisosService
 
     $usuario = Auth::user()->load(['rol', 'rol.permisos']);
     /*
-    
+
 "usuario": {
         "id": 1,
         "name": "Admin Sistema",
