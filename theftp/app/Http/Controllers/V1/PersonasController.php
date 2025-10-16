@@ -127,6 +127,7 @@ class PersonasController extends Controller{
 
         $validator->setCustomMessages($messages);
 
+        // Validar que el usuario tenga permisos para transferir la cédula
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
@@ -137,10 +138,12 @@ class PersonasController extends Controller{
             $persona1 = personas::where('id', $datos['id_persona1'])->first();
             $persona2 = personas::where('id', $datos['id_persona2'])->first();
 
+            // Validar que ambas personas existan
             if(!$persona1 || !$persona2){
                 return response()->json(['error' => 'No se encontró una de las personas.'], 404);
             }
 
+            // Validar que no sean la misma persona 
             if($persona1->id === $persona2->id){
                 return response()->json(['error' => 'No se puede transferir la cédula a la misma persona.'], 400);
             }
