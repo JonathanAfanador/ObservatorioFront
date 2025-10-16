@@ -21,6 +21,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->foreignId('persona_id')->constrained('personas');
             $table->foreignId('rol_id')->constrained('rol');
+            $table->foreignId('empresa_id')->nullable()->constrained('empresas');
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

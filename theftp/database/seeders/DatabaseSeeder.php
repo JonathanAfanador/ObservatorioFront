@@ -23,9 +23,9 @@ class DatabaseSeeder extends Seeder
             DocumentosSeeder::class,
             RolesSeeder::class,
             PersonasSeeder::class,
-            UserSeeder::class,
             EmpresaSeeder::class,
-            EmpresaUsuarioSeeder::class,
+            UserSeeder::class,
+            // EmpresaUsuarioSeeder::class, // Removido
             PropietariosSeeder::class,
             // PermisosSeeder::class, // TODO: Revisar al finalizar el backend
         ]);

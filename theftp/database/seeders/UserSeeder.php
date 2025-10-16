@@ -9,6 +9,10 @@ use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
+
+    const ID_EMPRESA_ATANASIO = 1;
+    const ID_EMPRESA_RAPIDO_DEL_CARMEN = 2;
+
     public function run(): void
     {
         // --- Mapa de roles: 'ADMINISTRADOR' => id ---
@@ -54,6 +58,7 @@ class UserSeeder extends Seeder
                 'persona_id'        => $popPersonaId(),
                 'rol_id'            => $getRolId('Administrador'),
                 'remember_token'    => Str::random(10),
+                'empresa_id'       => null, // Puede ver todas
                 // timestamps: los maneja la BD/migración si tienes defaults; si no, se llenan solos por Eloquent. Aquí DB::table(), quedan null => OK.
             ],
             [
@@ -65,6 +70,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'persona_id'        => $popPersonaId(),
                 'rol_id'            => $getRolId('Secretaria de tránsito'),
+                'empresa_id'        => self::ID_EMPRESA_ATANASIO, 
                 'remember_token'    => Str::random(10),
             ],
             [
@@ -76,6 +82,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'persona_id'        => $popPersonaId(),
                 'rol_id'            => $getRolId('Empresa_transporte'),
+                'empresa_id'        => self::ID_EMPRESA_ATANASIO, 
                 'remember_token'    => Str::random(10),
             ],
             [
@@ -87,6 +94,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'persona_id'        => $popPersonaId(),
                 'rol_id'            => $getRolId('Usuario_upc'),
+                'empresa_id'        => self::ID_EMPRESA_ATANASIO, 
                 'remember_token'    => Str::random(10),
             ],
             [
@@ -98,6 +106,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => null,
                 'persona_id'        => $popPersonaId(),
                 'rol_id'            => $getRolId('Invitado'),
+                'empresa_id'        => self::ID_EMPRESA_RAPIDO_DEL_CARMEN, 
                 'remember_token'    => Str::random(10),
             ],
         ];
@@ -132,6 +141,7 @@ class UserSeeder extends Seeder
                 'persona_id'        => $popPersonaId(),
                 'rol_id'            => $rolesDisponibles[array_rand($rolesDisponibles)],
                 'remember_token'    => Str::random(10),
+                'empresa_id'        => (rand(0,1) ? self::ID_EMPRESA_ATANASIO : self::ID_EMPRESA_RAPIDO_DEL_CARMEN),
             ];
         }
 
