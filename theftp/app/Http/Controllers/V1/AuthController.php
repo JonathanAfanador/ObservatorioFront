@@ -139,6 +139,23 @@ class AuthController extends Controller{
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // Validación de Usuario valido
+        $usuario = User::where('email', $datos['email'])->first();
+
+        if (!$usuario) {
+            return response()->json(['message' => 'Credenciales incorrectas'], 401);
+        }
+
+        // Validar si el usuario está inhabilitado
+        if ($usuario->unable) {
+            return response()->json(['message' => 'El usuario está inhabilitado'], 403);
+        }
+
+        // Validar si el usuario fue eliminado
+        if ($usuario->deleted_at) {
+            return response()->json(['message' => 'El usuario no existe'], 404);
+        }
+
         if(Auth::attempt(['email'=> $datos['email'],'password'=> $datos['password']])){
 
             $tiempoExpiracion = 120; // 120 minutos
