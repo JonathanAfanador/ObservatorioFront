@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\V1;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
@@ -13,148 +14,188 @@ class DepartamentosController extends Controller
 {
     public function departamentos_paginados(Request $request){
 
+
+
         $datos = $request->all();
 
-        //Validador
+        // Validador
         $validator = Validator::make($datos, [
-            'page' => 'sometimes|integer|min:1',
-            'per_page' => 'sometimes|integer|min:1|max:100',
-            'sort' => 'sometimes|string|in:asc,desc',
-            'filter' => 'sometimes|string|max:255',
+            'page'           => 'sometimes|integer|min:1',
+            'per_page'       => 'sometimes|integer|min:1|max:100',
+            // Permite -created_at, nombre de columna con letras/números/underscore/punto
+            'sort'           => ['sometimes','string','max:191','regex:/^-?[A-Za-z0-9_\.]+$/'],
+            // filter llega como JSON (array de objetos: [{column: "...", value: ...}])
+            'filter'         => 'sometimes|string',
             'includeDeleted' => 'sometimes|boolean',
         ]);
 
-
-        //Mensajes de errores en español
+        // Etiquetas
         $validator->setAttributeNames([
-            'page' => 'página',
-            'per_page' => 'elementos por página',
-            'sort' => 'orden',
-            'filter' => 'filtro',
+            'page'           => 'página',
+            'per_page'       => 'elementos por página',
+            'sort'           => 'orden',
+            'filter'         => 'filtro',
             'includeDeleted' => 'incluir eliminados',
         ]);
 
-        //Mensajes de error personalizados
-        $messages = [
-            'page.integer' => 'El :attribute debe ser un número entero.',
-            'page.min' => 'El :attribute debe ser al menos :min.',
-            'per_page.integer' => 'El :attribute debe ser un número entero.',
-            'per_page.min' => 'El :attribute debe ser al menos :min.',
-            'per_page.max' => 'El :attribute no debe exceder :max.',
-            'sort.string' => 'El :attribute debe ser una cadena de texto.',
-            'sort.in' => 'El :attribute debe ser uno de los siguientes valores: :values.',
-            'filter.string' => 'El :attribute debe ser una cadena de texto.',
-            'filter.max' => 'El :attribute no debe exceder los :max caracteres.',
-            'includeDeleted.boolean' => 'El :attribute debe ser true o false.',
-        ];
+        // Mensajes
+        $validator->setCustomMessages([
+            'page.integer'            => 'El :attribute debe ser un número entero.',
+            'page.min'                => 'El :attribute debe ser al menos :min.',
+            'per_page.integer'        => 'El :attribute debe ser un número entero.',
+            'per_page.min'            => 'El :attribute debe ser al menos :min.',
+            'per_page.max'            => 'El :attribute no debe exceder :max.',
+            'sort.string'             => 'El :attribute debe ser una cadena de texto.',
+            'sort.max'                => 'El :attribute no debe exceder :max caracteres.',
+            'sort.regex'              => 'El :attribute debe indicar una columna válida (por ejemplo "-created_at" o "nombre").',
+            'filter.string'           => 'El :attribute debe ser una cadena JSON.',
+            'includeDeleted.boolean'  => 'El :attribute debe ser true o false.',
+        ]);
 
-        // Asignar mensajes personalizados al validador
-        $validator->setCustomMessages($messages);
-
-        // Validar y retornar errores si los hay
+        // 400 Bad Request
         if ($validator->fails()) {
-            return response()->json(['status' => false,
-            'messages' => 'Parámetros inválidos',
-            'data' => [],
-            'errors' => $validator->errors()], 400); // 400 Bad Request
+            return response()->json([
+                'status'   => false,
+                'messages' => 'Parámetros inválidos',
+                'data'     => [],
+                'errors'   => $validator->errors()
+            ], 400);
         }
 
         try {
             // Parámetros con valores por defecto
-            $page = (int) $request->input('page', 1); // Valor por defecto 1
-            $perPage = (int) $request->input('per_page', 10); // Valor por defecto 10
-            if ($perPage > 100) $perPage = 100; // Máximo 100
+            $page           = (int) $request->input('page', 1);
+            $perPage        = (int) $request->input('per_page', 10);
+            if ($perPage > 100) $perPage = 100;
 
-            $sortParam = $request->input('sort', 'desc'); // Valor por defecto desc
-            $filterRaw = $request->input('filter'); // JSON como string
-            $includeDeleted = filter_var($request->input('includeDeleted', false), FILTER_VALIDATE_BOOLEAN); // Valor por defecto false
+            $sortParam      = $request->input('sort'); // p. ej., -created_at
+            $filterRaw      = $request->input('filter'); // JSON como string
+            $includeDeleted = filter_var($request->input('includeDeleted', false), FILTER_VALIDATE_BOOLEAN);
 
             $tabla = 'departamentos';
             $query = DB::table($tabla);
 
             // includeDeleted (por defecto false => sólo no eliminados)
-            if (!$includeDeleted) {
-                //se asume soft delete con campo deleted_at
-                if (Schema::hasColumn($tabla, 'deleted_at')) {
-                    $query->whereNull('deleted_at');
-                }
+            if (!$includeDeleted && Schema::hasColumn($tabla, 'deleted_at')) {
+                $query->whereNull($tabla . '.deleted_at');
             }
 
-            // Filtro avanzado: JSON simple clave = Valor
+            // ---- Filtro avanzado: arreglo de reglas [{column, value}] ----
             if (!empty($filterRaw)) {
-                // Permitir que venga URL encoded o no
-                $maybeDecoded = $filterRaw;
-                // Si viene con comillas escapadas desde querystring, intentar decodificar tal cual
-                $filter = json_decode($maybeDecoded, true);
+                // Intentar decodificar tal cual y luego urldecode si falla
+                $filter = json_decode($filterRaw, true);
                 if ($filter === null && json_last_error() !== JSON_ERROR_NONE) {
-                    // Segundo intento: URL decode
-                    $filter = json_decode(urldecode($maybeDecoded), true);
+                    $filter = json_decode(urldecode($filterRaw), true);
                 }
+
+                // Debe ser array de reglas
                 if (!is_array($filter)) {
-                    return response()->json(['status' => false,
-                    'messages' => 'El parámetro filter debe ser un JSON válido.',
-                    'data' => [],
-                    'errors' => ['filter' => ['El parámetro filter debe ser un JSON válido.']]], 400);
+                    return response()->json([
+                        'status'   => false,
+                        'messages' => 'El parámetro filter debe ser un JSON con un arreglo de reglas.',
+                        'data'     => [],
+                        'errors'   => ['filter' => ['Formato inválido: se esperaba un arreglo de objetos {column, value}.']]
+                    ], 400);
                 }
-                // Aplicar filtros sólo en columnas existentes y evitar que interfiera con includeDeleted
-                foreach ($filter as $column => $value) {
-                    if($column === 'deleted_at') {
-                        // Ignorar filtro en deleted_at para no interferir con includeDeleted
+
+                foreach ($filter as $idx => $rule) {
+                    // Validar estructura mínima
+                    if (!is_array($rule) || !array_key_exists('column', $rule)) {
+                        return response()->json([
+                            'status'   => false,
+                            'messages' => 'Parámetros inválidos',
+                            'data'     => [],
+                            'errors'   => ['filter' => ["Item #$idx inválido: falta la clave 'column'."]]
+                        ], 400);
+                    }
+
+                    $column = (string) $rule['column'];
+                    $value  = $rule['value'] ?? null;
+
+                    // No permitir interferir con includeDeleted
+                    if ($column === 'deleted_at') {
                         continue;
                     }
-                    if (Schema::hasColumn($tabla, $column)) {
-                        // Igualdad simple; si se requiere "like" o similar, se debe implementar aparte
-                        $query->where($tabla . '.' . $column, $value);
+
+                    // Validar columna existente
+                    if (!Schema::hasColumn($tabla, $column)) {
+                        return response()->json([
+                            'status'   => false,
+                            'messages' => "Parámetros inválidos: la columna '$column' no existe.",
+                            'data'     => [],
+                        ], 400);
+                    }
+
+                    // Aplicar condición
+                    $colFull = $tabla . '.' . $column;
+
+                    if (is_array($value)) {
+                        // whereIn para arrays (si el array viene vacío, no devuelve nada)
+                        if (count($value) === 0) {
+                            // Forzar resultado vacío de manera explícita
+                            $query->whereRaw('1=0');
+                        } else {
+                            $query->whereIn($colFull, $value);
+                        }
+                    } else {
+                        // Tratar null como whereNull/whereNotNull? (por ahora: whereNull si es null)
+                        if (is_null($value)) {
+                            $query->whereNull($colFull);
+                        } else {
+                            $query->where($colFull, $value);
+                        }
                     }
                 }
             }
+            // ---- Fin filtro avanzado ----
 
-            // Orden (sort "columna" => "asc|desc")
+            // Orden (sort: "-columna" => desc, "columna" => asc)
             if (!empty($sortParam)) {
                 $direction = 'asc';
-                $column = $sortParam;
+                $column    = $sortParam;
 
                 if (str_starts_with($sortParam, '-')) {
                     $direction = 'desc';
-                    $column = ltrim($sortParam, '-');
+                    $column    = ltrim($sortParam, '-');
                 }
 
-                // Validar que la columna exista en la tabla (Evitar SQL Injection)
-                if (Schema::hasColumn($tabla, $column)) {
-                    return response()->json(['status' => false,
-                        'messages' => 'Parámetros inválido: ',
-                        'data' => [],
+                // Validar columna
+                if (!Schema::hasColumn($tabla, $column)) {
+                    return response()->json([
+                        'status'   => false,
+                        'messages' => "Parámetro inválido: la columna de orden '$column' no existe.",
+                        'data'     => [],
                     ], 400);
                 }
+
                 $query->orderBy($tabla . '.' . $column, $direction);
             }
 
             // Paginación
-
             $paginator = $query->paginate($perPage, ['*'], 'page', $page);
-            $items = $paginator->items();
+            $items     = $paginator->items();
 
             if (empty($items)) {
-                // 404 Not Found si la página solicitada no tiene datos
-                return response()->json(['status' => false,
-                'messages' => 'No se encontraron departamentos para los parámetros proporcionados.',
-                'data' => [],
+                return response()->json([
+                    'status'   => false,
+                    'messages' => 'No se encontraron departamentos para los parámetros proporcionados.',
+                    'data'     => [],
                 ], 404);
             }
 
-            // 200 OK
             return response()->json([
-                'status' => true,
+                'status'   => true,
                 'messages' => null,
-                'data' => $items,
+                'data'     => $items,
             ], 200);
+
         } catch (\Throwable $e) {
-            // 500 Error Interno
-            return response()->json(['status' => false,
-            'messages' => 'Error interno del servidor.',
-            'data' => [],
-            'errors' => ['exception' => [$e->getMessage()]]
-        ], 500);
+            return response()->json([
+                'status'   => false,
+                'messages' => 'Error interno del servidor.',
+                'data'     => [],
+                'errors'   => ['exception' => [$e->getMessage()]]
+            ], 500);
         }
     }
 
@@ -167,15 +208,6 @@ class DepartamentosController extends Controller
                 'messages' => 'No autenticado',
                 'data' => null,
             ], 401); // 401 Unauthorized
-        }
-
-        // 403 Forbidden (no autorizado) - solo si esta definido con (Gate o Policy)
-        if (Gate::has('crear-departamento') && Gate::denies('crear-departamento')) {
-            return response()->json([
-                'status' => false,
-                'messages' => 'No autorizado para crear departamentos',
-                'data' => null,
-            ], 403); // 403 Forbidden
         }
 
         $datos = $request->all();
@@ -263,15 +295,6 @@ class DepartamentosController extends Controller
                 'messages' => 'No autenticado',
                 'data' => null,
             ], 401); // 401 Unauthorized
-        }
-
-        // 403 Forbidden (no autorizado) - solo si esta definido con (Gate o Policy)
-        if (Gate::has('actualizar-departamento') && Gate::denies('actualizar-departamento')) {
-            return response()->json([
-                'status' => false,
-                'messages' => 'No autorizado para actualizar departamentos',
-                'data' => null,
-            ], 403); // 403 Forbidden
         }
 
         $datos = $request->all();
@@ -375,20 +398,11 @@ class DepartamentosController extends Controller
             ], 401); // 401 Unauthorized
         }
 
-        // 403 Forbidden (no autorizado) - solo si esta definido con (Gate o Policy)
-        if (Gate::has('eliminar-departamento') && Gate::denies('eliminar-departamento')) {
-            return response()->json([
-                'status' => false,
-                'messages' => 'No autorizado para eliminar departamentos',
-                'data' => null,
-            ], 403); // 403 Forbidden
-        }
-
         $datos = $request->all();
 
         //Validador
         $validator = Validator::make($datos, [
-            'id' => 'required|integer|exists:departamentos,id',
+            'id' => 'required|integer|min:1',
         ]);
 
         //Mensajes de errores en español
@@ -487,23 +501,6 @@ class DepartamentosController extends Controller
     }
 
     public function restaurar_departamento(Request $request) {
-        // 401 Unauthorized si no está autenticado
-        if (!Auth::check()) {
-            return response()->json([
-                'status' => false,
-                'messages' => 'No autenticado',
-                'data' => null,
-            ], 401); // 401 Unauthorized
-        }
-
-        // 403 Forbidden (no autorizado) - solo si esta definido con (Gate o Policy)
-        if (Gate::has('restaurar-departamento') && Gate::denies('restaurar-departamento')) {
-            return response()->json([
-                'status' => false,
-                'messages' => 'No autorizado para restaurar departamentos',
-                'data' => null,
-            ], 403); // 403 Forbidden
-        }
 
         $datos = $request->all();
 
@@ -525,6 +522,18 @@ class DepartamentosController extends Controller
         ];
 
         $validator->setCustomMessages($messages);
+
+        // Mapeo: si falla exists, es 404 Not Found
+        if($validator->fails()) {
+            $failed = $validator->failed();
+            if(isset($failed['id']) && array_key_exists('Exists', $failed['id'])) {
+                return response()->json([
+                    'status' => false,
+                    'messages' => 'El departamento no existe',
+                    'data' => null,
+                ], 404); // 404 Not Found
+            }
+        }
 
         // 400 Bad Request (Datos inválidos)
         if ($validator->fails()) {
