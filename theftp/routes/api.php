@@ -3,6 +3,7 @@
 use App\Enums\Acciones;
 use App\Enums\Tablas;
 use App\Http\Controllers\V1\DepartamentosController;
+use App\Http\Controllers\V1\AuditoriaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
@@ -78,3 +79,8 @@ Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {
 // Registro y Login
 Route::post('/register', [AuthController::class, 'registro']);
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->prefix('auditoria')->group(function (){
+    Route::get('/get', [AuditoriaController::class,'getFieldsPaginated']);
+    Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniquesFields']);
+});
