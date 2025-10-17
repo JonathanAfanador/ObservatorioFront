@@ -2,7 +2,7 @@
 
 use App\Enums\Acciones;
 use App\Enums\Tablas;
-use App\Http\Controllers\DepartamentosController;
+use App\Http\Controllers\V1\DepartamentosController;
 use App\Http\Controllers\V1\AuditoriaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +26,12 @@ Route::get('/test', function (){
             'acciones' => [
                 Acciones::CREATE,
                 Acciones::READ,
+            ],
+        ],
+        [
+            'tabla' => Tablas::DEPARTAMENTOS,
+            'acciones' => [
+                Acciones::CREATE,
             ],
         ]
     ];
@@ -57,16 +63,18 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 //TODO: Rutas para departamentos
-// Paginacion
-Route::get('/paginacion', [DepartamentosController::class, 'departamentos_paginados'])->middleware('auth:sanctum');
-// Creacion
-Route::post('/creacion', [DepartamentosController::class, 'crear_departamento'])->middleware('auth:sanctum');
-// Actualizacion
-Route::put('/actualizacion', [DepartamentosController::class, 'actualizar_departamento'])->middleware('auth:sanctum');
-// Eliminacion (Deshabilitacion)
-Route::delete('/eliminacion', [DepartamentosController::class, 'eliminar_departamento'])->middleware('auth:sanctum');
-// Restauracion (Habilitacion)
-Route::post('/restauracion', [DepartamentosController::class, 'restaurar_departamento'])->middleware('auth:sanctum');
+Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {
+    // Paginacion
+    Route::get('/paginacion', [DepartamentosController::class, 'departamentos_paginados']);
+    // Creacion
+    Route::post('/creacion', [DepartamentosController::class, 'crear_departamento']);
+    // Actualizacion
+    Route::put('/actualizacion', [DepartamentosController::class, 'actualizar_departamento']);
+    // Eliminacion (Deshabilitacion)
+    Route::delete('/eliminacion', [DepartamentosController::class, 'eliminar_departamento']);
+    // Restauracion (Habilitacion)
+    Route::post('/restauracion', [DepartamentosController::class, 'restaurar_departamento']);
+});
 
 // Registro y Login
 Route::post('/register', [AuthController::class, 'registro']);
