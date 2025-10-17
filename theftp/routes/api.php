@@ -52,16 +52,6 @@ Route::get('/test', function (){
 
 })->middleware('auth:sanctum');
 
-// Ruta para obtener el usuario autenticado con sus relaciones
-Route::get('/user', function (Request $request) {
-    $usuario = Auth::user();
-
-    $usuario->load(['persona', 'rol', 'persona.tipo_ident']);
-
-    return $usuario;
-
-})->middleware('auth:sanctum');
-
 //TODO: Rutas para departamentos
 Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {
     // Paginacion
@@ -79,6 +69,12 @@ Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {
 // Registro y Login
 Route::post('/register', [AuthController::class, 'registro']);
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function (){
+    Route::get('/logout', [AuthController::class, 'logout']);
+    Route::get('/global-logout', [AuthController::class, 'globalLogout']);
+    Route::get('/me', [AuthController::class, 'me']);
+});
 
 Route::middleware('auth:sanctum')->prefix('auditoria')->group(function (){
     Route::get('/get', [AuditoriaController::class,'getFieldsPaginated']);

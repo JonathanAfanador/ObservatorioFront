@@ -4,22 +4,25 @@ namespace App\Http\Controllers\V1;
 
 use App\Enums\Genders;
 use App\Http\Controllers\Controller;
+use App\Models\cierre_sesion;
+use App\Models\inicio_sesion;
 use App\Models\personas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rules\Enum;
-
-
 
 class AuthController extends Controller{
 
     const ROL_PORDEFECTO = 5;
 
-    public function helloWorld(){
-        return response()->json(['message' => 'Hola Mundo desde AuthController']);
+    public function me(){
+        $usuario = Auth::user();
+
+        $usuario->load(['persona', 'rol', 'persona.tipo_ident']);
+
+        return $usuario;
     }
 
     public function registro(Request $request){
@@ -146,6 +149,13 @@ class AuthController extends Controller{
             return response()->json(['message' => 'Credenciales incorrectas'], 401);
         }
 
+        inicio_sesion::create([
+            'direccion_ip' => $request->ip(),
+            'fecha_hora_inicio' => now(),
+            'fecha_ultima_actividad' => now(),
+            'usuario_id' => $usuario->id,
+        ]);
+
         // Validar si el usuario está inhabilitado
         if ($usuario->unable) {
             return response()->json(['message' => 'El usuario está inhabilitado'], 403);
@@ -170,6 +180,36 @@ class AuthController extends Controller{
         }
 
         return response()->json(['message' => 'Credenciales incorrectas'], 401);
+    }
+
+    public function logout(Request $request){
+        $user = $request->user();
+
+        // Revocar el token actual
+        $user->currentAccessToken()->delete();
+
+        cierre_sesion::create([
+            'direccion_ip' => $request->ip(),
+            'fecha_hora_cierre' => now(),
+            'usuario_id' => $user->id,
+        ]);
+
+        return response()->json(['message' => 'Cierre de sesión exitoso'], 200);
+    }
+
+    public function globalLogout(Request $request){
+        $user = $request->user();
+
+        // Revocar todos los tokens del usuario
+        $user->tokens()->delete();
+
+        cierre_sesion::create([
+            'direccion_ip' => $request->ip(),
+            'fecha_hora_cierre' => now(),
+            'usuario_id' => $user->id,
+        ]);
+
+        return response()->json(['message' => 'Cierre de sesión global exitoso'], 200);
     }
 
 }

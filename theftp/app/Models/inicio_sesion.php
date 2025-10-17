@@ -15,7 +15,7 @@ class inicio_sesion extends Model implements Auditable
     /**
     * La tabla asociada con el modelo.
     */
-    protected $table = 'inicio_sesions';
+    protected $table = 'inicio_sesion';
 
     protected $fillable = [
         'usuario_id',
