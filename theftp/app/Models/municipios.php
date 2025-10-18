@@ -23,4 +23,8 @@ class municipios extends Model implements Auditable
         'departamento_id',
         'geometry'
     ];
+
+    public function departamento(){
+        return $this->belongsTo(departamentos::class, 'departamentos_id');
+    }
 }

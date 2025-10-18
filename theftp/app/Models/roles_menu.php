@@ -12,7 +12,7 @@ class roles_menu extends Model implements Auditable
     use HasFactory;
     use \OwenIt\Auditing\Auditable;
 
-    protected $table = 'roles_menu';
+    protected $table = 'roles_menus';
 
     protected $fillable = [
         'rol_id',

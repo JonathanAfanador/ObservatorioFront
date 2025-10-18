@@ -24,7 +24,7 @@ class documentos extends Model implements Auditable
     ];
 
     // Función para definir la relación con el modelo tipos_documentos
-    public function tipoDoc(){
+    public function tipo_documento(){
         return $this->belongsTo(tipo_doc::class, 'tipo_doc_id'); // Relación con el modelo tipos_documentos
     }
 }

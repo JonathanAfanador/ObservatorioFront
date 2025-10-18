@@ -15,7 +15,7 @@ class tipo_vehiculo extends Model implements Auditable
     /**
     * La tabla asociada con el modelo.
     */
-    protected $table = 'tipos_vehiculos';
+    protected $table = 'tipo_vehiculo';
 
     protected $fillable = [
         'descripcion',

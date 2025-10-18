@@ -20,4 +20,8 @@ class restriccion_lic extends Model implements Auditable
     protected $fillable = [
         'descripcion',
     ];
+
+    public function licencias(){
+        return $this->hasMany(licencias::class, 'restriccion_lic_id');
+    }
 }

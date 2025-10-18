@@ -15,9 +15,13 @@ class tipo_doc extends Model implements Auditable
     /**
     * La tabla asociada con el modelo.
     */
-    protected $table = 'tipos_doc';
+    protected $table = 'tipo_doc';
 
     protected $fillable = [
         'descripcion',
     ];
+
+    public function documentos(){
+        return $this->hasMany(documentos::class, 'tipo_doc_id');
+    }
 }

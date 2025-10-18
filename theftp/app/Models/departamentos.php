@@ -22,4 +22,8 @@ class departamentos extends Model implements Auditable
         'codigo_dane',
         'geometry'
     ];
+
+    public function municipios(){
+        return $this->hasMany(municipios::class, 'departamentos_id');
+    }
 }

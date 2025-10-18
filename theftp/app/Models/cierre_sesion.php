@@ -22,4 +22,8 @@ class cierre_sesion extends Model implements Auditable
         'fecha_hora_cierre',
         'direccion_ip',
     ];
+
+    public function usuario(){
+        return $this->belongsTo(User::class, 'usuario_id');
+    }
 }

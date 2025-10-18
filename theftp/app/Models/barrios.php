@@ -23,6 +23,6 @@ class barrios extends Model implements Auditable
     ];
 
     public function municipio(){
-        return $this->belongsTo(municipios::class, 'municipio_id');
+        return $this->belongsTo(municipios::class, 'municipios_id');
     }
 }

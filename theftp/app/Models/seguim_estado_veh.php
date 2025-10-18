@@ -15,7 +15,7 @@ class seguim_estado_veh extends Model implements Auditable
     /**
     * La tabla asociada con el modelo.
     */
-    protected $table = 'seguim_estados_veh';
+    protected $table = 'seguim_estado_veh';
 
     protected $fillable = [
         'kilometraje',
@@ -23,6 +23,7 @@ class seguim_estado_veh extends Model implements Auditable
         'observaciones',
         'usuario_id',
         'vehiculo_id',
+        'ruta_id',
     ];
 
     // Función para definir la relación con el modelo usuarios
@@ -33,5 +34,9 @@ class seguim_estado_veh extends Model implements Auditable
     // Función para definir la relación con el modelo vehiculos
     public function vehiculo(){
         return $this->belongsTo(vehiculo::class, 'vehiculo_id'); // Relación con el modelo vehiculos
+    }
+
+    public function ruta(){
+        return $this->belongsTo(rutas::class, 'ruta_id');
     }
 }

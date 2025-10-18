@@ -4,53 +4,52 @@ use App\Enums\Acciones;
 use App\Enums\Tablas;
 use App\Http\Controllers\V1\DepartamentosController;
 use App\Http\Controllers\V1\AuditoriaController;
+use App\Models\conductores;
+use App\Models\seguim_estado_veh;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
 use App\Http\Services\PermisosService;
+use App\Models\barrios;
+use App\Models\cierre_sesion;
+use App\Models\conductores_licencias;
+use App\Models\departamentos;
+use App\Models\documentos;
+use App\Models\empresas;
+use App\Models\inicio_sesion;
+use App\Models\menus;
+use App\Models\municipios;
+use App\Models\permisos;
+use App\Models\propietarios;
+use App\Models\restriccion_lic;
+use App\Models\rol;
+use App\Models\rutas;
+use App\Models\tipo_doc;
+use App\Models\tipo_empresa;
+use App\Models\tipo_ident;
 use Illuminate\Support\Facades\Auth;
 
 // Rutas API
 Route::get('/test', function (){
-    // Definir los permisos a verificar
-    $permisos = [
-        [
-            'tabla' => Tablas::USERS,
-            'acciones' => [
-                Acciones::CREATE,
-                Acciones::READ
-            ],
-        ],
-        [
-            'tabla' => Tablas::RUTAS,
-            'acciones' => [
-                Acciones::CREATE,
-                Acciones::READ,
-            ],
-        ],
-        [
-            'tabla' => Tablas::DEPARTAMENTOS,
-            'acciones' => [
-                Acciones::CREATE,
-            ],
-        ]
-    ];
-    // Verificar permisos
-    try{
-
-        PermisosService::verificarPermisos($permisos);
-
-        return response()->json([
-            'message' => 'Permisos verificados correctamente'
-        ], 200);
-        // Si no tiene permisos, se lanza una excepción y se captura aquí
-    } catch (Exception $e){
-        return response()->json([
-            'message' => $e->getMessage()
-        ], $e->getCode() ?: 400);
-    }
-
-})->middleware('auth:sanctum');
+    // return barrios::with(['municipio', 'municipio.departamento'])->get();
+    // return conductores_licencias::with(['conductor', 'conductor.persona', 'conductor.persona.tipo_ident', 'licencia', 'licencia.restriccion', 'licencia.categoria', 'licencia.documento'])->get();
+    // return conductores::with(['persona', 'persona.tipo_ident'])->get();
+    // return departamentos::with('municipios')->get();
+    // return cierre_sesion::with('usuario', 'usuario.persona', 'usuario.rol', 'usuario.persona.tipo_ident')->get();
+    // return documentos::with('tipo_documento')->get();
+    // return empresas::with('usuarios')->get();
+    // return inicio_sesion::with('usuario')->get();
+    // return menus::with(['submenusRecursive', 'roles_menu'])->get();
+    // return permisos::with('rol')->get();
+    // return propietarios::with(['documento'])->get();
+    // return restriccion_lic::with('licencias')->get();
+    // return rol::with(['permisos', 'users'])->get();
+    // return rutas::with('empresa')->get();
+    // return seguim_estado_veh::with(['usuario', 'vehiculo', 'vehiculo.tipo', 'ruta', 'vehiculo.propietario'])->get();
+    // return tipo_doc::with('documentos')->get();
+    // return tipo_empresa::with('empresas')->get();
+    // return tipo_ident::with('personas')->get();
+});
 
 //TODO: Rutas para departamentos
 Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {

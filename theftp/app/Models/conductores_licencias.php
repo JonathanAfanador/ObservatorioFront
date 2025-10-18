@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 
-class coductores_licencias extends Model implements Auditable
+class conductores_licencias extends Model implements Auditable
 {
     /** @use HasFactory<\Database\Factories\CoductoresLicenciasFactory> */
     use HasFactory;
@@ -15,7 +15,7 @@ class coductores_licencias extends Model implements Auditable
     /**
     * La tabla asociada con el modelo.
     */
-    protected $table = 'coductores_licencias';
+    protected $table = 'conductores_licencias';
 
     protected $fillable = [
         'conductor_id',

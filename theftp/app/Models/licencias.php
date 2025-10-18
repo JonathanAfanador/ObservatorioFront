@@ -24,12 +24,12 @@ class licencias extends Model implements Auditable
     ];
 
     // Función para definir la relación con el modelo restricciones_licencias
-    public function restriccionLic(){
+    public function restriccion(){
         return $this->belongsTo(restriccion_lic::class, 'restriccion_lic_id'); // Relación con el modelo restricciones_licencias
     }
 
     // Función para definir la relación con el modelo categorias_licencias
-    public function categoriaLic(){
+    public function categoria(){
         return $this->belongsTo(categorias_licencia::class, 'categoria_lic_id'); // Relación con el modelo categorias_licencias
     }
 

@@ -20,8 +20,11 @@ class rutas extends Model implements Auditable
     protected $fillable = [
         'nombre',
         'codigo_dane',
-        'municipio_id',
         'file_name',
         'empresa_id',
     ];
+
+    public function empresa(){
+        return $this->belongsTo(empresas::class, 'empresa_id');
+    }
 }

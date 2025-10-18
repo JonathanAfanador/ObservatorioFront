@@ -23,4 +23,8 @@ class permisos extends Model implements Auditable
         'update',
         "delete",
     ];
+
+    public function rol(){
+        return $this->belongsTo(rol::class, 'rol_id');
+    }
 }

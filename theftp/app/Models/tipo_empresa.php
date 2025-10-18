@@ -21,8 +21,10 @@ class tipo_empresa extends Model implements Auditable
         'descripcion',
     ];
 
-    // Relación con el modelo User (un tipo de empresa puede tener muchos usuarios)
-    public function users(){
-        return $this->hasMany(User::class, 'tipo_empresa_id');
+    // Relación con el modelo empresas (un tipo de empresa puede tener muchas empresas)
+    public function empresas(){
+        return $this->hasMany(empresas::class, 'tipo_empresa_id');
     }
+
+
 }

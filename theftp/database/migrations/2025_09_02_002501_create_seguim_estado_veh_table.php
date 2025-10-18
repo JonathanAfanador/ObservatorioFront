@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('observaciones')->nullable();
             $table->foreignId('usuario_id')->constrained('users');
             $table->foreignId('vehiculo_id')->constrained('vehiculo');
+            $table->foreignId('ruta_id')->constrained('rutas');
             $table->timestamps();
             $table->softDeletes();
         });

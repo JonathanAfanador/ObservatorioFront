@@ -15,7 +15,7 @@ class categorias_licencia extends Model implements Auditable
     /**
     * La tabla asociada con el modelo.
     */
-    protected $table = 'categorias_licencias';
+    protected $table = 'categorias_licencia';
 
     protected $fillable = [
         'codigo',

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('name');
             $table->text('icon')->nullable();
             $table->text('url')->nullable();
-            $table->foreignId('padre_id')->constrained('menus');
+            $table->foreignId('padre_id')->nullable()->constrained('menus');
             $table->timestamps();
             $table->softDeletes();
         });

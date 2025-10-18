@@ -23,4 +23,8 @@ class inicio_sesion extends Model implements Auditable
         'fecha_ultima_actividad',
         'ip'
     ];
+
+    public function usuario(){
+        return $this->belongsTo(User::class, 'usuario_id');
+    }
 }

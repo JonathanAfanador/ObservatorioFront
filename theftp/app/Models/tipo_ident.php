@@ -20,4 +20,8 @@ class tipo_ident extends Model implements Auditable
     protected $fillable = [
         'descripcion',
     ];
+
+    public function personas(){
+        return $this->hasMany(personas::class, 'tipo_ident_id');
+    }
 }
