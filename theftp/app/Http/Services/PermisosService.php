@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class PermisosService
 {
-  const VALIDAR = true; // Cambiar a false para desactivar la validación
+  const VALIDAR = false; // Cambiar a false para desactivar la validación
 
   /*
 
@@ -41,7 +41,7 @@ class PermisosService
   public static function verificarPermisoIndividual($tabla, ...$permisos){
     return self::verificarPermisos([
       [
-        'tabla' => $tabla,
+        'tabla' => $tabla->value,
         'acciones' => $permisos
       ]
     ]);
@@ -123,7 +123,7 @@ class PermisosService
     }
 
     foreach ($arrayPermisos as $permiso) {
-      $tabla = $permiso['tabla'];
+      $tabla = $permiso['tabla']->value ?? $permiso['tabla'];
       $acciones = $permiso['acciones'];
 
       // Buscar el permiso correspondiente en los permisos del rol

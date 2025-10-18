@@ -2,7 +2,7 @@
 
 use App\Enums\Acciones;
 use App\Enums\Tablas;
-use App\Http\Controllers\TestController;
+use App\Http\Controllers\MunicipiosController;
 use App\Http\Controllers\V1\DepartamentosController;
 use App\Http\Controllers\V1\AuditoriaController;
 use App\Models\conductores;
@@ -31,29 +31,7 @@ use App\Models\tipo_ident;
 use Illuminate\Support\Facades\Auth;
 
 // Rutas API
-Route::get('/test', function (){
-    // return barrios::with(['municipio', 'municipio.departamento'])->get();
-    // return conductores_licencias::with(['conductor', 'conductor.persona', 'conductor.persona.tipo_ident', 'licencia', 'licencia.restriccion', 'licencia.categoria', 'licencia.documento'])->get();
-    // return conductores::with(['persona', 'persona.tipo_ident'])->get();
-    // return departamentos::with('municipios')->get();
-    // return cierre_sesion::with('usuario', 'usuario.persona', 'usuario.rol', 'usuario.persona.tipo_ident')->get();
-    // return documentos::with('tipo_documento')->get();
-    // return empresas::with('usuarios')->get();
-    // return inicio_sesion::with('usuario')->get();
-    // return menus::with(['submenusRecursive', 'roles_menu'])->get();
-    // return permisos::with('rol')->get();
-    // return propietarios::with(['documento'])->get();
-    // return restriccion_lic::with('licencias')->get();
-    // return rol::with(['permisos', 'users'])->get();
-    // return rutas::with('empresa')->get();
-    // return seguim_estado_veh::with(['usuario', 'vehiculo', 'vehiculo.tipo', 'ruta', 'vehiculo.propietario'])->get();
-    // return tipo_doc::with('documentos')->get();
-    // return tipo_empresa::with('empresas')->get();
-    // return tipo_ident::with('personas')->get();
-
-    $test = new TestController();
-    return $test->index();
-});
+Route::get('/test', [MunicipiosController::class, 'index']);
 
 // //TODO: Rutas para departamentos
 // Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {
@@ -69,17 +47,24 @@ Route::get('/test', function (){
 //     Route::post('/restauracion', [DepartamentosController::class, 'restaurar_departamento']);
 // });
 
-// // Registro y Login
-// Route::post('/register', [AuthController::class, 'registro']);
-// Route::post('/login', [AuthController::class, 'login']);
+// Registro y Login
+Route::prefix('auth')->group(function (){
+    Route::post('/register', [AuthController::class, 'registro']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
-// Route::middleware('auth:sanctum')->group(function (){
-//     Route::get('/logout', [AuthController::class, 'logout']);
-//     Route::get('/global-logout', [AuthController::class, 'globalLogout']);
-//     Route::get('/me', [AuthController::class, 'me']);
-// });
+Route::middleware('auth:sanctum')->group(function (){
+    // -- Auth Routes
+    Route::prefix('auth')->group(function (){
+        Route::get('/logout', [AuthController::class, 'logout']);
+        Route::get('/global-logout', [AuthController::class, 'globalLogout']);
+        Route::get('/me', [AuthController::class, 'me']);
+    });
 
-// Route::middleware('auth:sanctum')->prefix('auditoria')->group(function (){
-//     Route::get('/get', [AuditoriaController::class,'getFieldsPaginated']);
-//     Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniquesFields']);
-// });
+    // -- Auditoria Routes
+    Route::prefix('auditoria')->group(function (){
+        Route::get('/', [AuditoriaController::class,'getFieldsPaginated']);
+        Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniquesFields']);
+    });
+});
+

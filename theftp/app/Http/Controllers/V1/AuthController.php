@@ -1,8 +1,14 @@
 <?php
-
+/**
+ * @OA\Tag(
+ *     name="Auth",
+ *     description="Operaciones relacionadas con la autenticación de usuarios"
+ * )
+ */
 namespace App\Http\Controllers\V1;
 
 use App\Enums\Genders;
+use App\Enums\Tablas;
 use App\Http\Controllers\Controller;
 use App\Models\cierre_sesion;
 use App\Models\inicio_sesion;
@@ -15,8 +21,29 @@ use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller{
 
+    public function __construct(){
+        parent::__construct(new User(), Tablas::USERS);
+    }
+
     const ROL_PORDEFECTO = 5;
 
+    /**
+     * @OA\Get(
+     *     path="/api/auth/me",
+     *     summary="Obtener información del usuario autenticado",
+     *     tags={"Auth"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Información del usuario autenticado",
+     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="No autenticado"
+     *     )
+     * )
+     */
     public function me(){
         $usuario = Auth::user();
 
@@ -25,6 +52,34 @@ class AuthController extends Controller{
         return $usuario;
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/auth/register",
+     *     summary="Registrar un nuevo usuario",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"nui", "name", "last_name", "email", "password", "gender", "tipo_ident_id"},
+     *             @OA\Property(property="nui", type="string", example="123456789"),
+     *             @OA\Property(property="name", type="string", example="Juan"),
+     *             @OA\Property(property="last_name", type="string", example="Pérez"),
+     *             @OA\Property(property="email", type="string", format="email", example="juan.perez@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="gender", type="string", example="Hombre"),
+     *             @OA\Property(property="tipo_ident_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Usuario registrado exitosamente"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Errores de validación"
+     *     )
+     * )
+     */
     public function registro(Request $request){
 
         $datos = $request->all();
@@ -114,6 +169,33 @@ class AuthController extends Controller{
         return response()->json(['message' => 'Usuario registrado exitosamente'], 201);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/auth/login",
+     *     summary="Iniciar sesión",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email", "password"},
+     *             @OA\Property(property="email", type="string", format="email", example="juan.perez@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Inicio de sesión exitoso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Inicio de sesión exitoso"),
+     *             @OA\Property(property="token", type="string", example="Bearer token")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Credenciales incorrectas"
+     *     )
+     * )
+     */
     public function login(Request $request){
 
         $datos = $request->all();
@@ -182,6 +264,18 @@ class AuthController extends Controller{
         return response()->json(['message' => 'Credenciales incorrectas'], 401);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/auth/logout",
+     *     summary="Cerrar sesión",
+     *     tags={"Auth"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cierre de sesión exitoso"
+     *     )
+     * )
+     */
     public function logout(Request $request){
         $user = $request->user();
 
@@ -197,6 +291,18 @@ class AuthController extends Controller{
         return response()->json(['message' => 'Cierre de sesión exitoso'], 200);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/auth/global-logout",
+     *     summary="Cerrar sesión global",
+     *     tags={"Auth"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cierre de sesión global exitoso"
+     *     )
+     * )
+     */
     public function globalLogout(Request $request){
         $user = $request->user();
 

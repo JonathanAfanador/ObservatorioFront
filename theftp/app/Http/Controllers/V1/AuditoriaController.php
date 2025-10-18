@@ -12,6 +12,34 @@ use Illuminate\Http\Request;
 
 class AuditoriaController extends Controller{
 
+    public function __construct(){
+        parent::__construct(new Audit(), Tablas::AUDITORIA);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/auditoria/{field}/uniques",
+     *     summary="Obtener valores únicos de un campo en la tabla de auditoría",
+     *     tags={"Auditoría"},
+     *    security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="field",
+     *         in="path",
+     *         description="Campo de la tabla de auditoría para obtener valores únicos",
+     *         required=true,
+     *         @OA\Schema(type="string", example="event")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Valores únicos obtenidos exitosamente",
+     *         @OA\JsonContent(type="array", @OA\Items(type="string"))
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="El campo no es válido"
+     *     )
+     * )
+     */
     public function getUniquesFields($field){
 
         // Validar que el campo exista en la tabla audits
@@ -25,6 +53,63 @@ class AuditoriaController extends Controller{
         return response()->json($data);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/auditoria",
+     *     summary="Obtener registros de auditoría paginados",
+     *     tags={"Auditoría"},
+     *   security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Número de página",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="itemsPerPage",
+     *         in="query",
+     *         description="Cantidad de elementos por página",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Texto de búsqueda",
+     *         required=false,
+     *         @OA\Schema(type="string", example="updated")
+     *     ),
+     *     @OA\Parameter(
+     *         name="orderBy",
+     *         in="query",
+     *         description="Columna para ordenar",
+     *         required=false,
+     *         @OA\Schema(type="string", example="id")
+     *     ),
+     *     @OA\Parameter(
+     *         name="orderDirection",
+     *         in="query",
+     *         description="Dirección de ordenamiento (asc o desc)",
+     *         required=false,
+     *         @OA\Schema(type="string", example="asc")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Registros de auditoría obtenidos exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="total", type="integer", example=100),
+     *             @OA\Property(property="page", type="integer", example=1),
+     *             @OA\Property(property="itemsPerPage", type="integer", example=10)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Error en los parámetros de entrada"
+     *     )
+     * )
+     */
     public function getFieldsPaginated(Request $request){
 
         try{
