@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class PermisosService
 {
-  const VALIDAR = false; // Cambiar a false para desactivar la validación
+  const VALIDAR = true; // Cambiar a false para desactivar la validación
 
   /*
 
@@ -41,7 +41,7 @@ class PermisosService
   public static function verificarPermisoIndividual($tabla, ...$permisos){
     return self::verificarPermisos([
       [
-        'tabla' => $tabla->value,
+        'tabla' => $tabla,
         'acciones' => $permisos
       ]
     ]);

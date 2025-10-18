@@ -7,8 +7,12 @@ use App\Enums\Tablas;
 use App\Http\Services\PermisosService;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use ReflectionClass;
+use ReflectionMethod;
+use Throwable;
 
 /**
  *  @OA\PathItem(path="/api")
@@ -45,14 +49,93 @@ abstract class Controller{
         $this->table = $table->value;
     }
 
-    public function index(Request $request)
+    /**
+     * @param string $modelClass El nombre de la clase del modelo actual (ej: App\Models\User::class).
+     * @param int $maxDepth Profundidad máxima de recursión restante.
+     * @param string $prefix Prefijo de la relación actual (ej: 'posts.').
+     * @param array $allRelationships Array de resultados pasados por referencia.
+     */
+    protected function getModelRelationshipsRecursive(string $modelClass, int $maxDepth, string $prefix, array &$allRelationships): array
+    {
+        // Si la profundidad máxima es alcanzada, detenemos la recursión.
+        if ($maxDepth <= 0) {
+            return [];
+        }
+
+        // Instanciar el modelo (necesario para invocar los métodos de relación)
+        // Usamos el nombre de la clase, no una instancia
+        $model = new $modelClass();
+        $reflectionClass = new ReflectionClass($model);
+
+        // Iterar sobre todos los métodos públicos
+        foreach ($reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+            $methodName = $method->getName();
+
+            // 1. Excluir métodos de la clase base Model
+            if ($method->getDeclaringClass()->getName() === Model::class) {
+                continue;
+            }
+
+            // 2. Solo considerar métodos sin parámetros (convención de relaciones)
+            if (count($method->getParameters()) === 0) {
+                try {
+                    // Intentar invocar el método
+                    $relationInstance = $method->invoke($model);
+
+                    // 3. Verificar si es una relación válida de Eloquent
+                    if ($relationInstance instanceof Relation) {
+                        $fullName = $prefix . $methodName;
+
+                        // Añadir la relación actual a la lista
+                        $allRelationships[] = $fullName;
+
+                        // 4. Obtener el modelo relacionado (el "hijo")
+                        $relatedModel = $relationInstance->getRelated();
+                        $relatedModelClass = get_class($relatedModel);
+
+                        // 5. Llamada recursiva
+                        $this->getModelRelationshipsRecursive(
+                            $relatedModelClass,
+                            $maxDepth - 1,
+                            $fullName . '.',
+                            $allRelationships // ¡Aquí se pasa la variable existente por referencia!
+                        );
+                    }
+                } catch (Throwable $e) {
+                    // Omitir si el método no puede ser invocado (ej. si requiere un parámetro)
+                    continue;
+                }
+            }
+        }
+
+        return $allRelationships;
+    }
+
+    // El método principal para obtener todas las relaciones
+    public function getAllowedIncludes(int $maxDepth = 3): array
+    {
+        $relationships = [];
+        $modelClass = get_class($this->model);
+
+        // La llamada inicial: inicializamos la variable $relationships aquí
+        // y la pasamos por referencia en el último argumento.
+        return $this->getModelRelationshipsRecursive(
+            $modelClass,
+            $maxDepth,
+            '',
+            $relationships
+        );
+    }
+
+    public function get(Request $request)
     {
         // --- Validación de permisos de lectura
         try{
             PermisosService::verificarPermisoIndividual($this->table, Acciones::READ);
         } catch (Exception $e){
             return response()->json([
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
             ], $e->getCode() ?: 400);
         }
 
@@ -89,7 +172,7 @@ abstract class Controller{
             'limit.max' => 'El campo :attribute no debe exceder :max.',
             'orderBy.string' => 'El campo :attribute debe ser una cadena de texto.',
             'orderDirection.in' => 'El campo :attribute debe ser "asc" o "desc".',
-            'filter.json' => "El campo :attribute debe ser una cadena de texto JSON válida. Casos soportados:\n\nIgualdad (=):\n{\"column\":\"id\",\"operator\":\"=\",\"value\":1}\n\nDiferente (!=):\n{\"column\":\"status\",\"operator\":\"!=\",\"value\":\"inactive\"}\n\nMayor que (>):\n{\"column\":\"created_at\",\"operator\":\">\",\"value\":\"2023-01-01\"}\n\nMenor que (<):\n{\"column\":\"created_at\",\"operator\":\"<\",\"value\":\"2023-12-31\"}\n\nEntre un rango (between):\n{\"column\":\"created_at\",\"operator\":\"between\",\"value\":[\"2023-01-01\",\"2023-12-31\"]}\n\nNo entre un rango (not between):\n{\"column\":\"created_at\",\"operator\":\"not between\",\"value\":[\"2023-01-01\",\"2023-12-31\"]}\n\nEn un conjunto (in):\n{\"column\":\"id\",\"operator\":\"in\",\"value\":[1,2,3]}\n\nNo en un conjunto (not in):\n{\"column\":\"id\",\"operator\":\"not in\",\"value\":[4,5,6]}\n\nNulo (null):\n{\"column\":\"deleted_at\",\"operator\":\"null\"}\n\nNo nulo (not null):\n{\"column\":\"updated_at\",\"operator\":\"not null\"}"
+            'filter.json' => "El campo :attribute debe ser una cadena de texto JSON válida."
         ];
 
         // 4. Ejecución del Validador
@@ -97,7 +180,23 @@ abstract class Controller{
         $validator->setAttributeNames($attributeNames);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+            return response()->json(
+                [
+                    'success' => false,
+                    'errors' => $validator->errors(),
+                    'filterExamples' => [
+                        'igualdad (=)' => '{"column":"id","operator":"=","value":1}',
+                        'diferente (!=)' => '{"column":"status","operator":"!=","value":"inactive"}',
+                        'mayor que (>)' => '{"column":"created_at","operator":">","value":"2023-01-01"}',
+                        'menor que (<)' => '{"column":"created_at","operator":"<","value":"2023-12-31"}',
+                        'entre un rango (between)' => '{"column":"created_at","operator":"between","value":["2023-01-01","2023-12-31"]}',
+                        'no entre un rango (not between)' => '{"column":"created_at","operator":"not between","value":["2023-01-01","2023-12-31"]}',
+                        'en un conjunto (in)'=> '{"column":"id","operator":"in","value":[1,2,3]}',
+                        'no en un conjunto (not in)'=> '{"column":"id","operator":"not in","value":[4,5,6]}',
+                        'nulo (null)'=> '{"column":"deleted_at","operator":"null"}',
+                        'no nulo (not null)'=> '{"column":"updated_at","operator":"not null"}'
+                    ]
+            ], 422);
         }
 
         // --- Extracción y Normalización de Parámetros (El código original comienza aquí) ---
@@ -130,6 +229,20 @@ abstract class Controller{
         // Remover vacíos
         $columns = array_filter($columns, fn($col) => !empty($col));
         $include = array_filter($include, fn($inc) => !empty($inc));
+
+        // Validacione de Include
+        if(count($include) > 0 ){
+            $allowedIncludes = $this->getAllowedIncludes();
+            foreach ($include as $inc){
+                if (!in_array($inc, $allowedIncludes)){
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La relación solicitada para incluir '{$inc}' no está permitida.",
+                        'allowed_includes' => $allowedIncludes,
+                    ], 400);
+                }
+            }
+        }
 
         try {
             // Construcción de la consulta

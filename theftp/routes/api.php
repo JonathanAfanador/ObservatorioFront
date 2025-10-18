@@ -31,7 +31,6 @@ use App\Models\tipo_ident;
 use Illuminate\Support\Facades\Auth;
 
 // Rutas API
-Route::get('/test', [MunicipiosController::class, 'index']);
 
 // //TODO: Rutas para departamentos
 // Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {
@@ -65,6 +64,11 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::prefix('auditoria')->group(function (){
         Route::get('/', [AuditoriaController::class,'getFieldsPaginated']);
         Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniquesFields']);
+    });
+
+    // -- Municipios Routes
+    Route::prefix('municipios')->group(function (){
+        Route::get('/', [MunicipiosController::class, 'index']);
     });
 });
 
