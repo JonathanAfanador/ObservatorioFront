@@ -6,6 +6,67 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 
+/**
+ * @OA\Schema(
+ *   schema="Documento",
+ *   title="Documento",
+ *   description="Modelo que representa un documento.",
+ *   type="object",
+ *   required={"id", "url", "observaciones", "tipo_doc_id"},
+ *
+ *   @OA\Property(
+ *     property="id",
+ *     type="integer",
+ *     format="int64",
+ *     description="Identificador único del documento",
+ *     readOnly=true,
+ *     example=1
+ *   ),
+ *   @OA\Property(
+ *     property="url",
+ *     type="string",
+ *     description="URL del documento",
+ *     example="https://example.com/documento.pdf"
+ *   ),
+ *   @OA\Property(
+ *     property="observaciones",
+ *     type="string",
+ *     description="Observaciones sobre el documento",
+ *     example="Documento escaneado"
+ *   ),
+ *   @OA\Property(
+ *     property="tipo_doc_id",
+ *     type="integer",
+ *     format="int64",
+ *     description="ID del tipo de documento asociado",
+ *     example=42
+ *   ),
+ *   @OA\Property(
+ *     property="created_at",
+ *     type="string",
+ *     format="date-time",
+ *     nullable=true,
+ *     description="Fecha de creación del registro",
+ *     example="2025-10-18T12:34:56Z"
+ *   ),
+ *   @OA\Property(
+ *     property="updated_at",
+ *     type="string",
+ *     format="date-time",
+ *     nullable=true,
+ *     description="Fecha de última actualización del registro",
+ *     example="2025-10-18T12:34:56Z"
+ *   ),
+ *   @OA\Property(
+ *     property="deleted_at",
+ *     type="string",
+ *     format="date-time",
+ *     nullable=true,
+ *     description="Fecha de eliminación (soft delete)",
+ *     example=null
+ *   )
+ * )
+ */
 class documentos extends Model implements Auditable
 {
     /** @use HasFactory<\Database\Factories\DocumentosFactory> */

@@ -6,6 +6,62 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 
+/**
+ * @OA\Schema(
+ *   schema="ConductorLicencia",
+ *   title="ConductorLicencia",
+ *   description="Relación entre conductores y licencias.",
+ *   type="object",
+ *   required={"id", "licencia_id", "conductor_id"},
+ *
+ *   @OA\Property(
+ *     property="id",
+ *     type="integer",
+ *     format="int64",
+ *     description="Identificador único de la relación conductor-licencia",
+ *     readOnly=true,
+ *     example=1
+ *   ),
+ *   @OA\Property(
+ *     property="licencia_id",
+ *     type="integer",
+ *     format="int64",
+ *     description="ID de la licencia asociada",
+ *     example=10
+ *   ),
+ *   @OA\Property(
+ *     property="conductor_id",
+ *     type="integer",
+ *     format="int64",
+ *     description="ID del conductor asociado",
+ *     example=42
+ *   ),
+ *   @OA\Property(
+ *     property="created_at",
+ *     type="string",
+ *     format="date-time",
+ *     nullable=true,
+ *     description="Fecha de creación del registro",
+ *     example="2025-10-18T12:34:56Z"
+ *   ),
+ *   @OA\Property(
+ *     property="updated_at",
+ *     type="string",
+ *     format="date-time",
+ *     nullable=true,
+ *     description="Fecha de última actualización del registro",
+ *     example="2025-10-18T12:34:56Z"
+ *   ),
+ *   @OA\Property(
+ *     property="deleted_at",
+ *     type="string",
+ *     format="date-time",
+ *     nullable=true,
+ *     description="Fecha de eliminación (soft delete)",
+ *     example=null
+ *   )
+ * )
+ */
 class conductores_licencias extends Model implements Auditable
 {
     /** @use HasFactory<\Database\Factories\CoductoresLicenciasFactory> */

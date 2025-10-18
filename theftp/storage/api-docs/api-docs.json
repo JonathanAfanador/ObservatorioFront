@@ -1,0 +1,1707 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Observatorio de Transporte Público API",
+        "description": "Backend y API Acceso a datos.",
+        "contact": {
+            "email": "juan-vega6@upc.edu.co"
+        },
+        "license": {
+            "name": "@Universidad Piloto de Colombia SAM - Todos los Derechos Reservados"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/v1": {}
+    },
+    "components": {
+        "schemas": {
+            "Audit": {
+                "title": "Audit",
+                "description": "Registro de auditoría.",
+                "required": [
+                    "id",
+                    "event",
+                    "auditable_type",
+                    "auditable_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del registro",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "user_type": {
+                        "description": "Tipo de usuario asociado (modelo)",
+                        "type": "string",
+                        "example": "App\\\\Models\\\\User",
+                        "nullable": true
+                    },
+                    "user_id": {
+                        "description": "ID del usuario que realizó la acción",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42,
+                        "nullable": true
+                    },
+                    "event": {
+                        "description": "Nombre del evento (create, update, delete, ...)",
+                        "type": "string",
+                        "example": "updated"
+                    },
+                    "auditable_type": {
+                        "description": "Tipo del modelo auditado",
+                        "type": "string",
+                        "example": "App\\\\Models\\\\Audit"
+                    },
+                    "auditable_id": {
+                        "description": "ID del registro auditado",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 10
+                    },
+                    "old_values": {
+                        "description": "Valores anteriores (JSON/text)",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "new_values": {
+                        "description": "Nuevos valores (JSON/text)",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "url": {
+                        "description": "URL donde se realizó la acción",
+                        "type": "string",
+                        "example": "https://api.example.com/resource/10",
+                        "nullable": true
+                    },
+                    "ip_address": {
+                        "description": "Dirección IP desde la que se realizó la acción",
+                        "type": "string",
+                        "example": "203.0.113.5",
+                        "nullable": true
+                    },
+                    "user_agent": {
+                        "description": "User agent",
+                        "type": "string",
+                        "example": "Mozilla/5.0 (X11; Linux x86_64)",
+                        "nullable": true
+                    },
+                    "tags": {
+                        "description": "Etiquetas asociadas",
+                        "type": "string",
+                        "example": "sistema,importante",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "title": "User",
+                "description": "Modelo que representa un usuario del sistema.",
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "password",
+                    "persona_id",
+                    "rol_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del usuario",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Nombre del usuario",
+                        "type": "string",
+                        "example": "Juan Pérez"
+                    },
+                    "email": {
+                        "description": "Correo electrónico del usuario",
+                        "type": "string",
+                        "format": "email",
+                        "example": "juan.perez@example.com"
+                    },
+                    "password": {
+                        "description": "Contraseña del usuario (encriptada)",
+                        "type": "string",
+                        "example": "hashed_password"
+                    },
+                    "unable": {
+                        "description": "Indica si el usuario está deshabilitado",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "unable_date": {
+                        "description": "Fecha en la que el usuario fue deshabilitado",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "email_verified_at": {
+                        "description": "Fecha en la que el correo electrónico fue verificado",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "persona_id": {
+                        "description": "ID de la persona asociada al usuario",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42
+                    },
+                    "rol_id": {
+                        "description": "ID del rol asociado al usuario",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 2
+                    },
+                    "empresa_id": {
+                        "description": "ID de la empresa asociada al usuario (si aplica)",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 5,
+                        "nullable": true
+                    },
+                    "remember_token": {
+                        "description": "Token para recordar la sesión del usuario",
+                        "type": "string",
+                        "example": "random_token",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Barrio": {
+                "title": "Barrio",
+                "description": "Modelo que representa un barrio.",
+                "required": [
+                    "id",
+                    "name",
+                    "municipios_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del barrio",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Nombre del barrio",
+                        "type": "string",
+                        "example": "Barrio Centro"
+                    },
+                    "municipios_id": {
+                        "description": "ID del municipio al que pertenece",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 10
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-01T12:00:00Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-02T12:00:00Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CategoriaLicencia": {
+                "title": "CategoriaLicencia",
+                "description": "Categoría de licencia de conducción.",
+                "required": [
+                    "id",
+                    "codigo",
+                    "descripcion"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único de la categoría",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "codigo": {
+                        "description": "Código de la categoría",
+                        "type": "string",
+                        "maxLength": 150,
+                        "example": "A"
+                    },
+                    "descripcion": {
+                        "description": "Descripción de la categoría",
+                        "type": "string",
+                        "example": "Categoría A - vehículos livianos"
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CierreSesion": {
+                "title": "CierreSesion",
+                "description": "Registro de cierre de sesión de un usuario.",
+                "required": [
+                    "id",
+                    "usuario_id",
+                    "fecha_hora_cierre"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del registro de cierre de sesión",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "direccion_ip": {
+                        "description": "Dirección IP desde la que se realizó el cierre de sesión",
+                        "type": "string",
+                        "example": "192.168.1.1",
+                        "nullable": true
+                    },
+                    "fecha_hora_cierre": {
+                        "description": "Fecha y hora del cierre de sesión",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z"
+                    },
+                    "usuario_id": {
+                        "description": "ID del usuario que realizó el cierre de sesión",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Conductor": {
+                "title": "Conductor",
+                "description": "Modelo que representa un conductor.",
+                "required": [
+                    "id",
+                    "persona_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del conductor",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "persona_id": {
+                        "description": "ID de la persona asociada al conductor",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ConductorLicencia": {
+                "title": "ConductorLicencia",
+                "description": "Relación entre conductores y licencias.",
+                "required": [
+                    "id",
+                    "licencia_id",
+                    "conductor_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único de la relación conductor-licencia",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "licencia_id": {
+                        "description": "ID de la licencia asociada",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 10
+                    },
+                    "conductor_id": {
+                        "description": "ID del conductor asociado",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Departamento": {
+                "title": "Departamento",
+                "description": "Modelo que representa un departamento.",
+                "required": [
+                    "id",
+                    "name",
+                    "codigo_dane"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del departamento",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Nombre del departamento",
+                        "type": "string",
+                        "example": "Antioquia"
+                    },
+                    "codigo_dane": {
+                        "description": "Código DANE del departamento",
+                        "type": "string",
+                        "example": "05"
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Documento": {
+                "title": "Documento",
+                "description": "Modelo que representa un documento.",
+                "required": [
+                    "id",
+                    "url",
+                    "observaciones",
+                    "tipo_doc_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del documento",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "url": {
+                        "description": "URL del documento",
+                        "type": "string",
+                        "example": "https://example.com/documento.pdf"
+                    },
+                    "observaciones": {
+                        "description": "Observaciones sobre el documento",
+                        "type": "string",
+                        "example": "Documento escaneado"
+                    },
+                    "tipo_doc_id": {
+                        "description": "ID del tipo de documento asociado",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Empresa": {
+                "title": "Empresa",
+                "description": "Modelo que representa una empresa.",
+                "required": [
+                    "id",
+                    "nit",
+                    "name",
+                    "tipo_empresa_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único de la empresa",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "nit": {
+                        "description": "Número de Identificación Tributaria (NIT) de la empresa",
+                        "type": "string",
+                        "example": "900123456-7"
+                    },
+                    "name": {
+                        "description": "Nombre de la empresa",
+                        "type": "string",
+                        "example": "Empresa Ejemplo S.A.S."
+                    },
+                    "tipo_empresa_id": {
+                        "description": "ID del tipo de empresa asociado",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 2
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "InicioSesion": {
+                "title": "InicioSesion",
+                "description": "Registro de inicio de sesión de un usuario.",
+                "required": [
+                    "id",
+                    "usuario_id",
+                    "fecha_hora_inicio"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del registro de inicio de sesión",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "direccion_ip": {
+                        "description": "Dirección IP desde la que se realizó el inicio de sesión",
+                        "type": "string",
+                        "example": "192.168.1.1",
+                        "nullable": true
+                    },
+                    "fecha_hora_inicio": {
+                        "description": "Fecha y hora del inicio de sesión",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z"
+                    },
+                    "fecha_ultima_actividad": {
+                        "description": "Fecha y hora de la última actividad del usuario",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T13:00:00Z",
+                        "nullable": true
+                    },
+                    "usuario_id": {
+                        "description": "ID del usuario que realizó el inicio de sesión",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Licencia": {
+                "title": "Licencia",
+                "description": "Modelo que representa una licencia de conducción.",
+                "required": [
+                    "id",
+                    "restriccion_lic_id",
+                    "categoria_lic_id",
+                    "documento_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único de la licencia",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "restriccion_lic_id": {
+                        "description": "ID de la restricción asociada a la licencia",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 2
+                    },
+                    "categoria_lic_id": {
+                        "description": "ID de la categoría asociada a la licencia",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 3
+                    },
+                    "documento_id": {
+                        "description": "ID del documento asociado a la licencia",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 4
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Menu": {
+                "title": "Menu",
+                "description": "Modelo que representa un menú.",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del menú",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Nombre del menú",
+                        "type": "string",
+                        "example": "Inicio"
+                    },
+                    "icon": {
+                        "description": "Ícono asociado al menú",
+                        "type": "string",
+                        "example": "fa-home",
+                        "nullable": true
+                    },
+                    "url": {
+                        "description": "URL asociada al menú",
+                        "type": "string",
+                        "example": "/inicio",
+                        "nullable": true
+                    },
+                    "padre_id": {
+                        "description": "ID del menú padre (si aplica)",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Municipio": {
+                "title": "Municipio",
+                "description": "Modelo que representa un municipio.",
+                "required": [
+                    "id",
+                    "name",
+                    "codigo_dane",
+                    "departamentos_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del municipio",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Nombre del municipio",
+                        "type": "string",
+                        "example": "Medellín"
+                    },
+                    "codigo_dane": {
+                        "description": "Código DANE del municipio",
+                        "type": "string",
+                        "example": "05001"
+                    },
+                    "departamentos_id": {
+                        "description": "ID del departamento asociado al municipio",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 5
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Permiso": {
+                "title": "Permiso",
+                "description": "Modelo que representa los permisos asignados a un rol.",
+                "required": [
+                    "id",
+                    "tabla",
+                    "create",
+                    "read",
+                    "update",
+                    "delete",
+                    "rol_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del permiso",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "tabla": {
+                        "description": "Nombre de la tabla a la que aplican los permisos",
+                        "type": "string",
+                        "example": "users"
+                    },
+                    "create": {
+                        "description": "Indica si el rol tiene permiso para crear registros",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "read": {
+                        "description": "Indica si el rol tiene permiso para leer registros",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "update": {
+                        "description": "Indica si el rol tiene permiso para actualizar registros",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "delete": {
+                        "description": "Indica si el rol tiene permiso para eliminar registros",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "rol_id": {
+                        "description": "ID del rol asociado a los permisos",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 2
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Persona": {
+                "title": "Persona",
+                "description": "Modelo que representa una persona.",
+                "required": [
+                    "id",
+                    "nui",
+                    "name",
+                    "last_name",
+                    "phone_number",
+                    "gender",
+                    "tipo_ident_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único de la persona",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "nui": {
+                        "description": "Número único de identificación (NUI) de la persona",
+                        "type": "string",
+                        "example": "123456789"
+                    },
+                    "name": {
+                        "description": "Nombre de la persona",
+                        "type": "string",
+                        "example": "Juan"
+                    },
+                    "last_name": {
+                        "description": "Apellido de la persona",
+                        "type": "string",
+                        "example": "Pérez"
+                    },
+                    "phone_number": {
+                        "description": "Número de teléfono de la persona",
+                        "type": "string",
+                        "example": "3001234567"
+                    },
+                    "gender": {
+                        "description": "Género de la persona",
+                        "type": "string",
+                        "enum": [
+                            "Mujer",
+                            "Hombre"
+                        ],
+                        "example": "Hombre"
+                    },
+                    "tipo_ident_id": {
+                        "description": "ID del tipo de identificación asociado a la persona",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 2
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Propietario": {
+                "title": "Propietario",
+                "description": "Modelo que representa un propietario.",
+                "required": [
+                    "id",
+                    "fecha_registro",
+                    "documento_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del propietario",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "fecha_registro": {
+                        "description": "Fecha de registro del propietario",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z"
+                    },
+                    "documento_id": {
+                        "description": "ID del documento asociado al propietario",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "RestriccionLicencia": {
+                "title": "RestriccionLicencia",
+                "description": "Modelo que representa una restricción de licencia.",
+                "required": [
+                    "id",
+                    "descripcion"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único de la restricción de licencia",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "descripcion": {
+                        "description": "Descripción de la restricción de licencia",
+                        "type": "string",
+                        "maxLength": 150,
+                        "example": "Restricción para vehículos pesados"
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Rol": {
+                "title": "Rol",
+                "description": "Modelo que representa un rol de usuario.",
+                "required": [
+                    "id",
+                    "descripcion"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del rol",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "descripcion": {
+                        "description": "Descripción del rol",
+                        "type": "string",
+                        "example": "Administrador"
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "RolesMenu": {
+                "title": "RolesMenu",
+                "description": "Modelo que representa la relación entre roles y menús.",
+                "required": [
+                    "id",
+                    "rol_id",
+                    "menu_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único de la relación rol-menú",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "rol_id": {
+                        "description": "ID del rol asociado",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 2
+                    },
+                    "menu_id": {
+                        "description": "ID del menú asociado",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 3
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Ruta": {
+                "title": "Ruta",
+                "description": "Modelo que representa una ruta.",
+                "required": [
+                    "id",
+                    "name",
+                    "file_name",
+                    "empresa_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único de la ruta",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Nombre de la ruta",
+                        "type": "string",
+                        "example": "Ruta 101"
+                    },
+                    "file_name": {
+                        "description": "Nombre del archivo asociado a la ruta",
+                        "type": "string",
+                        "example": "ruta_101.pdf"
+                    },
+                    "empresa_id": {
+                        "description": "ID de la empresa asociada a la ruta",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SeguimEstadoVeh": {
+                "title": "SeguimEstadoVeh",
+                "description": "Modelo que representa el seguimiento del estado de un vehículo.",
+                "required": [
+                    "id",
+                    "usuario_id",
+                    "vehiculo_id",
+                    "ruta_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del seguimiento del estado del vehículo",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "kilometraje": {
+                        "description": "Kilometraje del vehículo en el momento del seguimiento",
+                        "type": "integer",
+                        "example": 120000,
+                        "nullable": true
+                    },
+                    "fecha_hora": {
+                        "description": "Fecha y hora del seguimiento",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "observaciones": {
+                        "description": "Observaciones sobre el estado del vehículo",
+                        "type": "string",
+                        "example": "Revisión técnica realizada",
+                        "nullable": true
+                    },
+                    "usuario_id": {
+                        "description": "ID del usuario que realizó el seguimiento",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42
+                    },
+                    "vehiculo_id": {
+                        "description": "ID del vehículo asociado al seguimiento",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 10
+                    },
+                    "ruta_id": {
+                        "description": "ID de la ruta asociada al seguimiento",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 5
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SeguimGps": {
+                "title": "SeguimGps",
+                "description": "Modelo que representa el seguimiento GPS de un vehículo.",
+                "required": [
+                    "id",
+                    "vehiculo_id",
+                    "latitud",
+                    "longitud",
+                    "fecha_hora"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del seguimiento GPS",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "latitud": {
+                        "description": "Latitud de la ubicación del vehículo",
+                        "type": "number",
+                        "format": "float",
+                        "example": 6.2442,
+                        "nullable": true
+                    },
+                    "longitud": {
+                        "description": "Longitud de la ubicación del vehículo",
+                        "type": "number",
+                        "format": "float",
+                        "example": -75.5812,
+                        "nullable": true
+                    },
+                    "fecha_hora": {
+                        "description": "Fecha y hora del seguimiento GPS",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "vehiculo_id": {
+                        "description": "ID del vehículo asociado al seguimiento GPS",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 10
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TipoDoc": {
+                "title": "TipoDoc",
+                "description": "Modelo que representa un tipo de documento.",
+                "required": [
+                    "id",
+                    "descripcion"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del tipo de documento",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "descripcion": {
+                        "description": "Descripción del tipo de documento",
+                        "type": "string",
+                        "example": "Factura"
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TipoEmpresa": {
+                "title": "TipoEmpresa",
+                "description": "Modelo que representa un tipo de empresa.",
+                "required": [
+                    "id",
+                    "descripcion"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del tipo de empresa",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "descripcion": {
+                        "description": "Descripción del tipo de empresa",
+                        "type": "string",
+                        "example": "Transporte"
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TipoIdent": {
+                "title": "TipoIdent",
+                "description": "Modelo que representa un tipo de identificación.",
+                "required": [
+                    "id",
+                    "descripcion"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del tipo de identificación",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "descripcion": {
+                        "description": "Descripción del tipo de identificación",
+                        "type": "string",
+                        "example": "Cédula de ciudadanía"
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-01T12:00:00Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-02T12:00:00Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TipoVehiculo": {
+                "title": "TipoVehiculo",
+                "description": "Modelo que representa un tipo de vehículo.",
+                "required": [
+                    "id",
+                    "descripcion"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del tipo de vehículo",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "descripcion": {
+                        "description": "Descripción del tipo de vehículo",
+                        "type": "string",
+                        "example": "Camión"
+                    },
+                    "capacidad": {
+                        "description": "Capacidad del vehículo (en toneladas o pasajeros, según el caso)",
+                        "type": "integer",
+                        "example": 10,
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Vehiculo": {
+                "title": "Vehiculo",
+                "description": "Modelo que representa un vehículo.",
+                "required": [
+                    "id",
+                    "placa",
+                    "marca",
+                    "modelo",
+                    "color",
+                    "propietario_id",
+                    "tipo_veh_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Identificador único del vehículo",
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "placa": {
+                        "description": "Placa del vehículo",
+                        "type": "string",
+                        "example": "ABC123"
+                    },
+                    "marca": {
+                        "description": "Marca del vehículo",
+                        "type": "string",
+                        "example": "Toyota"
+                    },
+                    "modelo": {
+                        "description": "Modelo del vehículo",
+                        "type": "string",
+                        "example": "Corolla"
+                    },
+                    "color": {
+                        "description": "Color del vehículo",
+                        "type": "string",
+                        "example": "Rojo"
+                    },
+                    "servicio": {
+                        "description": "Indica si el vehículo está en servicio",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "propietario_id": {
+                        "description": "ID del propietario del vehículo",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 42
+                    },
+                    "tipo_veh_id": {
+                        "description": "ID del tipo de vehículo asociado",
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 3
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización del registro",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-18T12:34:56Z",
+                        "nullable": true
+                    },
+                    "deleted_at": {
+                        "description": "Fecha de eliminación (soft delete)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Sanctum Token Bearer",
+                "name": "Authorization",
+                "in": "header",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    }
+}

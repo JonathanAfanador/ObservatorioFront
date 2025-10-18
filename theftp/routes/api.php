@@ -55,31 +55,31 @@ Route::get('/test', function (){
     return $test->index();
 });
 
-//TODO: Rutas para departamentos
-Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {
-    // Paginacion
-    Route::get('/paginacion', [DepartamentosController::class, 'departamentos_paginados']);
-    // Creacion
-    Route::post('/creacion', [DepartamentosController::class, 'crear_departamento']);
-    // Actualizacion
-    Route::put('/actualizacion', [DepartamentosController::class, 'actualizar_departamento']);
-    // Eliminacion (Deshabilitacion)
-    Route::delete('/eliminacion', [DepartamentosController::class, 'eliminar_departamento']);
-    // Restauracion (Habilitacion)
-    Route::post('/restauracion', [DepartamentosController::class, 'restaurar_departamento']);
-});
+// //TODO: Rutas para departamentos
+// Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {
+//     // Paginacion
+//     Route::get('/paginacion', [DepartamentosController::class, 'departamentos_paginados']);
+//     // Creacion
+//     Route::post('/creacion', [DepartamentosController::class, 'crear_departamento']);
+//     // Actualizacion
+//     Route::put('/actualizacion', [DepartamentosController::class, 'actualizar_departamento']);
+//     // Eliminacion (Deshabilitacion)
+//     Route::delete('/eliminacion', [DepartamentosController::class, 'eliminar_departamento']);
+//     // Restauracion (Habilitacion)
+//     Route::post('/restauracion', [DepartamentosController::class, 'restaurar_departamento']);
+// });
 
-// Registro y Login
-Route::post('/register', [AuthController::class, 'registro']);
-Route::post('/login', [AuthController::class, 'login']);
+// // Registro y Login
+// Route::post('/register', [AuthController::class, 'registro']);
+// Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function (){
-    Route::get('/logout', [AuthController::class, 'logout']);
-    Route::get('/global-logout', [AuthController::class, 'globalLogout']);
-    Route::get('/me', [AuthController::class, 'me']);
-});
+// Route::middleware('auth:sanctum')->group(function (){
+//     Route::get('/logout', [AuthController::class, 'logout']);
+//     Route::get('/global-logout', [AuthController::class, 'globalLogout']);
+//     Route::get('/me', [AuthController::class, 'me']);
+// });
 
-Route::middleware('auth:sanctum')->prefix('auditoria')->group(function (){
-    Route::get('/get', [AuditoriaController::class,'getFieldsPaginated']);
-    Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniquesFields']);
-});
+// Route::middleware('auth:sanctum')->prefix('auditoria')->group(function (){
+//     Route::get('/get', [AuditoriaController::class,'getFieldsPaginated']);
+//     Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniquesFields']);
+// });

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Tablas;
-use Illuminate\Http\Request;
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Models\tipo_ident;
 
@@ -14,6 +12,7 @@ class TestController extends Controller{
     public function __construct(){
         parent::__construct(new tipo_ident(), Tablas::TIPO_IDENT);
     }
+
 
     public function index(){
         return $this->fetchData();
