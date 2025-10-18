@@ -49,10 +49,11 @@ abstract class Controller{
         $orderBy = $request->input('orderBy', 'id');
         $orderDirection = $request->input('orderDirection', 'asc');
         $include = $request->input('include', '');
-        $filtro = $request->input('filtro', []);
+        $filter = $request->input('filter', '');
 
         $columns = is_array($columns) ? $columns : explode(',', $columns);
         $include = is_array($include) ? $include : explode(',', $include);
+        $filter = is_array($filter) ? $filter : json_decode($filter, true);
         // Remover vacíos
         $columns = array_filter($columns, fn($col) => !empty($col));
         $include = array_filter($include, fn($inc) => !empty($inc));
@@ -67,8 +68,8 @@ abstract class Controller{
             }
 
             // Aplicar filtros si se especifican
-            if (!empty($filtro)) {
-                foreach ($filtro as $filter) {
+            if (!empty($filter)) {
+                foreach ($filter as $filter) {
                     if (isset($filter['column'], $filter['operator'], $filter['value'])) {
                         switch ($filter['operator']) {
                             case '=':
