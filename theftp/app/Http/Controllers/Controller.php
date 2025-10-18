@@ -54,6 +54,14 @@ abstract class Controller{
         $columns = is_array($columns) ? $columns : explode(',', $columns);
         $include = is_array($include) ? $include : explode(',', $include);
         $filter = is_array($filter) ? $filter : json_decode($filter, true);
+        // Si filter es nulo o JSON inválido, normalizar a array vacío
+        if ($filter === null) {
+            $filter = [];
+        }
+        // Si filter es un objeto asociativo ({}), convertir a [ {} ]
+        if (is_array($filter) && array_values($filter) !== $filter) {
+            $filter = [$filter];
+        }
         // Remover vacíos
         $columns = array_filter($columns, fn($col) => !empty($col));
         $include = array_filter($include, fn($inc) => !empty($inc));
