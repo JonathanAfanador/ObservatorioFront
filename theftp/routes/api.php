@@ -2,6 +2,7 @@
 
 use App\Enums\Acciones;
 use App\Enums\Tablas;
+use App\Http\Controllers\TestController;
 use App\Http\Controllers\V1\DepartamentosController;
 use App\Http\Controllers\V1\AuditoriaController;
 use App\Models\conductores;
@@ -49,6 +50,9 @@ Route::get('/test', function (){
     // return tipo_doc::with('documentos')->get();
     // return tipo_empresa::with('empresas')->get();
     // return tipo_ident::with('personas')->get();
+
+    $test = new TestController();
+    return $test->index();
 });
 
 //TODO: Rutas para departamentos
