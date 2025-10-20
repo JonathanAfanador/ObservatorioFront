@@ -134,8 +134,8 @@ abstract class Controller{
             PermisosService::verificarPermisoIndividual($this->table, Acciones::READ);
         } catch (Exception $e){
             return response()->json([
+                'status' => false,
                 'message' => $e->getMessage(),
-                'line' => $e->getLine(),
             ], $e->getCode() ?: 400);
         }
 
@@ -399,8 +399,8 @@ abstract class Controller{
             PermisosService::verificarPermisoIndividual($this->table, Acciones::READ);
         } catch (Exception $e){
             return response()->json([
+                'status' => false,
                 'message' => $e->getMessage(),
-                'line' => $e->getLine(),
             ], $e->getCode() ?: 400);
         }
 
