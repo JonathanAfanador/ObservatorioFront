@@ -173,4 +173,50 @@ class MunicipiosController extends Controller{
         return $this->get($request);
     }
 
+    /**
+     *  @OA\Get(
+     *      path="/api/municipios/{id}",
+     *      summary="Obtener un municipio por ID",
+     *      tags={"Municipios"},
+     *      security={{"sanctum": {}}},
+     *      @OA\Parameter(
+     *          name="id",
+     *          in="path",
+     *          description="ID del municipio",
+     *          required=true,
+     *          @OA\Schema(type="integer", example=1)
+     *      ),
+     *      @OA\Parameter(
+     *          name="include",
+     *          in="query",
+     *          description="Relaciones a incluir, separadas por comas, si se introduce uno invalido saldra la lista disponible",
+     *          required=false,
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Municipio obtenido exitosamente",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *        )
+     *    ),
+     *    @OA\Response(
+     *        response=401,
+     *       description="No autenticado"
+     *   ),
+     *   @OA\Response(
+     *       response=404,
+     *      description="Municipio no encontrado"
+     *  ),
+     *   @OA\Response(
+     *      response=500,
+     *     description="Error interno del servidor"
+     * )
+     * )
+     */
+    public function show($id, Request $request){
+        return $this->getById($id, $request);
+    }
+
 }

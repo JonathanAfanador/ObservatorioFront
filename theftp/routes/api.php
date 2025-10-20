@@ -69,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function (){
     // -- Municipios Routes
     Route::prefix('municipios')->group(function (){
         Route::get('/', [MunicipiosController::class, 'index']);
+        Route::get('/{id}', [MunicipiosController::class, 'show']);
     });
 });
 

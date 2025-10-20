@@ -337,6 +337,87 @@ abstract class Controller{
         }
     }
 
+    public function getById(string $id, Request $request){
+
+        // --- Validación de permisos de lectura
+        try{
+            PermisosService::verificarPermisoIndividual($this->table, Acciones::READ);
+        } catch (Exception $e){
+            return response()->json([
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+            ], $e->getCode() ?: 400);
+        }
+
+        $datos = $request->all();
+
+        $rules = [
+            'include' => 'nullable|string', // Se asume una lista de relaciones separada por comas
+        ];
+
+        $messages = [
+            'include.string' => 'El campo :attribute debe ser una cadena de texto separada en comas.',
+        ];
+
+        $attributeNames = [
+            'include' => 'relaciones a incluir',
+        ];
+
+        $validator = Validator::make($datos, $rules, $messages);
+        $validator->setAttributeNames($attributeNames);
+        if ($validator->fails()) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $include = $request->input('include', '');
+        $include = is_array($include) ? $include : explode(',', $include);
+        // Remover vacíos
+        $include = array_filter($include, fn($inc) => !empty($inc));
+        // Validacione de Include
+        if(count($include) > 0 ){
+            $allowedIncludes = $this->getAllowedIncludes();
+            foreach ($include as $inc){
+                if (!in_array($inc, $allowedIncludes)){
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La relación solicitada para incluir '{$inc}' no está permitida.",
+                        'allowed_includes' => $allowedIncludes,
+                    ], 400);
+                }
+            }
+        }
+
+        try {
+            // Construcción de la consulta
+            $query = $this->model->query();
+
+            // Incluir relaciones si se especifican
+            if (count($include) != 0){
+                $query->with($include);
+            }
+
+            // Obtener el registro por ID
+            $record = $query->findOrFail($id);
+
+            // Respuesta exitosa
+            return response()->json([
+                'success' => true,
+                'data' => $record,
+            ], 200);
+        } catch (Exception $e) {
+            // Manejo de errores
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener el registro.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function store(Request $request){
         // TODO: Ejecución de almacenamiento
     }
