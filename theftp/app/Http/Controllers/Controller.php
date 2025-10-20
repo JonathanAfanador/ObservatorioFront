@@ -140,6 +140,21 @@ abstract class Controller{
         }
 
         $datos = $request->all();
+        
+        // Casting de booleanos para los parámetros específicos
+        $booleanParams = [
+            'includeSoftDeleted',
+            'onlySoftDeleted',
+            'includeRelatedSoftDeleted',
+            'onlyRelatedSoftDeleted',
+        ];
+
+        foreach ($booleanParams as $param) {
+            if (isset($datos[$param])) {
+                // ! si no es true/false válido, asignar false por defecto
+                $datos[$param] = filter_var($datos[$param], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+            }
+        }
 
         // 1. Definición de Reglas de Validación
         $rules = [
@@ -150,6 +165,10 @@ abstract class Controller{
             'orderDirection' => 'nullable|in:asc,desc',
             'include' => 'nullable|string', // Se asume una lista de relaciones separada por comas
             'filter' => 'nullable|json', // El filtro debe ser una cadena JSON válida
+            'includeSoftDeleted' => 'nullable|boolean', // Incluir registros "soft deleted" del modelo principal
+            'onlySoftDeleted' => 'nullable|boolean',    // Solo registros "soft deleted" del modelo principal
+            'includeRelatedSoftDeleted' => 'nullable|boolean', // Incluir registros "soft deleted" en relaciones
+            'onlyRelatedSoftDeleted' => 'nullable|boolean',    // Solo registros "soft deleted" en relaciones
         ];
 
         // 2. Nombres de Atributos Personalizados
@@ -161,6 +180,10 @@ abstract class Controller{
             'orderDirection' => 'dirección de ordenamiento',
             'include' => 'relaciones a incluir',
             'filter' => 'filtro de consulta (JSON)',
+            'includeDisabled' => 'incluir registros eliminados (soft-deleted)',
+            'onlyDisabled' => 'solo registros eliminados (soft-deleted)',
+            'includeChildsDisabled' => 'incluir registros eliminados en relaciones',
+            'onlyChildsDisabled' => 'solo registros eliminados en relaciones',
         ];
 
         // 3. Mensajes de Error Personalizados
@@ -172,7 +195,12 @@ abstract class Controller{
             'limit.max' => 'El campo :attribute no debe exceder :max.',
             'orderBy.string' => 'El campo :attribute debe ser una cadena de texto.',
             'orderDirection.in' => 'El campo :attribute debe ser "asc" o "desc".',
-            'filter.json' => "El campo :attribute debe ser una cadena de texto JSON válida."
+            'filter.json' => "El campo :attribute debe ser una cadena de texto JSON válida.",
+            'include.string' => 'El campo :attribute debe ser una cadena de texto separada en comas.',
+            'includeSoftDeleted.boolean' => 'El campo :attribute debe ser verdadero o falso.',
+            'onlySoftDeleted.boolean' => 'El campo :attribute debe ser verdadero o falso.',
+            'includeRelatedSoftDeleted.boolean' => 'El campo :attribute debe ser verdadero o falso.',
+            'onlyRelatedSoftDeleted.boolean' => 'El campo :attribute debe ser verdadero o falso.',
         ];
 
         // 4. Ejecución del Validador
@@ -208,6 +236,10 @@ abstract class Controller{
         $orderDirection = $request->input('orderDirection', 'asc');
         $include = $request->input('include', '');
         $filter = $request->input('filter', '');
+        $includeSoftDeleted = $datos['includeSoftDeleted'] ?? false;
+        $onlySoftDeleted = $datos['onlySoftDeleted'] ?? false;
+        $includeRelatedSoftDeleted = $datos['includeRelatedSoftDeleted'] ?? false;
+        $onlyRelatedSoftDeleted = $datos['onlyRelatedSoftDeleted'] ?? false;
 
         // El filtro ya pasó la validación de JSON, lo decodificamos
         $filter = json_decode($filter, true);
@@ -248,9 +280,32 @@ abstract class Controller{
             // Construcción de la consulta
             $query = $this->model->query();
 
+            // Manejo de Soft Deletes
+            if ($onlySoftDeleted) {
+                $query->onlyTrashed();
+            } elseif ($includeSoftDeleted) {
+                $query->withTrashed();
+            }
+
             // Incluir relaciones si se especifican
             if (count($include) != 0){
-                $query->with($include);
+                foreach ($include as $relation) {
+                    if ($onlyRelatedSoftDeleted) {
+                        // Para cada relación pedida, añadimos una clausura que intenta aplicar onlyTrashed()
+                        // en la consulta de la relación (si el builder soporta onlyTrashed).
+                        $query->with([$relation => function ($q) {
+                            $q->onlyTrashed();
+                        }]);
+                    } elseif ($includeRelatedSoftDeleted) {
+                        // Similar para withTrashed()
+                        $query->with([$relation => function ($q) {
+                            $q->withTrashed();
+                        }]);
+                    } else {
+                        // Inclusión normal sin soft-deleted
+                        $query->with($relation);
+                    }
+                }
             }
 
             // Aplicar filtros si se especifican
@@ -350,17 +405,44 @@ abstract class Controller{
         }
 
         $datos = $request->all();
+        
+        // Casting de booleanos para los parámetros específicos
+        $booleanParams = [
+            'includeSoftDeleted',
+            'onlySoftDeleted',
+            'includeRelatedSoftDeleted',
+            'onlyRelatedSoftDeleted',
+        ];
+
+        foreach ($booleanParams as $param) {
+            if (isset($datos[$param])) {
+                // ! si no es true/false válido, asignar false por defecto
+                $datos[$param] = filter_var($datos[$param], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+            }
+        }
 
         $rules = [
             'include' => 'nullable|string', // Se asume una lista de relaciones separada por comas
+            'includeSoftDeleted' => 'nullable|boolean', // Incluir registros "soft deleted" del modelo principal
+            'onlySoftDeleted' => 'nullable|boolean',    // Solo registros "soft deleted
+            'includeRelatedSoftDeleted' => 'nullable|boolean', // Incluir registros "soft deleted" en relaciones
+            'onlyRelatedSoftDeleted' => 'nullable|boolean',    // Solo registros "soft deleted" en relaciones
         ];
 
         $messages = [
             'include.string' => 'El campo :attribute debe ser una cadena de texto separada en comas.',
+            'includeSoftDeleted.boolean' => 'El campo :attribute debe ser verdadero o falso.',
+            'onlySoftDeleted.boolean' => 'El campo :attribute debe ser verdadero o falso.',
+            'includeRelatedSoftDeleted.boolean' => 'El campo :attribute debe ser verdadero o falso.',
+            'onlyRelatedSoftDeleted.boolean' => 'El campo :attribute debe ser verdadero o falso.',
         ];
 
         $attributeNames = [
             'include' => 'relaciones a incluir',
+            'includeSoftDeleted' => 'incluir registros eliminados (soft-deleted)',
+            'onlySoftDeleted' => 'solo registros eliminados (soft-deleted)',
+            'includeRelatedSoftDeleted' => 'incluir registros eliminados en relaciones',
+            'onlyRelatedSoftDeleted' => 'solo registros eliminados en relaciones',
         ];
 
         $validator = Validator::make($datos, $rules, $messages);
@@ -374,6 +456,12 @@ abstract class Controller{
         }
 
         $include = $request->input('include', '');
+
+        $includeSoftDeleted = $datos['includeSoftDeleted'] ?? false;
+        $onlySoftDeleted = $datos['onlySoftDeleted'] ?? false;
+        $includeRelatedSoftDeleted = $datos['includeRelatedSoftDeleted'] ?? false;
+        $onlyRelatedSoftDeleted = $datos['onlyRelatedSoftDeleted'] ?? false;
+
         $include = is_array($include) ? $include : explode(',', $include);
         // Remover vacíos
         $include = array_filter($include, fn($inc) => !empty($inc));
@@ -395,13 +483,56 @@ abstract class Controller{
             // Construcción de la consulta
             $query = $this->model->query();
 
+            if ($includeSoftDeleted){
+                // Incluir registros "soft deleted" del modelo principal
+                $query = $query->withTrashed();
+            }
+
+            if ($onlySoftDeleted){
+                // Solo registros "soft deleted" del modelo principal
+                $query = $query->onlyTrashed();
+            }
+
             // Incluir relaciones si se especifican
             if (count($include) != 0){
-                $query->with($include);
+                if ($includeRelatedSoftDeleted) {
+                    // Para cada relación pedida, añadimos una clausura que intenta aplicar withTrashed()
+                    // en la consulta de la relación (si el builder soporta withTrashed).
+                    $eager = [];
+                    foreach ($include as $inc) {
+                        $eager[$inc] = function ($q) {
+                            $q->withTrashed();
+                        };
+                    }
+                    $query->with($eager);
+                } 
+                
+                if ($onlyRelatedSoftDeleted) {
+                    // Para cada relación pedida, añadimos una clausura que intenta aplicar onlyTrashed()
+                    // en la consulta de la relación (si el builder soporta onlyTrashed).
+                    $eager = [];
+                    foreach ($include as $inc) {
+                        $eager[$inc] = function ($q) {
+                            $q->onlyTrashed();
+                        };
+                    }
+                    $query->with($eager);
+                }
+
+                else {
+                    $query->with($include);
+                }
             }
 
             // Obtener el registro por ID
-            $record = $query->findOrFail($id);
+            $record = $query->find($id);
+
+            if(!$record){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Registro no encontrado.',
+                ], 404);
+            }
 
             // Respuesta exitosa
             return response()->json([

@@ -88,6 +88,46 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
                     }
                 ],
                 "responses": {
@@ -156,6 +196,46 @@
                         "required": false,
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
                         }
                     }
                 ],

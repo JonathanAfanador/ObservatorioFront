@@ -150,6 +150,34 @@ class MunicipiosController extends Controller{
      *             type="string"
      *         )
      *     ),
+     *    @OA\Parameter(
+     *         name="includeSoftDeleted",
+     *        in="query",
+     *    description="Incluir registros deshabilitados (soft deleted)",
+     *    required=false,
+     *    @OA\Schema(type="boolean", example=false)
+     *    ),
+     *      @OA\Parameter(
+     *         name="onlySoftDeleted",
+     *        in="query",
+     *   description="Solo registros deshabilitados (soft deleted)",
+     *   required=false,
+     *   @OA\Schema(type="boolean", example=false)
+     * ),
+     *  @OA\Parameter(
+     *      name="includeRelatedSoftDeleted",
+     *     in="query",
+     *   description="Incluir registros deshabilitados en relaciones",
+     *   required=false,
+     *  @OA\Schema(type="boolean", example=false)
+     * ),
+     * @OA\Parameter(
+     *     name="onlyRelatedSoftDeleted",
+     *    in="query",
+     *  description="Solo registros deshabilitados en relaciones",
+     *  required=false,
+     * @OA\Schema(type="boolean", example=false)
+     * ),
      *     @OA\Response(
      *         response=200,
      *         description="Lista de municipios obtenida exitosamente",
@@ -193,6 +221,34 @@ class MunicipiosController extends Controller{
      *          required=false,
      *          @OA\Schema(type="string")
      *      ),
+     *    @OA\Parameter(
+     *         name="includeSoftDeleted",
+     *        in="query",
+     *    description="Incluir registros deshabilitados (soft deleted)",
+     *    required=false,
+     *    @OA\Schema(type="boolean", example=false)
+     *    ),
+     *      @OA\Parameter(
+     *         name="onlySoftDeleted",
+     *        in="query",
+     *   description="Solo registros deshabilitados (soft deleted)",
+     *   required=false,
+     *   @OA\Schema(type="boolean", example=false)
+     * ),
+     *  @OA\Parameter(
+     *      name="includeRelatedSoftDeleted",
+     *     in="query",
+     *   description="Incluir registros deshabilitados en relaciones",
+     *   required=false,
+     *  @OA\Schema(type="boolean", example=false)
+     * ),
+     * @OA\Parameter(
+     *     name="onlyRelatedSoftDeleted",
+     *    in="query",
+     *  description="Solo registros deshabilitados en relaciones",
+     *  required=false,
+     * @OA\Schema(type="boolean", example=false)
+     * ),
      *      @OA\Response(
      *          response=200,
      *          description="Municipio obtenido exitosamente",
