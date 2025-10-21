@@ -5,7 +5,7 @@ use App\Http\Controllers\DepartamentosController;
 use App\Http\Controllers\V1\AuditoriaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
-
+use App\Http\Middleware\ForceJsonResponse;
 
 // Rutas API
 
@@ -24,42 +24,45 @@ use App\Http\Controllers\V1\AuthController;
 // });
 
 // Registro y Login
-Route::prefix('auth')->group(function (){
-    Route::post('/register', [AuthController::class, 'registro']);
-    Route::post('/login', [AuthController::class, 'login']);
-});
-
-Route::middleware('auth:sanctum')->group(function (){
-    // -- Auth Routes
+Route::middleware(ForceJsonResponse::class)->group(function (){
     Route::prefix('auth')->group(function (){
-        Route::get('/logout', [AuthController::class, 'logout']);
-        Route::get('/global-logout', [AuthController::class, 'globalLogout']);
-        Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/register', [AuthController::class, 'registro']);
+        Route::post('/login', [AuthController::class, 'login']);
     });
+    
+    Route::middleware('auth:sanctum')->group(function (){
+        // -- Auth Routes
+        Route::prefix('auth')->group(function (){
+            Route::get('/logout', [AuthController::class, 'logout']);
+            Route::get('/global-logout', [AuthController::class, 'globalLogout']);
+            Route::get('/me', [AuthController::class, 'me']);
+        });
 
-    // -- Auditoria Routes
-    Route::prefix('auditoria')->group(function (){
-        Route::get('/', [AuditoriaController::class,'getFieldsPaginated']);
-        Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniquesFields']);
-    });
+        // -- Auditoria Routes
+        Route::prefix('auditoria')->group(function (){
+            Route::get('/', [AuditoriaController::class,'getFieldsPaginated']);
+            Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniquesFields']);
+        });
 
-    // -- Municipios Routes
-    Route::prefix('municipios')->group(function (){
-        Route::get('/', [MunicipiosController::class, 'index']);
-        Route::get('/{id}', [MunicipiosController::class, 'show']);
-        Route::post('/', [MunicipiosController::class, 'store']);
-        Route::put('/{id}', [MunicipiosController::class, 'update']);
-        Route::delete('/{id}', [MunicipiosController::class, 'destroy']);
-        Route::post('/{id}/rehabilitate', [MunicipiosController::class, 'restore']);
-    });
+        // -- Municipios Routes
+        Route::prefix('municipios')->group(function (){
+            Route::get('/', [MunicipiosController::class, 'index']);
+            Route::get('/{id}', [MunicipiosController::class, 'show']);
+            Route::post('/', [MunicipiosController::class, 'store']);
+            Route::put('/{id}', [MunicipiosController::class, 'update']);
+            Route::delete('/{id}', [MunicipiosController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [MunicipiosController::class, 'restore']);
+        });
 
-    // -- Departamentos Routes
-    Route::prefix('departamentos')->group(function (){
-        Route::get('/', [DepartamentosController::class, 'index']);
-        Route::get('/{id}', [DepartamentosController::class, 'show']);
-        Route::post('/', [DepartamentosController::class, 'store']);
-        Route::put('/{id}', [DepartamentosController::class, 'update']);
-        Route::delete('/{id}', [DepartamentosController::class, 'destroy']);
-        Route::post('/{id}/rehabilitate', [DepartamentosController::class, 'restore']);
+        // -- Departamentos Routes
+        Route::prefix('departamentos')->group(function (){
+            Route::get('/', [DepartamentosController::class, 'index']);
+            Route::get('/{id}', [DepartamentosController::class, 'show']);
+            Route::post('/', [DepartamentosController::class, 'store']);
+            Route::put('/{id}', [DepartamentosController::class, 'update']);
+            Route::delete('/{id}', [DepartamentosController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [DepartamentosController::class, 'restore']);
+        });
     });
 });
+

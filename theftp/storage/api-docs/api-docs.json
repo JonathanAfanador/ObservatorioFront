@@ -19,7 +19,7 @@
                     "Departamentos"
                 ],
                 "summary": "Obtener la lista de departamentos",
-                "operationId": "59f98f9e9bd4c688b3e6b390d7211c80",
+                "operationId": "6135ff4b2b8aca047b9bdf854a969300",
                 "parameters": [
                     {
                         "name": "page",
@@ -177,7 +177,7 @@
                     "Departamentos"
                 ],
                 "summary": "Crear un nuevo departamento",
-                "operationId": "84fb1f4f4fe3cae875fda8682efa2ae7",
+                "operationId": "ddaade538152aa45da4678fbfb6dde38",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -222,7 +222,7 @@
                     "Departamentos"
                 ],
                 "summary": "Obtener un departamento por ID",
-                "operationId": "483cab4c5a47627843e8b9b3787de29d",
+                "operationId": "905520effa59fd1ac9dbcd453525e8d5",
                 "parameters": [
                     {
                         "name": "id",
@@ -326,7 +326,7 @@
                     "Departamentos"
                 ],
                 "summary": "Actualizar un departamento existente",
-                "operationId": "739e449e3ddceb94f2d2e9e85b81d515",
+                "operationId": "055605a34e08334d02c099cd82fc4367",
                 "parameters": [
                     {
                         "name": "id",
@@ -381,7 +381,7 @@
                     "Departamentos"
                 ],
                 "summary": "Eliminar un departamento",
-                "operationId": "0fdb7f3db3e9dd4f524df89ad8d9be1d",
+                "operationId": "10aa2d3d49cf36e403c322485b110c78",
                 "parameters": [
                     {
                         "name": "id",
@@ -418,7 +418,7 @@
                     "Departamentos"
                 ],
                 "summary": "Rehabilitar un departamento eliminado",
-                "operationId": "6e5f8d76ac00a1b53445c0bf0bf77ae4",
+                "operationId": "5cf5cd10e7cfc7cb3c603cf0c1779183",
                 "parameters": [
                     {
                         "name": "id",
