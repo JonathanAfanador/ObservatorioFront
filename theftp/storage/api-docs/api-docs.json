@@ -13,6 +13,442 @@
     },
     "paths": {
         "/api": {},
+        "/api/barrios": {
+            "get": {
+                "tags": [
+                    "Barrios"
+                ],
+                "summary": "Obtener la lista de barrios",
+                "operationId": "ee48dc0b934f7fbbe557c7873160a85c",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página para la paginación",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar los resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "municipio"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filtro en formato JSON para aplicar condiciones",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "{\"name\":{\"like\":\"%CENTRO%\"}}"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de barrios obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Barrios"
+                ],
+                "summary": "Crear un nuevo barrio",
+                "operationId": "924affe4e5798ed045782fb005cd92d2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Barrio X"
+                                    },
+                                    "municipios_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Barrio creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/barrios/{id}": {
+            "get": {
+                "tags": [
+                    "Barrios"
+                ],
+                "summary": "Obtener un barrio por ID",
+                "operationId": "dcc500102292574e9a789eb08aaf0a02",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del barrio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "municipio"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Barrio obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Barrio no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Barrios"
+                ],
+                "summary": "Actualizar un barrio existente",
+                "operationId": "df86a658b9da185a81b42aa34265120f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del barrio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Barrio X"
+                                    },
+                                    "municipios_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Barrio actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Barrios"
+                ],
+                "summary": "Eliminar un barrio",
+                "operationId": "f62087c4bbcc7c18df271c60efeb6f20",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del barrio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Barrio eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Barrio no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/barrios/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "Barrios"
+                ],
+                "summary": "Rehabilitar un barrio eliminado",
+                "operationId": "2e96e2a470e75159f4300eb9f56a7f31",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del barrio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Barrio rehabilitado exitosamente"
+                    },
+                    "404": {
+                        "description": "Barrio no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/departamentos": {
             "get": {
                 "tags": [
@@ -878,6 +1314,434 @@
                     },
                     "404": {
                         "description": "Municipio no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tipo_ident": {
+            "get": {
+                "tags": [
+                    "Tipo Identificación"
+                ],
+                "summary": "Obtener la lista de tipos de identificación",
+                "operationId": "5ab462bf58fb3a2e693f42b48aa4018c",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página para la paginación",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar los resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": ""
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filtro en formato JSON para aplicar condiciones",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "{\"descripcion\":{\"like\":\"%CED%\"}}"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de tipos de identificación obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tipo Identificación"
+                ],
+                "summary": "Crear un nuevo tipo de identificación",
+                "operationId": "170bf5e8b4d775822c16f439e58a9538",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "CÉDULA DE CIUDADANÍA"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tipo de identificación creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tipo_ident/{id}": {
+            "get": {
+                "tags": [
+                    "Tipo Identificación"
+                ],
+                "summary": "Obtener un tipo de identificación por ID",
+                "operationId": "a8b886be1020dfe456442fd5e3bb825a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de identificación",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": ""
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tipo de identificación obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Tipo de identificación no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Tipo Identificación"
+                ],
+                "summary": "Actualizar un tipo de identificación existente",
+                "operationId": "15dc4828ed880dd2a5d35e71d415c4cd",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de identificación",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "TARJETA DE IDENTIDAD"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tipo de identificación actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tipo Identificación"
+                ],
+                "summary": "Eliminar un tipo de identificación",
+                "operationId": "31caada86c87eeb008ccf6282b5ada8e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de identificación",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tipo de identificación eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Tipo de identificación no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tipo_ident/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "Tipo Identificación"
+                ],
+                "summary": "Rehabilitar un tipo de identificación eliminado",
+                "operationId": "3cac65efd2962b29102aec07042889c1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de identificación",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tipo de identificación rehabilitado exitosamente"
+                    },
+                    "404": {
+                        "description": "Tipo de identificación no encontrado"
                     },
                     "500": {
                         "description": "Error interno del servidor"
@@ -2923,12 +3787,20 @@
     },
     "tags": [
         {
+            "name": "Barrios",
+            "description": "Barrios"
+        },
+        {
             "name": "Departamentos",
             "description": "Departamentos"
         },
         {
             "name": "Municipios",
             "description": "Municipios"
+        },
+        {
+            "name": "Tipo Identificación",
+            "description": "Tipo Identificación"
         },
         {
             "name": "Auditoría",

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\MunicipiosController;
 use App\Http\Controllers\DepartamentosController;
+use App\Http\Controllers\BarriosController;
+use App\Http\Controllers\TipoIdentController;
 use App\Http\Controllers\V1\AuditoriaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
@@ -29,7 +31,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
         Route::post('/register', [AuthController::class, 'registro']);
         Route::post('/login', [AuthController::class, 'login']);
     });
-    
+
     Route::middleware('auth:sanctum')->group(function (){
         // -- Auth Routes
         Route::prefix('auth')->group(function (){
@@ -62,6 +64,27 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [DepartamentosController::class, 'update']);
             Route::delete('/{id}', [DepartamentosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [DepartamentosController::class, 'restore']);
+        });
+
+        // -- Barrios Routes
+        Route::prefix('barrios')->group(function (){
+            // Rutas de Barrios irian aqui
+            Route::get('/', [BarriosController::class, 'index']);
+            Route::get('/{id}', [BarriosController::class, 'show']);
+            Route::post('/', [BarriosController::class, 'store']);
+            Route::put('/{id}', [BarriosController::class, 'update']);
+            Route::delete('/{id}', [BarriosController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [BarriosController::class, 'restore']);
+        });
+
+        // -- Tipo Ident Routes
+        Route::prefix('tipo_ident')->group(function (){
+            Route::get('/', [TipoIdentController::class, 'index']);
+            Route::get('/{id}', [TipoIdentController::class, 'show']);
+            Route::post('/', [TipoIdentController::class, 'store']);
+            Route::put('/{id}', [TipoIdentController::class, 'update']);
+            Route::delete('/{id}', [TipoIdentController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [TipoIdentController::class, 'restore']);
         });
     });
 });
