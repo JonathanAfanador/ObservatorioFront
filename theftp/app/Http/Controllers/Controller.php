@@ -161,7 +161,7 @@ abstract class Controller{
         $rules = [
             'page' => 'nullable|integer|min:1',
             'limit' => 'nullable|integer|min:1|max:100', // Limita la paginación a 100 elementos
-            'columns' => 'nullable|string', // Se asume una lista separada por comas o un array
+            'columns' => 'nullable|string', // Se asume una lista separada por comas
             'orderBy' => 'nullable|string|max:50', // Nombre de la columna para ordenar
             'orderDirection' => 'nullable|in:asc,desc',
             'include' => 'nullable|string', // Se asume una lista de relaciones separada por comas
@@ -211,7 +211,7 @@ abstract class Controller{
         if ($validator->fails()) {
             return response()->json(
                 [
-                    'success' => false,
+                    'status' => false,
                     'errors' => $validator->errors(),
                     'filterExamples' => [
                         'igualdad (=)' => '{"column":"id","operator":"=","value":1}',
@@ -243,7 +243,7 @@ abstract class Controller{
         $onlyRelatedSoftDeleted = $datos['onlyRelatedSoftDeleted'] ?? false;
 
         // El filtro ya pasó la validación de JSON, lo decodificamos
-        $filter = json_decode($filter, true);
+        $filter = json_decode($filter, true); //
 
         $columns = is_array($columns) ? $columns : explode(',', $columns);
         $include = is_array($include) ? $include : explode(',', $include);
@@ -269,7 +269,7 @@ abstract class Controller{
             foreach ($include as $inc){
                 if (!in_array($inc, $allowedIncludes)){
                     return response()->json([
-                        'success' => false,
+                        'status' => false,
                         'message' => "La relación solicitada para incluir '{$inc}' no está permitida.",
                         'allowed_includes' => $allowedIncludes,
                     ], 400);
@@ -379,14 +379,14 @@ abstract class Controller{
 
             // Respuesta exitosa
             return response()->json([
-                'success' => true,
+                'status' => true,
                 'total' => $total,
                 'data' => $data,
             ], 200);
         } catch (Exception $e) {
             // Manejo de errores
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Error al obtener los datos.',
                 'error' => $e->getMessage(),
             ], 500);
@@ -451,7 +451,7 @@ abstract class Controller{
         if ($validator->fails()) {
             return response()->json(
                 [
-                    'success' => false,
+                    'status' => false,
                     'errors' => $validator->errors(),
             ], 422);
         }
@@ -472,7 +472,7 @@ abstract class Controller{
             foreach ($include as $inc){
                 if (!in_array($inc, $allowedIncludes)){
                     return response()->json([
-                        'success' => false,
+                        'status' => false,
                         'message' => "La relación solicitada para incluir '{$inc}' no está permitida.",
                         'allowed_includes' => $allowedIncludes,
                     ], 400);
@@ -530,20 +530,20 @@ abstract class Controller{
 
             if(!$record){
                 return response()->json([
-                    'success' => false,
+                    'status' => false,
                     'message' => 'Registro no encontrado.',
                 ], 404);
             }
 
             // Respuesta exitosa
             return response()->json([
-                'success' => true,
+                'status' => true,
                 'data' => $record,
             ], 200);
         } catch (Exception $e) {
             // Manejo de errores
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Error al obtener el registro.',
                 'error' => $e->getMessage(),
             ], 500);
@@ -564,16 +564,17 @@ abstract class Controller{
 
         // -- Lógica
         try{
-            $this->model->create($request->all());
+            $newRecord = $this->model->create($request->all());
 
             return response()->json([
-                'success' => true,
+                'status' => true,
                 'message' => 'Registro creado exitosamente.',
+                'data' => $newRecord,
             ], 201);
 
         } catch (Exception $e){
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Error al crear el registro.',
                 'error' => $e->getMessage(),
             ], $e->getCode() ?: 400);
@@ -597,14 +598,21 @@ abstract class Controller{
             $record = $this->model->find($id);
             if(!$record){
                 return response()->json([
-                    'success' => false,
+                    'status' => false,
                     'message' => 'Registro no encontrado.',
                 ], 404);
             }
             $record->update($request->all());
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Registro actualizado exitosamente.',
+                'data' => $record,
+            ], 200);
+
         } catch (Exception $e){
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Error al actualizar el registro.',
                 'error' => $e->getMessage(),
             ], $e->getCode() ?: 400);
@@ -612,8 +620,8 @@ abstract class Controller{
 
     }
 
-    public function disable(string $id){
-        
+    public function destroy(string $id){
+
         // -- Permisos
         try{
             PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, ACCIONES::DELETE);
@@ -624,34 +632,41 @@ abstract class Controller{
             ], $e->getCode() ?: 400);
         }
 
-        // -- Lógica 
+        // -- Lógica
         try{
             DB::beginTransaction();
-            $record = $this->model->find($id);
+            $record = $this->model->withTrashed()->find($id);
+
+            if($record->trashed()){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'El registro ya está deshabilitado.',
+                ], 400);
+            }
+
             if(!$record){
                 return response()->json([
-                    'success' => false,
+                    'status' => false,
                     'message' => 'Registro no encontrado.',
                 ], 404);
             }
-            $record->disable();
-            $record->save();
+            $record->delete();
             DB::commit();
             return response()->json([
-                'success' => true,
+                'status' => true,
                 'message' => 'Registro deshabilitado exitosamente.',
             ], 200);
         } catch (Exception $e){
             DB::rollBack();
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Error al deshabilitar el registro.',
                 'error' => $e->getMessage(),
             ], $e->getCode() ?: 400);
         }
     }
 
-    public function rehabilitate(string $id){
+    public function restore(string $id){
 
         // -- PERMISOS
         try{
@@ -666,24 +681,24 @@ abstract class Controller{
         // -- LÓGICA
         try{
             DB::beginTransaction();
-            $record = $this->model->find($id);
+            $record = $this->model->onlyTrashed()->find($id);
             if(!$record){
                 return response()->json([
-                    'success' => false,
-                    'message' => 'Registro no encontrado.',
+                    'status' => false,
+                    'message' => 'Registro no deshabilitado.',
                 ], 404);
             }
-            $record->rehabilitate();
+            $record->restore();
             $record->save();
             DB::commit();
             return response()->json([
-                'success' => true,
+                'status' => true,
                 'message' => 'Registro rehabilitado exitosamente.',
             ], 200);
         } catch (Exception $e){
             DB::rollBack();
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Error al rehabilitar el registro.',
                 'error' => $e->getMessage(),
             ], $e->getCode() ?: 400);

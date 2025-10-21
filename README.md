@@ -61,7 +61,17 @@ Dentro este proyecto se incluye una carpeta llamada `theftp` que contiene todo e
 
 ## Documentación de la API
 
-La documentación de la API está disponible en el Postman anexado al proyecto. Puedes importarla en Postman para explorar y probar los endpoints disponibles.
+La documentación de la API está disponible en el Swagger utilizando L5-Swagger
+
+### Generar Documentación
+```
+php artisan l5-swagger:generate
+```
+
+### Ingresar al swagger
+```
+http://localhost:8000/api/documentation
+```
 
 ## Autores
 - Juan Andrés Vega Gonzalez - Estudiante de Ingeniería de Sistemas de la Universidad Piloto de Colombia Seccional Del Alto Magdalena

@@ -44,7 +44,7 @@
                     {
                         "name": "columns",
                         "in": "query",
-                        "description": "Columnas a seleccionar, separadas por comas, usar * traera todas las columnas",
+                        "description": "Columnas a seleccionar, separadas por comas, usar * traerá todas las columnas",
                         "required": false,
                         "schema": {
                             "type": "string",
@@ -137,7 +137,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -159,6 +159,53 @@
                     },
                     "401": {
                         "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Municipios"
+                ],
+                "summary": "Crear un nuevo municipio",
+                "operationId": "5dfc3ff0d95ede23d0f3e83427a9bf65",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Municipio X"
+                                    },
+                                    "codigo_dane": {
+                                        "type": "string",
+                                        "example": "12345"
+                                    },
+                                    "departamentos_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Municipio creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
                     },
                     "500": {
                         "description": "Error interno del servidor"
@@ -246,7 +293,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -261,6 +308,137 @@
                     },
                     "401": {
                         "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Municipio no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Municipios"
+                ],
+                "summary": "Actualizar un municipio existente",
+                "operationId": "dbf4efa9ef602b35f8071ad4cffd1097",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del municipio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Municipio X"
+                                    },
+                                    "codigo_dane": {
+                                        "type": "string",
+                                        "example": "12345"
+                                    },
+                                    "departamentos_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Municipio actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Municipios"
+                ],
+                "summary": "Eliminar un municipio",
+                "operationId": "85f07e13a6ac4eace55cea81c6cafc9a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del municipio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Municipio eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Municipio no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/municipios/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "Municipios"
+                ],
+                "summary": "Rehabilitar un municipio eliminado",
+                "operationId": "f4d15df027dc842dc873f323af288a5d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del municipio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Municipio rehabilitado exitosamente"
                     },
                     "404": {
                         "description": "Municipio no encontrado"

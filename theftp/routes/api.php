@@ -70,6 +70,10 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::prefix('municipios')->group(function (){
         Route::get('/', [MunicipiosController::class, 'index']);
         Route::get('/{id}', [MunicipiosController::class, 'show']);
+        Route::post('/', [MunicipiosController::class, 'store']);
+        Route::put('/{id}', [MunicipiosController::class, 'update']);
+        Route::delete('/{id}', [MunicipiosController::class, 'destroy']);
+        Route::post('/{id}/rehabilitate', [MunicipiosController::class, 'restore']);
     });
 });
 
