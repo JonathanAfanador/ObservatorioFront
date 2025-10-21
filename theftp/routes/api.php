@@ -1,34 +1,11 @@
 <?php
 
-use App\Enums\Acciones;
-use App\Enums\Tablas;
 use App\Http\Controllers\MunicipiosController;
 use App\Http\Controllers\DepartamentosController;
 use App\Http\Controllers\V1\AuditoriaController;
-use App\Models\conductores;
-use App\Models\seguim_estado_veh;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
-use App\Http\Services\PermisosService;
-use App\Models\barrios;
-use App\Models\cierre_sesion;
-use App\Models\conductores_licencias;
-use App\Models\departamentos;
-use App\Models\documentos;
-use App\Models\empresas;
-use App\Models\inicio_sesion;
-use App\Models\menus;
-use App\Models\municipios;
-use App\Models\permisos;
-use App\Models\propietarios;
-use App\Models\restriccion_lic;
-use App\Models\rol;
-use App\Models\rutas;
-use App\Models\tipo_doc;
-use App\Models\tipo_empresa;
-use App\Models\tipo_ident;
-use Illuminate\Support\Facades\Auth;
+
 
 // Rutas API
 
