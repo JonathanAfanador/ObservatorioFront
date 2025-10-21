@@ -4,6 +4,7 @@ use App\Http\Controllers\MunicipiosController;
 use App\Http\Controllers\DepartamentosController;
 use App\Http\Controllers\BarriosController;
 use App\Http\Controllers\TipoIdentController;
+use App\Http\Controllers\TipoDocController;
 use App\Http\Controllers\V1\AuditoriaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
@@ -85,6 +86,16 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [TipoIdentController::class, 'update']);
             Route::delete('/{id}', [TipoIdentController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [TipoIdentController::class, 'restore']);
+        });
+
+        // -- Tipo Ident Routes
+        Route::prefix('tipo_ident')->group(function (){
+            Route::get('/', [TipoDocController::class, 'index']);
+            Route::get('/{id}', [TipoDocController::class, 'show']);
+            Route::post('/', [TipoDocController::class, 'store']);
+            Route::put('/{id}', [TipoDocController::class, 'update']);
+            Route::delete('/{id}', [TipoDocController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [TipoDocController::class, 'restore']);
         });
     });
 });

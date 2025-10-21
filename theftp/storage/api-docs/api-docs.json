@@ -1326,6 +1326,434 @@
                 ]
             }
         },
+        "/api/tipo_doc": {
+            "get": {
+                "tags": [
+                    "Tipo Documento"
+                ],
+                "summary": "Obtener la lista de tipos de documento",
+                "operationId": "0c26ee56e5fd8da9d49cbbf6dc4e7f20",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página para la paginación",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar los resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": ""
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filtro en formato JSON para aplicar condiciones",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "{\"descripcion\":{\"like\":\"%ACTA%\"}}"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de tipos de documento obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tipo Documento"
+                ],
+                "summary": "Crear un nuevo tipo de documento",
+                "operationId": "934365daa8903944a027dc5db007ee4f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "RESOLUCIÓN"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tipo de documento creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tipo_doc/{id}": {
+            "get": {
+                "tags": [
+                    "Tipo Documento"
+                ],
+                "summary": "Obtener un tipo de documento por ID",
+                "operationId": "63c594de6d94ce7d7b6dff71388e0448",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de documento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": ""
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tipo de documento obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Tipo de documento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Tipo Documento"
+                ],
+                "summary": "Actualizar un tipo de documento existente",
+                "operationId": "eb7b9993a5d439a9b8d63beb1aaf59f1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de documento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "ACTA"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tipo de documento actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tipo Documento"
+                ],
+                "summary": "Eliminar un tipo de documento",
+                "operationId": "0c7e09299772b8872a3029e9152b8156",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de documento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tipo de documento eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Tipo de documento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tipo_doc/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "Tipo Documento"
+                ],
+                "summary": "Rehabilitar un tipo de documento eliminado",
+                "operationId": "5ec7637bfce9703b4abb3f77a74c189c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de documento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tipo de documento rehabilitado exitosamente"
+                    },
+                    "404": {
+                        "description": "Tipo de documento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/tipo_ident": {
             "get": {
                 "tags": [
@@ -3797,6 +4225,10 @@
         {
             "name": "Municipios",
             "description": "Municipios"
+        },
+        {
+            "name": "Tipo Documento",
+            "description": "Tipo Documento"
         },
         {
             "name": "Tipo Identificación",
