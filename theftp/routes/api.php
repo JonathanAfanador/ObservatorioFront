@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\MunicipiosController;
 use App\Http\Controllers\DepartamentosController;
+use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\BarriosController;
 use App\Http\Controllers\TipoIdentController;
 use App\Http\Controllers\TipoDocController;
@@ -97,6 +98,15 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::delete('/{id}', [TipoDocController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [TipoDocController::class, 'restore']);
         });
+
+        // -- Documentos Routes
+        Route::prefix('documentos')->group(function (){
+            Route::get('/', [DocumentosController::class, 'index']);
+            Route::get('/{id}', [DocumentosController::class, 'show']);
+            Route::post('/', [DocumentosController::class, 'store']);
+            Route::put('/{id}', [DocumentosController::class, 'update']);
+            Route::delete('/{id}', [DocumentosController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [DocumentosController::class, 'restore']);
+        });
     });
 });
-

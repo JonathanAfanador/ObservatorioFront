@@ -23,6 +23,7 @@ enum Tablas: string {
     case SEGUIM_ESTADO_VEH = 'seguim_estado_veh';
     case SEGUIM_GPS = 'seguim_gps';
     case TIPO_DOC = 'tipo_doc';
+    case DOCUMENTOS = 'documentos';
     case TIPO_IDENT = 'tipo_ident';
     case TIPO_VEHICULO = 'tipo_vehiculo';
     case USERS = 'users';
