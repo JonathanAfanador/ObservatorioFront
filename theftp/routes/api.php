@@ -75,5 +75,14 @@ Route::middleware('auth:sanctum')->group(function (){
         Route::delete('/{id}', [MunicipiosController::class, 'destroy']);
         Route::post('/{id}/rehabilitate', [MunicipiosController::class, 'restore']);
     });
-});
 
+    // -- Departamentos Routes
+    Route::prefix('departamentos')->group(function (){
+        Route::get('/', [DepartamentosController::class, 'index']);
+        Route::get('/{id}', [DepartamentosController::class, 'show']);
+        Route::post('/', [DepartamentosController::class, 'store']);
+        Route::put('/{id}', [DepartamentosController::class, 'update']);
+        Route::delete('/{id}', [DepartamentosController::class, 'destroy']);
+        Route::post('/{id}/rehabilitate', [DepartamentosController::class, 'restore']);
+    });
+});

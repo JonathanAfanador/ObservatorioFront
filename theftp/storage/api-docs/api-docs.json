@@ -13,6 +13,442 @@
     },
     "paths": {
         "/api": {},
+        "/api/departamentos": {
+            "get": {
+                "tags": [
+                    "Departamentos"
+                ],
+                "summary": "Obtener la lista de departamentos",
+                "operationId": "59f98f9e9bd4c688b3e6b390d7211c80",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página para la paginación",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar los resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "municipios"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filtro en formato JSON para aplicar condiciones",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "{\"name\":{\"like\":\"%CUNDI%\"}}"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de departamentos obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Departamentos"
+                ],
+                "summary": "Crear un nuevo departamento",
+                "operationId": "84fb1f4f4fe3cae875fda8682efa2ae7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Cundinamarca"
+                                    },
+                                    "codigo_dane": {
+                                        "type": "string",
+                                        "example": "25"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Departamento creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/departamentos/{id}": {
+            "get": {
+                "tags": [
+                    "Departamentos"
+                ],
+                "summary": "Obtener un departamento por ID",
+                "operationId": "483cab4c5a47627843e8b9b3787de29d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del departamento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "municipios"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Departamento obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Departamento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Departamentos"
+                ],
+                "summary": "Actualizar un departamento existente",
+                "operationId": "739e449e3ddceb94f2d2e9e85b81d515",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del departamento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Cundinamarca"
+                                    },
+                                    "codigo_dane": {
+                                        "type": "string",
+                                        "example": "25"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Departamento actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Departamentos"
+                ],
+                "summary": "Eliminar un departamento",
+                "operationId": "0fdb7f3db3e9dd4f524df89ad8d9be1d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del departamento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Departamento eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Departamento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/departamentos/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "Departamentos"
+                ],
+                "summary": "Rehabilitar un departamento eliminado",
+                "operationId": "6e5f8d76ac00a1b53445c0bf0bf77ae4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del departamento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Departamento rehabilitado exitosamente"
+                    },
+                    "404": {
+                        "description": "Departamento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/municipios": {
             "get": {
                 "tags": [
@@ -386,7 +822,7 @@
                     "Municipios"
                 ],
                 "summary": "Eliminar un municipio",
-                "operationId": "85f07e13a6ac4eace55cea81c6cafc9a",
+                "operationId": "c8cb66cb40885ba88f8958e1cfac006e",
                 "parameters": [
                     {
                         "name": "id",
@@ -423,7 +859,7 @@
                     "Municipios"
                 ],
                 "summary": "Rehabilitar un municipio eliminado",
-                "operationId": "f4d15df027dc842dc873f323af288a5d",
+                "operationId": "ce91c500a79def1f8cfe120ea6ae586a",
                 "parameters": [
                     {
                         "name": "id",
@@ -2486,6 +2922,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Departamentos",
+            "description": "Departamentos"
+        },
         {
             "name": "Municipios",
             "description": "Municipios"
