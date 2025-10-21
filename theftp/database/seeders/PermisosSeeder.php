@@ -1,142 +1,104 @@
 <?php
-//! Al final :V
+
 namespace Database\Seeders;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
+use App\Enums\Tablas;
 
 class PermisosSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
+    public function run()
     {
+        $tablas = Tablas::getValues(); // enum -> array de strings
+        $now = Carbon::now();
 
-        // TODO https://trello.com/c/vgovPAM5/9-adaptar-los-permisos-para-cada-rol-por-cada-m%C3%B3dulo-permisosseeder
+        // roles por ID (según lo que mencionaste)
+        // 1 => Administrador
+        // 2 => Secretaria de tránsito
+        // 3 => Empresa de transporte
+        // 4 => Usuario UPC
+        // 5 => Invitado
 
-        // // Tablas de las cuales quiero que tengan permisos
-        // $collection = collect([
-        //     // ------- Espacial ------- //
-        //     'rutas',
-        //     'barrios',
-        //     'municipios',
-        //     'departamentos',
+        $roleIds = [1,2,3,4,5];
 
-        //     // ------- Auth ------- //
-        //     'personas',
-        //     'tipo_ident',
-        //     'usuarios',
-        //     'rol',
-        //     'roles_menus',
-        //     'menus',
-        //     'permisos',
+        foreach ($roleIds as $roleId) {
 
-        //     // ------- Transporte publico ------- //
-        //     'tipo_empresa',
-        //     'empresas',
-        //     'empresa_usuarios',
-        //     'conductores',
-        //     'licencias',
-        //     'conductores_licencias',
-        //     'restriccion_lic',
-        //     'categorias_licencia',
-        //     'propietarios',
-        //     'documentos',
-        //     'tipo_doc',
-        //     'tipo_vehiculo',
-        //     'vehiculo',
-        //     'seguim_gps',
-        //     'seguim_estado_veh',
+            // validar que exista el rol en BD, si no existe lo saltamos
+            $rolExists = DB::table('rol')->where('id', $roleId)->exists();
+            if (! $rolExists) {
+                $this->command->info("PermisosSeeder: rol id={$roleId} no existe en tabla 'rol'. Saltando ese rol.");
+                continue;
+            }
 
-        //     // ------- Auditoria ------- //
-        //     'inicio_sesion',
-        //     'cierre_sesion',
-        // ]);
+            foreach ($tablas as $tabla) {
+                // default
+                $create = false;
+                $read   = false;
+                $update = false;
+                $delete = false;
 
-        // $roles = DB::table('rol')->pluck('id', 'descripcion');
-        // $rol_map = [];
-        // foreach ($roles as $r){
-        //     $rol_map[mb_strtoupper(trim($r->descripcion))] = (int) $r->id;
-        // }
+                if ($roleId === 1) {
+                    // Administrador: todo true
+                    $create = $read = $update = $delete = true;
+                } elseif ($roleId === 2) {
+                    // Secretaria de tránsito: igual que admin pero auditoria todo FALSE
+                    if ($tabla === Tablas::AUDITORIA->value) {
+                        $create = $read = $update = $delete = false;
+                    } else {
+                        $create = $read = $update = $delete = true;
+                    }
+                } elseif ($roleId === 3) {
+                    // Empresa de transporte
+                    // read true en todas menos auditoria
+                    $read = ($tabla !== Tablas::AUDITORIA->value);
 
-        // // Helpers de politicas
-        // $NONE = ['agregar' => false, 'mordificar' => false, 'eliminar' => false, 'leer' => false];
-        // $CRUD = ['agregar' => true, 'mordificar' => true, 'eliminar' => true, 'leer' => true];
-        // $CRU = ['agregar' => true, 'mordificar' => true, 'eliminar' => false, 'leer' => true];
-        // $READONLY = ['agregar' => false, 'mordificar' => false, 'eliminar' => false, 'leer' => true];
+                    // create/update true por defecto salvo excepciones
+                    $isTipo = str_contains($tabla, 'tipo'); // tipo_doc, tipo_ident, tipo_vehiculo...
+                    $isException = in_array($tabla, [
+                        Tablas::AUDITORIA->value,
+                        Tablas::EMPRESAS->value,
+                    ]) || $isTipo || in_array($tabla, ['categorias_licencias','restriccion_lic']);
 
-        // // Politicas por rol
-        // // Uso de Mayusculas para coincidir con $rol_map
-        // $POLICIES = [
-        //     'ADMINISTRADOR' => [
-        //         '*' => $CRUD, // Todos los permisos
-        //     ],
+                    if ($isException) {
+                        $create = $update = false;
+                    } else {
+                        $create = $update = true;
+                    }
 
+                    // delete desactivado
+                    $delete = false;
+                } elseif (in_array($roleId, [4,5])) {
+                    // Usuario UPC e Invitado: ver todas menos auditoria
+                    $read = ($tabla !== Tablas::AUDITORIA->value);
+                    $create = $update = $delete = false;
+                } else {
+                    // default seguro: solo lectura excepto auditoria
+                    $read = ($tabla !== Tablas::AUDITORIA->value);
+                }
 
-        //     // Operativo de Transito: CRUD en dominio, solo lectura en catalogo y seguridad
-        //     'Secretaria de tránsito' => [
-        //             '*' => $NONE,
-        //             // Dominio tránsito (CRUD)
-        //             'vehiculo'=>$CRUD,'tipo_vehiculo'=>$CRUD,'conductores'=>$CRUD,'licencias'=>$CRUD,
-        //             'conductores_licencias'=>$CRUD,'categorias_licencia'=>$CRUD,'restriccion_lic'=>$CRUD,
-        //             'empresas'=>$CRUD,'empresa_usuarios'=>$CRUD,'tipo_empresa'=>$CRUD,
-        //             'seguim_gps'=>$CRUD,'seguim_estado_veh'=>$CRUD,'documentos'=>$CRUD,'tipo_doc'=>$CRUD,
-        //             // Catálogos y seguridad (solo lectura)
-        //             'departamentos'=>$READONLY,'municipios'=>$READONLY,'barrios'=>$READONLY,
-        //             'usuarios'=>$READONLY,'rol'=>$READONLY,'permisos'=>$READONLY,'menus'=>$READONLY,'roles_menus'=>$READONLY,
-        //     ],
+                // Inserción idempotente: updateOrInsert por rol+tabla
+                DB::table('permisos')->updateOrInsert(
+                    [
+                        'rol_id' => $roleId,
+                        'tabla'  => $tabla,
+                    ],
+                    [
+                        'create' => (bool)$create,
+                        'read'   => (bool)$read,
+                        'update' => (bool)$update,
+                        'delete' => (bool)$delete,
+                        'updated_at' => $now,
+                        'created_at' => DB::table('permisos')->where('rol_id', $roleId)->where('tabla', $tabla)->exists()
+                            ? DB::raw('created_at') : $now,
+                    ]
+                );
+            } // end foreach tablas
 
-        //     // Empresa de transporte: puede crear/editar su operación, sin eliminar; lectura del resto
-        //     'EMPRESA_TRANSPORTE' => [
-        //             '*' => $NONE,
-        //             'vehiculo'=>$CRU,'conductores'=>$CRU,'licencias'=>$CRU,'documentos'=>$CRU,
-        //             // Lecturas
-        //             'seguim_gps'=>$READONLY,'seguim_estado_veh'=>$READONLY,
-        //             'departamentos'=>$READONLY,'municipios'=>$READONLY,'barrios'=>$READONLY,
-        //             'tipo_vehiculo'=>$READONLY,'categorias_licencia'=>$READONLY,'restriccion_lic'=>$READONLY,
-        //             'tipo_doc'=>$READONLY,'empresas'=>$READONLY,'tipo_empresa'=>$READONLY,
-        //     ],
+            $this->command->info("PermisosSeeder: procesado rol id={$roleId}.");
+        } // end foreach roles
 
-        //     // Usuario UPC: crear (reportes si aplica) y leer catálogos
-        //     'USUARIO_UPC' => [
-        //             '*' => $NONE,
-        //             // Si manejas reportes: 'reportes_ciudadanos'=>$CRU,
-        //             'departamentos'=>$READONLY,'municipios'=>$READONLY,'barrios'=>$READONLY,
-        //     ],
-
-        //     // Invitado: solo lectura básica de catálogos
-        //     'INVITADO' => [
-        //             '*' => $NONE,
-        //             'departamentos'=>$READONLY,'municipios'=>$READONLY,'barrios'=>$READONLY,
-        //     ],
-        // ];
-
-        // // Construir filas para upsert
-        // $rows = [];
-        // foreach ($POLICIES as $rolNombre => $policy) {
-        //     if (!isset($rol_map[$rolNombre])) {
-        //         // Si el rol no existe, saltar silenciosamente
-        //         continue;
-        //     }
-        //     $rolId = $rol_map[$rolNombre];
-        //     $default = $policy['*'] ?? $NONE;
-
-        //     foreach ($collection as $tabla) {
-        //         $permisos = $policy[$tabla] ?? $default;
-        //         $rows[] = [
-        //             'tabla'=> $tabla,
-        //             'agregar' => $permisos['agregar'],
-        //             'mordificar' => $permisos['mordificar'],
-        //             'eliminar' => $permisos['eliminar'],
-        //             'leer' => $permisos['leer'],
-        //         ];
-        //     }
-        // }
-        // if (empty($rows)) {
-        //     return; // No hay datos para insertar
-        // }
-
-        // DB::table('permisos')->upsert($rows, ['tabla', 'rol_id'], ['agregar', 'mordificar', 'eliminar', 'leer']);
+        $this->command->info("PermisosSeeder: terminado.");
     }
 }
