@@ -5,6 +5,7 @@ use App\Http\Controllers\DepartamentosController;
 use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\BarriosController;
 use App\Http\Controllers\CategoriasLicenciaController;
+use App\Http\Controllers\RestriccionLicController;
 use App\Http\Controllers\TipoIdentController;
 use App\Http\Controllers\TipoDocController;
 use App\Http\Controllers\V1\AuditoriaController;
@@ -118,6 +119,16 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [CategoriasLicenciaController::class, 'update']);
             Route::delete('/{id}', [CategoriasLicenciaController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [CategoriasLicenciaController::class, 'restore']);
+        });
+
+        // -- Restricciones Licencia Routes
+        Route::prefix('restricciones_licencia')->group(function (){
+            Route::get('/', [RestriccionLicController::class, 'index']);
+            Route::get('/{id}', [RestriccionLicController::class, 'show']);
+            Route::post('/', [RestriccionLicController::class, 'store']);
+            Route::put('/{id}', [RestriccionLicController::class, 'update']);
+            Route::delete('/{id}', [RestriccionLicController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [RestriccionLicController::class, 'restore']);
         });
     });
 });
