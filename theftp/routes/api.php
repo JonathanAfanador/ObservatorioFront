@@ -4,6 +4,7 @@ use App\Http\Controllers\MunicipiosController;
 use App\Http\Controllers\DepartamentosController;
 use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\BarriosController;
+use App\Http\Controllers\CategoriasLicenciaController;
 use App\Http\Controllers\TipoIdentController;
 use App\Http\Controllers\TipoDocController;
 use App\Http\Controllers\V1\AuditoriaController;
@@ -107,6 +108,16 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [DocumentosController::class, 'update']);
             Route::delete('/{id}', [DocumentosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [DocumentosController::class, 'restore']);
+        });
+
+        // -- Categorias Licencia Routes
+        Route::prefix('categorias_licencia')->group(function (){
+            Route::get('/', [CategoriasLicenciaController::class, 'index']);
+            Route::get('/{id}', [CategoriasLicenciaController::class, 'show']);
+            Route::post('/', [CategoriasLicenciaController::class, 'store']);
+            Route::put('/{id}', [CategoriasLicenciaController::class, 'update']);
+            Route::delete('/{id}', [CategoriasLicenciaController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [CategoriasLicenciaController::class, 'restore']);
         });
     });
 });
