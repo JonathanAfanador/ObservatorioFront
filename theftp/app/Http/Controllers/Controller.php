@@ -9,6 +9,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use ReflectionClass;
 use ReflectionMethod;
@@ -140,7 +141,7 @@ abstract class Controller{
         }
 
         $datos = $request->all();
-        
+
         // Casting de booleanos para los parámetros específicos
         $booleanParams = [
             'includeSoftDeleted',
@@ -405,7 +406,7 @@ abstract class Controller{
         }
 
         $datos = $request->all();
-        
+
         // Casting de booleanos para los parámetros específicos
         $booleanParams = [
             'includeSoftDeleted',
@@ -505,8 +506,8 @@ abstract class Controller{
                         };
                     }
                     $query->with($eager);
-                } 
-                
+                }
+
                 if ($onlyRelatedSoftDeleted) {
                     // Para cada relación pedida, añadimos una clausura que intenta aplicar onlyTrashed()
                     // en la consulta de la relación (si el builder soporta onlyTrashed).
@@ -550,24 +551,143 @@ abstract class Controller{
     }
 
     public function store(Request $request){
-        // TODO: Ejecución de almacenamiento
+
+        // -- Permisos
+        try{
+            PermisosService::verificarPermisoIndividual($this->table, Acciones::CREATE);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
+
+        // -- Lógica
+        try{
+            $this->model->create($request->all());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Registro creado exitosamente.',
+            ], 201);
+
+        } catch (Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear el registro.',
+                'error' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
     }
 
     public function update(string $id, Request $request){
-        // TODO: Ejecución de actualización individual
+
+        // -- Permisos
+        try{
+            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
+
+        // -- Lógica
+        try{
+            $record = $this->model->find($id);
+            if(!$record){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Registro no encontrado.',
+                ], 404);
+            }
+            $record->update($request->all());
+        } catch (Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar el registro.',
+                'error' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
+
     }
 
     public function disable(string $id){
-        // TODO: Deshabiliar registro, para este caso hay que hacer
-        // TODO: Una técnica de que si queremos deshabilitar,
-        // TODO: Primero haremos una transacción para eliminarlo de la base de datos
-        // TODO: Si se elimina, hacemos rollback para añadirle el disabled_at con la fecha de hoy.
-        // TODO: Si no se elimina, no podemos eliminarlo notificando que tiene registros enlazados.
+        
+        // -- Permisos
+        try{
+            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, ACCIONES::DELETE);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
+
+        // -- Lógica 
+        try{
+            DB::beginTransaction();
+            $record = $this->model->find($id);
+            if(!$record){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Registro no encontrado.',
+                ], 404);
+            }
+            $record->disable();
+            $record->save();
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Registro deshabilitado exitosamente.',
+            ], 200);
+        } catch (Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al deshabilitar el registro.',
+                'error' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
     }
 
     public function rehabilitate(string $id){
-        // TODO: Rehabilitar
-    }
 
+        // -- PERMISOS
+        try{
+            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, ACCIONES::DELETE);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
+
+        // -- LÓGICA
+        try{
+            DB::beginTransaction();
+            $record = $this->model->find($id);
+            if(!$record){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Registro no encontrado.',
+                ], 404);
+            }
+            $record->rehabilitate();
+            $record->save();
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Registro rehabilitado exitosamente.',
+            ], 200);
+        } catch (Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al rehabilitar el registro.',
+                'error' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
+    }
 
 }
