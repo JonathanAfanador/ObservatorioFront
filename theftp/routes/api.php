@@ -2,14 +2,14 @@
 
 use App\Http\Controllers\MunicipiosController;
 use App\Http\Controllers\DepartamentosController;
+use App\Http\Controllers\BarriosController;
 use App\Http\Controllers\V1\AuditoriaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
 use App\Http\Middleware\ForceJsonResponse;
 
-// Rutas API
+// TODO: Rutas API
 
-// //TODO: Rutas para departamentos
 // Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {
 //     // Paginacion
 //     Route::get('/paginacion', [DepartamentosController::class, 'departamentos_paginados']);
@@ -29,7 +29,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
         Route::post('/register', [AuthController::class, 'registro']);
         Route::post('/login', [AuthController::class, 'login']);
     });
-    
+
     Route::middleware('auth:sanctum')->group(function (){
         // -- Auth Routes
         Route::prefix('auth')->group(function (){
@@ -63,6 +63,16 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::delete('/{id}', [DepartamentosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [DepartamentosController::class, 'restore']);
         });
+
+        // -- Barrios Routes
+        Route::prefix('barrios')->group(function (){
+            // Rutas de Barrios irian aqui
+            Route::get('/', [BarriosController::class, 'index']);
+            Route::get('/{id}', [BarriosController::class, 'show']);
+            Route::post('/', [BarriosController::class, 'store']);
+            Route::put('/{id}', [BarriosController::class, 'update']);
+            Route::delete('/{id}', [BarriosController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [BarriosController::class, 'restore']);
+        });
     });
 });
-
