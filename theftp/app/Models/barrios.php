@@ -76,7 +76,7 @@ class barrios extends Model implements Auditable
 
     protected $fillable = [
         'name',
-        'municipios_id'
+        'municipios'
     ];
 
     public function municipio(){
