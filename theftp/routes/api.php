@@ -3,7 +3,7 @@
 use App\Enums\Acciones;
 use App\Enums\Tablas;
 use App\Http\Controllers\MunicipiosController;
-use App\Http\Controllers\V1\DepartamentosController;
+use App\Http\Controllers\DepartamentosController;
 use App\Http\Controllers\V1\AuditoriaController;
 use App\Models\conductores;
 use App\Models\seguim_estado_veh;

@@ -7,7 +7,7 @@ use App\Models\departamentos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class DepartamentoController extends Controller
+class DepartamentosController extends Controller
 {
     // Constructor
     public function __construct()
