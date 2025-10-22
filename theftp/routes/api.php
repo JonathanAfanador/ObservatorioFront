@@ -5,6 +5,7 @@ use App\Http\Controllers\DepartamentosController;
 use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\BarriosController;
 use App\Http\Controllers\CategoriasLicenciaController;
+use App\Http\Controllers\ConductoresController;
 use App\Http\Controllers\EmpresasController;
 use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\PersonasController;
@@ -12,10 +13,12 @@ use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\RestriccionLicController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\RolesMenusController;
+use App\Http\Controllers\RutasController;
 use App\Http\Controllers\MenusController;
 use App\Http\Controllers\TipoEmpresaController;
 use App\Http\Controllers\TipoIdentController;
 use App\Http\Controllers\TipoDocController;
+use App\Http\Controllers\UsersController;
 use App\Http\Controllers\V1\AuditoriaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
@@ -217,6 +220,36 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [EmpresasController::class, 'update']);
             Route::delete('/{id}', [EmpresasController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [EmpresasController::class, 'restore']);
+        });
+
+        // -- Rutas Routes
+        Route::prefix('rutas')->group(function (){
+            Route::get('/', [RutasController::class, 'index']);
+            Route::get('/{id}', [RutasController::class, 'show']);
+            Route::post('/', [RutasController::class, 'store']);
+            Route::put('/{id}', [RutasController::class, 'update']);
+            Route::delete('/{id}', [RutasController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [RutasController::class, 'restore']);
+        });
+
+        // -- Users Routes
+        Route::prefix('users')->group(function (){
+            Route::get('/', [UsersController::class, 'index']);
+            Route::get('/{id}', [UsersController::class, 'show']);
+            Route::post('/', [UsersController::class, 'store']);
+            Route::put('/{id}', [UsersController::class, 'update']);
+            Route::delete('/{id}', [UsersController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [UsersController::class, 'restore']);
+        });
+
+        // -- Conductores Routes
+        Route::prefix('conductores')->group(function (){
+            Route::get('/', [ConductoresController::class, 'index']);
+            Route::get('/{id}', [ConductoresController::class, 'show']);
+            Route::post('/', [ConductoresController::class, 'store']);
+            Route::put('/{id}', [ConductoresController::class, 'update']);
+            Route::delete('/{id}', [ConductoresController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [ConductoresController::class, 'restore']);
         });
     });
 });

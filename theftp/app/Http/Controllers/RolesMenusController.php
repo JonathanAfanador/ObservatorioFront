@@ -193,7 +193,7 @@ class RolesMenusController extends Controller
      *     security={{"sanctum": {}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA.JsonContent(
+     *         @OA\JsonContent(
      *             @OA\Property(property="rol_id", type="integer", example=1),
      *             @OA\Property(property="menu_id", type="integer", example=5)
      *         )
@@ -233,16 +233,16 @@ class RolesMenusController extends Controller
      *     summary="Actualizar una relación Rol-Menú existente",
      *     tags={"Roles-Menus"},
      *     security={{"sanctum": {}}},
-     *     @OA.Parameter(
+     *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID de la relación",
      *         required=true,
-     *         @OA.Schema(type="integer", example=1)
+     *         @OA\Schema(type="integer", example=1)
      *     ),
-     *     @OA.RequestBody(
+     *     @OA\RequestBody(
      *         required=true,
-     *         @OA.JsonContent(
+     *         @OA\JsonContent(
      *             @OA\Property(property="rol_id", type="integer", example=2),
      *             @OA\Property(property="menu_id", type="integer", example=7)
      *         )

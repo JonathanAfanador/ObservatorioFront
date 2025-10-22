@@ -225,7 +225,7 @@ class RolController extends Controller
      *     summary="Actualizar un rol existente",
      *     tags={"Roles"},
      *     security={{"sanctum": {}}},
-     *     @OA.Parameter(
+     *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID del rol",
