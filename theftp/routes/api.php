@@ -6,6 +6,7 @@ use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\BarriosController;
 use App\Http\Controllers\CategoriasLicenciaController;
 use App\Http\Controllers\LicenciasController;
+use App\Http\Controllers\PersonasController;
 use App\Http\Controllers\RestriccionLicController;
 use App\Http\Controllers\TipoIdentController;
 use App\Http\Controllers\TipoDocController;
@@ -140,6 +141,16 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [LicenciasController::class, 'update']);
             Route::delete('/{id}', [LicenciasController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [LicenciasController::class, 'restore']);
+        });
+
+        // -- Personas Routes
+        Route::prefix('personas')->group(function (){
+            Route::get('/', [PersonasController::class, 'index']);
+            Route::get('/{id}', [PersonasController::class, 'show']);
+            Route::post('/', [PersonasController::class, 'store']);
+            Route::put('/{id}', [PersonasController::class, 'update']);
+            Route::delete('/{id}', [PersonasController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [PersonasController::class, 'restore']);
         });
     });
 });
