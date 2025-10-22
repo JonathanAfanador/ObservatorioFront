@@ -7,6 +7,7 @@ use App\Http\Controllers\BarriosController;
 use App\Http\Controllers\CategoriasLicenciaController;
 use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\PersonasController;
+use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\RestriccionLicController;
 use App\Http\Controllers\TipoIdentController;
 use App\Http\Controllers\TipoDocController;
@@ -151,6 +152,16 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [PersonasController::class, 'update']);
             Route::delete('/{id}', [PersonasController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [PersonasController::class, 'restore']);
+        });
+
+        // -- Permisos Routes
+        Route::prefix('permisos')->group(function (){
+            Route::get('/', [PermisosController::class, 'index']);
+            Route::get('/{id}', [PermisosController::class, 'show']);
+            Route::post('/', [PermisosController::class, 'store']);
+            Route::put('/{id}', [PermisosController::class, 'update']);
+            Route::delete('/{id}', [PermisosController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [PermisosController::class, 'restore']);
         });
     });
 });
