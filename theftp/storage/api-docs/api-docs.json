@@ -1313,6 +1313,450 @@
                 ]
             }
         },
+        "/api/conductores-licencias": {
+            "get": {
+                "tags": [
+                    "ConductoresLicencias"
+                ],
+                "summary": "Obtener la lista de conductores/licencias",
+                "operationId": "3de3f866aa46becb8c265df49976e865",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página para la paginación",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar los resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "conductor,licencia"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filtro en formato JSON para aplicar condiciones",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "{\"licencia_id\":{\"=\":1},\"conductor_id\":{\"=\":5}}"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de relaciones conductor-licencia obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "ConductoresLicencias"
+                ],
+                "summary": "Crear una nueva relación conductor-licencia",
+                "operationId": "966f50f3435dc832d2a7db8292ae2882",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "licencia_id",
+                                    "conductor_id"
+                                ],
+                                "properties": {
+                                    "licencia_id": {
+                                        "type": "integer",
+                                        "example": 3
+                                    },
+                                    "conductor_id": {
+                                        "type": "integer",
+                                        "example": 7
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Relación creada exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conductores-licencias/{id}": {
+            "get": {
+                "tags": [
+                    "ConductoresLicencias"
+                ],
+                "summary": "Obtener una relación conductor-licencia por ID",
+                "operationId": "0ba366ffa658381cf3bca7b1a99c64d7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la relación",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir (conductor, licencia)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "conductor,licencia"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Relación obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Relación no encontrada"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "ConductoresLicencias"
+                ],
+                "summary": "Actualizar una relación conductor-licencia",
+                "operationId": "bf3a2db7d7da46399da9e1cd67293e21",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la relación",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "licencia_id",
+                                    "conductor_id"
+                                ],
+                                "properties": {
+                                    "licencia_id": {
+                                        "type": "integer",
+                                        "example": 4
+                                    },
+                                    "conductor_id": {
+                                        "type": "integer",
+                                        "example": 10
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Relación actualizada exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "ConductoresLicencias"
+                ],
+                "summary": "Eliminar una relación conductor-licencia",
+                "operationId": "a5d728af52485215f7f6b07f8b6b8bea",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la relación",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Relación eliminada exitosamente"
+                    },
+                    "404": {
+                        "description": "Relación no encontrada"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conductores-licencias/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "ConductoresLicencias"
+                ],
+                "summary": "Rehabilitar una relación conductor-licencia eliminada",
+                "operationId": "76ee95e16eb3e714af625c0c87738c81",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la relación",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Relación rehabilitada exitosamente"
+                    },
+                    "404": {
+                        "description": "Relación no encontrada"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/departamentos": {
             "get": {
                 "tags": [
@@ -4910,6 +5354,446 @@
                 ]
             }
         },
+        "/api/propietarios": {
+            "get": {
+                "tags": [
+                    "Propietarios"
+                ],
+                "summary": "Obtener la lista de propietarios",
+                "operationId": "c592f59938d94cc9cc8e521fee37047a",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página para la paginación",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar los resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "documento"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filtro en formato JSON para aplicar condiciones",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "{\"documento_id\":{\"=\":1},\"fecha_registro\":{\"between\":[\"2024-01-01\",\"2024-12-31\"]}}"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de propietarios obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Propietarios"
+                ],
+                "summary": "Crear un nuevo propietario",
+                "operationId": "59ecbaf48614b5b37c7b9faa10d19091",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "fecha_registro": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-01-15 10:30:00",
+                                        "nullable": true
+                                    },
+                                    "documento_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Propietario creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/propietarios/{id}": {
+            "get": {
+                "tags": [
+                    "Propietarios"
+                ],
+                "summary": "Obtener un propietario por ID",
+                "operationId": "4ce42b2913153015b775cc94fe0d76f3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del propietario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "documento"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Propietario obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Propietario no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Propietarios"
+                ],
+                "summary": "Actualizar un propietario existente",
+                "operationId": "5c2286bc6ab95163c95ce46dc554f39e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del propietario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "fecha_registro": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-02-01 08:00:00",
+                                        "nullable": true
+                                    },
+                                    "documento_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Propietario actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Propietarios"
+                ],
+                "summary": "Eliminar un propietario",
+                "operationId": "c269caed46fe21e6a1261099e7640f08",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del propietario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Propietario eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Propietario no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/propietarios/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "Propietarios"
+                ],
+                "summary": "Rehabilitar un propietario eliminado",
+                "operationId": "b0dd44b6b7477fd62683b54c1d0eaa48",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del propietario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Propietario rehabilitado exitosamente"
+                    },
+                    "404": {
+                        "description": "Propietario no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/restriccion_lic": {
             "get": {
                 "tags": [
@@ -6654,6 +7538,929 @@
                 ]
             }
         },
+        "/api/seguim-estado-veh": {
+            "get": {
+                "tags": [
+                    "SeguimEstadoVeh"
+                ],
+                "summary": "Obtener la lista de seguimientos de estado del vehículo",
+                "operationId": "7124cd2583e48dd0ac44ab4ef383e4f5",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página para la paginación",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar los resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir (por ejemplo: usuario,vehiculo). Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "usuario,vehiculo"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filtro en formato JSON para aplicar condiciones",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "{\"vehiculo_id\":{\"=\":3},\"fecha_hora\":{\"between\":[\"2025-01-01 00:00:00\",\"2025-01-31 23:59:59\"]}}"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de seguimientos de estado obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "SeguimEstadoVeh"
+                ],
+                "summary": "Crear un nuevo registro de seguimiento de estado del vehículo",
+                "operationId": "ab8fcf9f4e1559a48ae61c3afb4ec97f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "usuario_id",
+                                    "vehiculo_id"
+                                ],
+                                "properties": {
+                                    "kilometraje": {
+                                        "type": "integer",
+                                        "example": 152340
+                                    },
+                                    "fecha_hora": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-02-10 09:30:00"
+                                    },
+                                    "observaciones": {
+                                        "type": "string",
+                                        "example": "Cambio de aceite y revisión general"
+                                    },
+                                    "usuario_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "vehiculo_id": {
+                                        "type": "integer",
+                                        "example": 12
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Seguimiento creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/seguim-estado-veh/{id}": {
+            "get": {
+                "tags": [
+                    "SeguimEstadoVeh"
+                ],
+                "summary": "Obtener un seguimiento de estado por ID",
+                "operationId": "7877070ca895739f8c55afbe9a992956",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del seguimiento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir (usuario,vehiculo)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "usuario,vehiculo"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Seguimiento de estado obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Seguimiento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "SeguimEstadoVeh"
+                ],
+                "summary": "Actualizar un registro de seguimiento de estado del vehículo",
+                "operationId": "ea483a89eb79e9fe34e928aa2efc76c9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del seguimiento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "kilometraje": {
+                                        "type": "integer",
+                                        "example": 152500
+                                    },
+                                    "fecha_hora": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-02-11 10:15:00"
+                                    },
+                                    "observaciones": {
+                                        "type": "string",
+                                        "example": "Se detecta vibración en alta velocidad"
+                                    },
+                                    "usuario_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "vehiculo_id": {
+                                        "type": "integer",
+                                        "example": 12
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Seguimiento actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "SeguimEstadoVeh"
+                ],
+                "summary": "Eliminar un registro de seguimiento de estado del vehículo",
+                "operationId": "987143d6affc4ce33b88696271f2ec40",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del seguimiento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Seguimiento eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Seguimiento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/seguim-estado-veh/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "SeguimEstadoVeh"
+                ],
+                "summary": "Rehabilitar un seguimiento de estado eliminado",
+                "operationId": "84bf534c4063dd420ed238503b211aa8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del seguimiento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Seguimiento rehabilitado exitosamente"
+                    },
+                    "404": {
+                        "description": "Seguimiento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/seguim-gps": {
+            "get": {
+                "tags": [
+                    "SeguimGps"
+                ],
+                "summary": "Obtener la lista de seguimientos GPS",
+                "operationId": "a37ca91aa33dd9c1fd95cb82c6f71c20",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página para la paginación",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar los resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir (por ejemplo: vehiculo). Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "vehiculo"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filtro en formato JSON para aplicar condiciones",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "{\"vehiculo_id\":{\"=\":1},\"fecha_hora\":{\"between\":[\"2025-01-01 00:00:00\",\"2025-01-31 23:59:59\"]}}"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de seguimientos GPS obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "SeguimGps"
+                ],
+                "summary": "Crear un nuevo registro de seguimiento GPS",
+                "operationId": "8b4e60c4d314b3924dec2dd8125b70db",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "vehiculo_id"
+                                ],
+                                "properties": {
+                                    "latitud": {
+                                        "type": "number",
+                                        "example": 4.711
+                                    },
+                                    "longitud": {
+                                        "type": "number",
+                                        "example": -74.0721
+                                    },
+                                    "fecha_hora": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-01-15 08:30:00"
+                                    },
+                                    "vehiculo_id": {
+                                        "type": "integer",
+                                        "example": 12
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Seguimiento creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/seguim-gps/{id}": {
+            "get": {
+                "tags": [
+                    "SeguimGps"
+                ],
+                "summary": "Obtener un seguimiento GPS por ID",
+                "operationId": "a0c0f3e47dbdafccc298a07c90f080ab",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del seguimiento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir (vehiculo)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "vehiculo"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Seguimiento GPS obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Seguimiento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "SeguimGps"
+                ],
+                "summary": "Actualizar un registro de seguimiento GPS",
+                "operationId": "7864bc96d1d595442a637dd1bb25089c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del seguimiento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "latitud": {
+                                        "type": "number",
+                                        "example": 6.2518
+                                    },
+                                    "longitud": {
+                                        "type": "number",
+                                        "example": -75.5636
+                                    },
+                                    "fecha_hora": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-01-16 14:45:00"
+                                    },
+                                    "vehiculo_id": {
+                                        "type": "integer",
+                                        "example": 12
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Seguimiento actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "SeguimGps"
+                ],
+                "summary": "Eliminar un registro de seguimiento GPS",
+                "operationId": "637d534c5b723b0aa967f113bd267e78",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del seguimiento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Seguimiento eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Seguimiento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/seguim-gps/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "SeguimGps"
+                ],
+                "summary": "Rehabilitar un seguimiento GPS eliminado",
+                "operationId": "4da180d54adc114ae24511dcac0ec12b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del seguimiento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Seguimiento rehabilitado exitosamente"
+                    },
+                    "404": {
+                        "description": "Seguimiento no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/tipo_doc": {
             "get": {
                 "tags": [
@@ -7938,6 +9745,444 @@
                 ]
             }
         },
+        "/api/tipo-vehiculo": {
+            "get": {
+                "tags": [
+                    "TipoVehiculo"
+                ],
+                "summary": "Obtener la lista de tipos de vehículo",
+                "operationId": "9305290fb32a5c4de328583cacd5ce1f",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página para la paginación",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar los resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "vehiculos"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filtro en formato JSON para aplicar condiciones",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "{\"descripcion\":{\"like\":\"%BUS%\"},\"capacidad\":{\"=\">= 40}}"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de tipos de vehículo obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "TipoVehiculo"
+                ],
+                "summary": "Crear un nuevo tipo de vehículo",
+                "operationId": "378b1491c378709030ee21f1698a4c4e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "Bus"
+                                    },
+                                    "capacidad": {
+                                        "type": "integer",
+                                        "example": 40,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tipo de vehículo creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tipo-vehiculo/{id}": {
+            "get": {
+                "tags": [
+                    "TipoVehiculo"
+                ],
+                "summary": "Obtener un tipo de vehículo por ID",
+                "operationId": "c73a4ce84e5b33df24779b431fb73479",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de vehículo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "vehiculos"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tipo de vehículo obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Tipo de vehículo no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "TipoVehiculo"
+                ],
+                "summary": "Actualizar un tipo de vehículo existente",
+                "operationId": "524a6c9cc01c4bcde3aa8949cfbfc5f5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de vehículo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "Bus"
+                                    },
+                                    "capacidad": {
+                                        "type": "integer",
+                                        "example": 45,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tipo de vehículo actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "TipoVehiculo"
+                ],
+                "summary": "Eliminar un tipo de vehículo",
+                "operationId": "5427b10e5ece11b69faef2a804be0c9e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de vehículo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tipo de vehículo eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Tipo de vehículo no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tipo-vehiculo/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "TipoVehiculo"
+                ],
+                "summary": "Rehabilitar un tipo de vehículo eliminado",
+                "operationId": "875ca9f88acffb081c27c285614d9119",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del tipo de vehículo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tipo de vehículo rehabilitado exitosamente"
+                    },
+                    "404": {
+                        "description": "Tipo de vehículo no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/users": {
             "get": {
                 "tags": [
@@ -8767,6 +11012,498 @@
                 "responses": {
                     "200": {
                         "description": "Cierre de sesión global exitoso"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/vehiculos": {
+            "get": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Obtener la lista de vehículos",
+                "operationId": "149b9ba714037a3dc86c8d245646f6fa",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página para la paginación",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar los resultados",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "propietario,tipoVehiculo"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filtro en formato JSON para aplicar condiciones",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "{\"placa\":{\"like\":\"%ABC%\"},\"tipo_veh_id\":{\"=\":1},\"servicio\":{\"=\":true}}"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de vehículos obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Crear un nuevo vehículo",
+                "operationId": "04854b3c96cbe81512a35a4340be89d6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "color",
+                                    "marca",
+                                    "placa",
+                                    "modelo",
+                                    "propietario_id",
+                                    "tipo_veh_id"
+                                ],
+                                "properties": {
+                                    "color": {
+                                        "type": "string",
+                                        "example": "Rojo"
+                                    },
+                                    "marca": {
+                                        "type": "string",
+                                        "example": "Toyota"
+                                    },
+                                    "placa": {
+                                        "type": "string",
+                                        "example": "ABC123"
+                                    },
+                                    "modelo": {
+                                        "type": "string",
+                                        "example": "2019"
+                                    },
+                                    "servicio": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "propietario_id": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
+                                    "tipo_veh_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Vehículo creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/vehiculos/{id}": {
+            "get": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Obtener un vehículo por ID",
+                "operationId": "74d0083b6d8cbc7bd03af2e47b5c4a3b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del vehículo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "propietario,tipoVehiculo"
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados (soft deleted)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Incluir registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "description": "Solo registros deshabilitados en relaciones",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Vehículo obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Vehículo no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Actualizar un vehículo existente",
+                "operationId": "933af849e2d2ee22df88efe849fc858e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del vehículo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "color",
+                                    "marca",
+                                    "placa",
+                                    "modelo",
+                                    "propietario_id",
+                                    "tipo_veh_id"
+                                ],
+                                "properties": {
+                                    "color": {
+                                        "type": "string",
+                                        "example": "Azul"
+                                    },
+                                    "marca": {
+                                        "type": "string",
+                                        "example": "Mazda"
+                                    },
+                                    "placa": {
+                                        "type": "string",
+                                        "example": "XYZ789"
+                                    },
+                                    "modelo": {
+                                        "type": "string",
+                                        "example": "2021"
+                                    },
+                                    "servicio": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "propietario_id": {
+                                        "type": "integer",
+                                        "example": 12
+                                    },
+                                    "tipo_veh_id": {
+                                        "type": "integer",
+                                        "example": 3
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Vehículo actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Eliminar un vehículo",
+                "operationId": "76e387e5d46c7b473cd89072b5ac88fe",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del vehículo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Vehículo eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Vehículo no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/vehiculos/{id}/rehabilitate": {
+            "post": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Rehabilitar un vehículo eliminado",
+                "operationId": "80082bacc4780a5a56102d0ae76eb781",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del vehículo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Vehículo rehabilitado exitosamente"
+                    },
+                    "404": {
+                        "description": "Vehículo no encontrado"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
                     }
                 },
                 "security": [
@@ -10481,6 +13218,10 @@
             "description": "Conductores"
         },
         {
+            "name": "ConductoresLicencias",
+            "description": "ConductoresLicencias"
+        },
+        {
             "name": "Departamentos",
             "description": "Departamentos"
         },
@@ -10513,6 +13254,10 @@
             "description": "Personas"
         },
         {
+            "name": "Propietarios",
+            "description": "Propietarios"
+        },
+        {
             "name": "Restriccion Licencia",
             "description": "Restriccion Licencia"
         },
@@ -10529,6 +13274,14 @@
             "description": "Rutas"
         },
         {
+            "name": "SeguimEstadoVeh",
+            "description": "SeguimEstadoVeh"
+        },
+        {
+            "name": "SeguimGps",
+            "description": "SeguimGps"
+        },
+        {
             "name": "Tipo Documento",
             "description": "Tipo Documento"
         },
@@ -10541,6 +13294,10 @@
             "description": "Tipo Identificación"
         },
         {
+            "name": "TipoVehiculo",
+            "description": "TipoVehiculo"
+        },
+        {
             "name": "Users",
             "description": "Users"
         },
@@ -10551,6 +13308,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Vehículos",
+            "description": "Vehículos"
         }
     ]
 }

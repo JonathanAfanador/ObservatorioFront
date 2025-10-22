@@ -6,6 +6,7 @@ use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\BarriosController;
 use App\Http\Controllers\CategoriasLicenciaController;
 use App\Http\Controllers\ConductoresController;
+use App\Http\Controllers\ConductoresLicenciaController;
 use App\Http\Controllers\EmpresasController;
 use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\PersonasController;
@@ -15,6 +16,8 @@ use App\Http\Controllers\RestriccionLicController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\RolesMenusController;
 use App\Http\Controllers\RutasController;
+use App\Http\Controllers\SeguimGpsController;
+use App\Http\Controllers\SeguimEstadoVehController;
 use App\Http\Controllers\MenusController;
 use App\Http\Controllers\TipoEmpresaController;
 use App\Http\Controllers\TipoIdentController;
@@ -283,6 +286,36 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [VehiculoController::class, 'update']);
             Route::delete('/{id}', [VehiculoController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [VehiculoController::class, 'restore']);
+        });
+
+        // -- Conductores Licencias Routes
+        Route::prefix('conductores_licencias')->group(function (){
+            Route::get('/', [ConductoresLicenciaController::class, 'index']);
+            Route::get('/{id}', [ConductoresLicenciaController::class, 'show']);
+            Route::post('/', [ConductoresLicenciaController::class, 'store']);
+            Route::put('/{id}', [ConductoresLicenciaController::class, 'update']);
+            Route::delete('/{id}', [ConductoresLicenciaController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [ConductoresLicenciaController::class, 'restore']);
+        });
+
+        // -- Seguimientos GPS Routes
+        Route::prefix('seguim_gps')->group(function (){
+            Route::get('/', [SeguimGpsController::class, 'index']);
+            Route::get('/{id}', [SeguimGpsController::class, 'show']);
+            Route::post('/', [SeguimGpsController::class, 'store']);
+            Route::put('/{id}', [SeguimGpsController::class, 'update']);
+            Route::delete('/{id}', [SeguimGpsController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [SeguimGpsController::class, 'restore']);
+        });
+
+        // -- Seguimientos Estado Vehículo Routes
+        Route::prefix('seguim_estado_veh')->group(function (){
+            Route::get('/', [SeguimEstadoVehController::class, 'index']);
+            Route::get('/{id}', [SeguimEstadoVehController::class, 'show']);
+            Route::post('/', [SeguimEstadoVehController::class, 'store']);
+            Route::put('/{id}', [SeguimEstadoVehController::class, 'update']);
+            Route::delete('/{id}', [SeguimEstadoVehController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [SeguimEstadoVehController::class, 'restore']);
         });
     });
 });
