@@ -9,6 +9,9 @@ use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\PersonasController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\RestriccionLicController;
+use App\Http\Controllers\RolController;
+use App\Http\Controllers\RolesMenusController;
+use App\Http\Controllers\MenusController;
 use App\Http\Controllers\TipoIdentController;
 use App\Http\Controllers\TipoDocController;
 use App\Http\Controllers\V1\AuditoriaController;
@@ -162,6 +165,36 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [PermisosController::class, 'update']);
             Route::delete('/{id}', [PermisosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [PermisosController::class, 'restore']);
+        });
+
+        // -- Rol Routes
+        Route::prefix('rol')->group(function (){
+            Route::get('/', [RolController::class, 'index']);
+            Route::get('/{id}', [RolController::class, 'show']);
+            Route::post('/', [RolController::class, 'store']);
+            Route::put('/{id}', [RolController::class, 'update']);
+            Route::delete('/{id}', [RolController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [RolController::class, 'restore']);
+        });
+
+        // -- Menus Routes
+        Route::prefix('menus')->group(function (){
+            Route::get('/', [MenusController::class, 'index']);
+            Route::get('/{id}', [MenusController::class, 'show']);
+            Route::post('/', [MenusController::class, 'store']);
+            Route::put('/{id}', [MenusController::class, 'update']);
+            Route::delete('/{id}', [MenusController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [MenusController::class, 'restore']);
+        });
+
+        // -- Roles Menus Routes
+        Route::prefix('roles-menus')->group(function (){
+            Route::get('/', [RolesMenusController::class, 'index']);
+            Route::get('/{id}', [RolesMenusController::class, 'show']);
+            Route::post('/', [RolesMenusController::class, 'store']);
+            Route::put('/{id}', [RolesMenusController::class, 'update']);
+            Route::delete('/{id}', [RolesMenusController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [RolesMenusController::class, 'restore']);
         });
     });
 });
