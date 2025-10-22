@@ -5,6 +5,7 @@ use App\Http\Controllers\DepartamentosController;
 use App\Http\Controllers\DocumentosController;
 use App\Http\Controllers\BarriosController;
 use App\Http\Controllers\CategoriasLicenciaController;
+use App\Http\Controllers\EmpresasController;
 use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\PersonasController;
 use App\Http\Controllers\PermisosController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\RestriccionLicController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\RolesMenusController;
 use App\Http\Controllers\MenusController;
+use App\Http\Controllers\TipoEmpresaController;
 use App\Http\Controllers\TipoIdentController;
 use App\Http\Controllers\TipoDocController;
 use App\Http\Controllers\V1\AuditoriaController;
@@ -195,6 +197,26 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [RolesMenusController::class, 'update']);
             Route::delete('/{id}', [RolesMenusController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [RolesMenusController::class, 'restore']);
+        });
+
+        // -- Tipo Empresa Routes
+        Route::prefix('tipo_empresa')->group(function (){
+            Route::get('/', [TipoEmpresaController::class, 'index']);
+            Route::get('/{id}', [TipoEmpresaController::class, 'show']);
+            Route::post('/', [TipoEmpresaController::class, 'store']);
+            Route::put('/{id}', [TipoEmpresaController::class, 'update']);
+            Route::delete('/{id}', [TipoEmpresaController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [TipoEmpresaController::class, 'restore']);
+        });
+
+        // -- Empresas Routes
+        Route::prefix('empresas')->group(function (){
+            Route::get('/', [EmpresasController::class, 'index']);
+            Route::get('/{id}', [EmpresasController::class, 'show']);
+            Route::post('/', [EmpresasController::class, 'store']);
+            Route::put('/{id}', [EmpresasController::class, 'update']);
+            Route::delete('/{id}', [EmpresasController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [EmpresasController::class, 'restore']);
         });
     });
 });

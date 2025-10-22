@@ -26,6 +26,7 @@ enum Tablas: string {
     case DOCUMENTOS = 'documentos';
     case TIPO_IDENT = 'tipo_ident';
     case TIPO_VEHICULO = 'tipo_vehiculo';
+    case TIPO_EMPRESA = 'tipo_empresa';
     case USERS = 'users';
     case VEHICULO = 'vehiculo';
     case AUDITORIA = 'auditoria';
