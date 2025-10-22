@@ -5,7 +5,7 @@ namespace App\Enums;
 enum Tablas: string {
     case DEPARTAMENTOS = 'departamentos';
     case BARRIOS = 'barrios';
-    case CATEGORIAS_LICENCIAS = 'categorias_licencias';
+    case CATEGORIAS_LICENCIA = 'categorias_licencia';
     case CONDUCTORES = 'conductores';
     case CONDUCTORES_LICENCIAS = 'conductores_licencias';
     case EMPRESA_USUARIO = 'empresa_usuario';
@@ -23,8 +23,10 @@ enum Tablas: string {
     case SEGUIM_ESTADO_VEH = 'seguim_estado_veh';
     case SEGUIM_GPS = 'seguim_gps';
     case TIPO_DOC = 'tipo_doc';
+    case DOCUMENTOS = 'documentos';
     case TIPO_IDENT = 'tipo_ident';
     case TIPO_VEHICULO = 'tipo_vehiculo';
+    case TIPO_EMPRESA = 'tipo_empresa';
     case USERS = 'users';
     case VEHICULO = 'vehiculo';
     case AUDITORIA = 'auditoria';

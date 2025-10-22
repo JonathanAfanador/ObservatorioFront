@@ -63,7 +63,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *   )
  * )
  */
-class roles_menu extends Model implements Auditable
+class roles_menus extends Model implements Auditable
 {
     /** @use HasFactory<\Database\Factories\RolesMenuFactory> */
     use HasFactory;
