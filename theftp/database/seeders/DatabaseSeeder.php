@@ -25,7 +25,6 @@ class DatabaseSeeder extends Seeder
             PersonasSeeder::class,
             EmpresaSeeder::class,
             UserSeeder::class,
-            // EmpresaUsuarioSeeder::class, // Removido
             PropietariosSeeder::class,
             TipoVehiculoSeeder::class,
             RestriccionLicSeeder::class,
@@ -34,7 +33,7 @@ class DatabaseSeeder extends Seeder
             VehiculoSeeder::class,
             ConductoresSeeder::class,
             LicenciasSeeder::class,
-            // PermisosSeeder::class, // TODO: Revisar al finalizar el backend
+            PermisosSeeder::class,
         ]);
 
     }

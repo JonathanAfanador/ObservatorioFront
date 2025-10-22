@@ -637,6 +637,13 @@ abstract class Controller{
             DB::beginTransaction();
             $record = $this->model->withTrashed()->find($id);
 
+            if(!$record){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Registro no encontrado.',
+                ], 404);
+            }
+
             if($record->trashed()){
                 return response()->json([
                     'status' => false,
@@ -644,12 +651,6 @@ abstract class Controller{
                 ], 400);
             }
 
-            if(!$record){
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Registro no encontrado.',
-                ], 404);
-            }
             $record->delete();
             DB::commit();
             return response()->json([
