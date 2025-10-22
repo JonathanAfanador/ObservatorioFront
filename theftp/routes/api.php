@@ -10,6 +10,7 @@ use App\Http\Controllers\EmpresasController;
 use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\PersonasController;
 use App\Http\Controllers\PermisosController;
+use App\Http\Controllers\PropietariosController;
 use App\Http\Controllers\RestriccionLicController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\RolesMenusController;
@@ -18,7 +19,9 @@ use App\Http\Controllers\MenusController;
 use App\Http\Controllers\TipoEmpresaController;
 use App\Http\Controllers\TipoIdentController;
 use App\Http\Controllers\TipoDocController;
+use App\Http\Controllers\TipoVehiculoController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\VehiculoController;
 use App\Http\Controllers\V1\AuditoriaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
@@ -250,6 +253,36 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [ConductoresController::class, 'update']);
             Route::delete('/{id}', [ConductoresController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [ConductoresController::class, 'restore']);
+        });
+
+        // -- Tipo Vehiculo Routes
+        Route::prefix('tipo_vehiculo')->group(function (){
+            Route::get('/', [TipoVehiculoController::class, 'index']);
+            Route::get('/{id}', [TipoVehiculoController::class, 'show']);
+            Route::post('/', [TipoVehiculoController::class, 'store']);
+            Route::put('/{id}', [TipoVehiculoController::class, 'update']);
+            Route::delete('/{id}', [TipoVehiculoController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [TipoVehiculoController::class, 'restore']);
+        });
+
+        // -- Propietarios Routes
+        Route::prefix('propietarios')->group(function (){
+            Route::get('/', [PropietariosController::class, 'index']);
+            Route::get('/{id}', [PropietariosController::class, 'show']);
+            Route::post('/', [PropietariosController::class, 'store']);
+            Route::put('/{id}', [PropietariosController::class, 'update']);
+            Route::delete('/{id}', [PropietariosController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [PropietariosController::class, 'restore']);
+        });
+
+        // -- Vehiculos Routes
+        Route::prefix('vehiculos')->group(function (){
+            Route::get('/', [VehiculoController::class, 'index']);
+            Route::get('/{id}', [VehiculoController::class, 'show']);
+            Route::post('/', [VehiculoController::class, 'store']);
+            Route::put('/{id}', [VehiculoController::class, 'update']);
+            Route::delete('/{id}', [VehiculoController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [VehiculoController::class, 'restore']);
         });
     });
 });
