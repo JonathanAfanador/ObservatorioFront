@@ -30,22 +30,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
 use App\Http\Middleware\ForceJsonResponse;
 
-// Rutas API
-
-// //TODO: Rutas para departamentos
-// Route::middleware('auth:sanctum')->prefix('departamentos')->group(function () {
-//     // Paginacion
-//     Route::get('/paginacion', [DepartamentosController::class, 'departamentos_paginados']);
-//     // Creacion
-//     Route::post('/creacion', [DepartamentosController::class, 'crear_departamento']);
-//     // Actualizacion
-//     Route::put('/actualizacion', [DepartamentosController::class, 'actualizar_departamento']);
-//     // Eliminacion (Deshabilitacion)
-//     Route::delete('/eliminacion', [DepartamentosController::class, 'eliminar_departamento']);
-//     // Restauracion (Habilitacion)
-//     Route::post('/restauracion', [DepartamentosController::class, 'restaurar_departamento']);
-// });
-
 // Registro y Login
 Route::middleware(ForceJsonResponse::class)->group(function (){
     Route::prefix('auth')->group(function (){
