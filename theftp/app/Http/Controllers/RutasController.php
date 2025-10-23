@@ -269,4 +269,58 @@ class RutasController extends Controller
     {
         return parent::restore($id);
     }
+
+        /**
+     * @OA\Get(
+     *     path="/api/rutas/{id}/file",
+     *     tags={"Rutas"},
+     *     security={{"sanctum": {}}},
+     *     summary="Descargar el archivo asociado a una ruta",
+     *     description="Obtiene y descarga el archivo almacenado para la ruta identificada por {id}. Retorna un stream binario si existe el archivo o un JSON con mensaje de error si no se encuentra.",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la ruta",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Archivo descargado",
+     *         @OA\MediaType(
+     *             mediaType="application/octet-stream",
+     *             @OA\Schema(type="string", format="binary")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Archivo no encontrado",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             required={"status","message"},
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Archivo no encontrado.")
+     *         )
+     *     )
+     * )
+     */
+    public function getFile(string $id){
+
+        $model = rutas::find($id);
+
+        if(!$model){
+            return response()->json(['status' => false, 'message' => 'Registro no encontrado.'], 404);
+        }
+
+        if (!$model->file_name) {
+            return response()->json(['status' => false, 'message' => 'Archivo no establecido.'], 404);
+        }
+
+        $filePath = str_replace('/storage/', '', $model->file_name);
+        if (!Storage::disk('local')->exists($filePath)) {
+            return response()->json(['status' => false, 'message' => 'Archivo no encontrado en el servidor.'], 404);
+        }
+
+        return response()->download(storage_path('app/private/' . $filePath));
+    }
 }

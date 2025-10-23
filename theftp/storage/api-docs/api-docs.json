@@ -7570,6 +7570,69 @@
                 ]
             }
         },
+        "/api/rutas/{id}/file": {
+            "get": {
+                "tags": [
+                    "Rutas"
+                ],
+                "summary": "Descargar el archivo asociado a una ruta",
+                "description": "Obtiene y descarga el archivo almacenado para la ruta identificada por {id}. Retorna un stream binario si existe el archivo o un JSON con mensaje de error si no se encuentra.",
+                "operationId": "7b30b59d35ef5228b56c0f9b4f65c9ec",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la ruta",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Archivo descargado",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Archivo no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Archivo no encontrado."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/seguim-estado-veh": {
             "get": {
                 "tags": [

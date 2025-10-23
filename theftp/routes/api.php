@@ -216,6 +216,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
         Route::prefix('rutas')->group(function (){
             Route::get('/', [RutasController::class, 'index']);
             Route::get('/{id}', [RutasController::class, 'show']);
+            Route::get('/{id}/file', [RutasController::class, 'getFile']);
             Route::post('/', [RutasController::class, 'store']);
             Route::post('/{id}', [RutasController::class, 'edit']);
             Route::delete('/{id}', [RutasController::class, 'destroy']);
