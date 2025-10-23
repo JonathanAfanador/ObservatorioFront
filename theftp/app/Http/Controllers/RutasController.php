@@ -270,7 +270,7 @@ class RutasController extends Controller
         return parent::restore($id);
     }
 
-        /**
+    /**
      * @OA\Get(
      *     path="/api/rutas/{id}/file",
      *     tags={"Rutas"},

@@ -2649,6 +2649,69 @@
                 ]
             }
         },
+        "/api/documentos/{id}/file": {
+            "get": {
+                "tags": [
+                    "Documentos"
+                ],
+                "summary": "Descargar el archivo asociado a un documento",
+                "description": "Obtiene y descarga el archivo almacenado para el documento identificado por {id}. Retorna un stream binario si existe el archivo o un JSON con mensaje de error si no se encuentra.",
+                "operationId": "86506c440018c5103c262044df9e8748",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del documento",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Archivo descargado",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Archivo no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Archivo no encontrado."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/empresas": {
             "get": {
                 "tags": [

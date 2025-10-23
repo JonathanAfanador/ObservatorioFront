@@ -108,6 +108,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/{id}', [DocumentosController::class, 'show']);
             Route::post('/', [DocumentosController::class, 'store']);
             Route::post('/{id}', [DocumentosController::class, 'edit']);
+            Route::get('/{id}/file', [DocumentosController::class, 'getFile']);
             Route::delete('/{id}', [DocumentosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [DocumentosController::class, 'restore']);
         });
