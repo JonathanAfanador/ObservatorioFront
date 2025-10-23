@@ -2356,23 +2356,31 @@
                 "tags": [
                     "Documentos"
                 ],
-                "summary": "Crear un nuevo documento",
+                "summary": "Crear un nuevo documento (form-data con archivo)",
                 "operationId": "9eea19ba30348565bc5d3b7d4d61fdb1",
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
+                                "required": [
+                                    "file",
+                                    "observaciones",
+                                    "tipo_doc_id"
+                                ],
                                 "properties": {
-                                    "url": {
+                                    "file": {
+                                        "description": "Archivo a subir (un solo archivo)",
                                         "type": "string",
-                                        "example": "https://example.com/archivo.pdf"
+                                        "format": "binary"
                                     },
                                     "observaciones": {
+                                        "description": "Observaciones del documento",
                                         "type": "string",
                                         "example": "Resolución escaneada y firmada."
                                     },
                                     "tipo_doc_id": {
+                                        "description": "ID del tipo de documento",
                                         "type": "integer",
                                         "example": 1
                                     }
@@ -2505,12 +2513,12 @@
                     }
                 ]
             },
-            "put": {
+            "post": {
                 "tags": [
                     "Documentos"
                 ],
-                "summary": "Actualizar un documento existente",
-                "operationId": "88a149f4815b24264edd389aa0679613",
+                "summary": "Actualizar un documento existente (form-data con archivo)",
+                "operationId": "0ae937f5475bfefc586f4a96020093da",
                 "parameters": [
                     {
                         "name": "id",
@@ -2526,12 +2534,16 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
+                                "required": [
+                                    "file"
+                                ],
                                 "properties": {
-                                    "url": {
+                                    "file": {
+                                        "description": "Archivo a subir (un solo archivo)",
                                         "type": "string",
-                                        "example": "https://example.com/archivo-actualizado.pdf"
+                                        "format": "binary"
                                     },
                                     "observaciones": {
                                         "type": "string",

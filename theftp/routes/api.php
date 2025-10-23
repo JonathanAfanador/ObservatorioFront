@@ -56,7 +56,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [MunicipiosController::class, 'index']);
             Route::get('/{id}', [MunicipiosController::class, 'show']);
             Route::post('/', [MunicipiosController::class, 'store']);
-            Route::put('/{id}', [MunicipiosController::class, 'update']);
+            Route::put('/{id}', [MunicipiosController::class, 'edit']);
             Route::delete('/{id}', [MunicipiosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [MunicipiosController::class, 'restore']);
         });
@@ -66,7 +66,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [DepartamentosController::class, 'index']);
             Route::get('/{id}', [DepartamentosController::class, 'show']);
             Route::post('/', [DepartamentosController::class, 'store']);
-            Route::put('/{id}', [DepartamentosController::class, 'update']);
+            Route::put('/{id}', [DepartamentosController::class, 'edit']);
             Route::delete('/{id}', [DepartamentosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [DepartamentosController::class, 'restore']);
         });
@@ -77,7 +77,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [BarriosController::class, 'index']);
             Route::get('/{id}', [BarriosController::class, 'show']);
             Route::post('/', [BarriosController::class, 'store']);
-            Route::put('/{id}', [BarriosController::class, 'update']);
+            Route::put('/{id}', [BarriosController::class, 'edit']);
             Route::delete('/{id}', [BarriosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [BarriosController::class, 'restore']);
         });
@@ -87,7 +87,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [TipoIdentController::class, 'index']);
             Route::get('/{id}', [TipoIdentController::class, 'show']);
             Route::post('/', [TipoIdentController::class, 'store']);
-            Route::put('/{id}', [TipoIdentController::class, 'update']);
+            Route::put('/{id}', [TipoIdentController::class, 'edit']);
             Route::delete('/{id}', [TipoIdentController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [TipoIdentController::class, 'restore']);
         });
@@ -97,7 +97,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [TipoDocController::class, 'index']);
             Route::get('/{id}', [TipoDocController::class, 'show']);
             Route::post('/', [TipoDocController::class, 'store']);
-            Route::put('/{id}', [TipoDocController::class, 'update']);
+            Route::put('/{id}', [TipoDocController::class, 'edit']);
             Route::delete('/{id}', [TipoDocController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [TipoDocController::class, 'restore']);
         });
@@ -107,7 +107,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [DocumentosController::class, 'index']);
             Route::get('/{id}', [DocumentosController::class, 'show']);
             Route::post('/', [DocumentosController::class, 'store']);
-            Route::put('/{id}', [DocumentosController::class, 'update']);
+            Route::post('/{id}', [DocumentosController::class, 'edit']);
             Route::delete('/{id}', [DocumentosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [DocumentosController::class, 'restore']);
         });
@@ -117,7 +117,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [CategoriasLicenciaController::class, 'index']);
             Route::get('/{id}', [CategoriasLicenciaController::class, 'show']);
             Route::post('/', [CategoriasLicenciaController::class, 'store']);
-            Route::put('/{id}', [CategoriasLicenciaController::class, 'update']);
+            Route::put('/{id}', [CategoriasLicenciaController::class, 'edit']);
             Route::delete('/{id}', [CategoriasLicenciaController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [CategoriasLicenciaController::class, 'restore']);
         });
@@ -127,7 +127,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [RestriccionLicController::class, 'index']);
             Route::get('/{id}', [RestriccionLicController::class, 'show']);
             Route::post('/', [RestriccionLicController::class, 'store']);
-            Route::put('/{id}', [RestriccionLicController::class, 'update']);
+            Route::put('/{id}', [RestriccionLicController::class, 'edit']);
             Route::delete('/{id}', [RestriccionLicController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [RestriccionLicController::class, 'restore']);
         });
@@ -137,7 +137,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [LicenciasController::class, 'index']);
             Route::get('/{id}', [LicenciasController::class, 'show']);
             Route::post('/', [LicenciasController::class, 'store']);
-            Route::put('/{id}', [LicenciasController::class, 'update']);
+            Route::put('/{id}', [LicenciasController::class, 'edit']);
             Route::delete('/{id}', [LicenciasController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [LicenciasController::class, 'restore']);
         });
@@ -147,7 +147,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [PersonasController::class, 'index']);
             Route::get('/{id}', [PersonasController::class, 'show']);
             Route::post('/', [PersonasController::class, 'store']);
-            Route::put('/{id}', [PersonasController::class, 'update']);
+            Route::put('/{id}', [PersonasController::class, 'edit']);
             Route::delete('/{id}', [PersonasController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [PersonasController::class, 'restore']);
         });
@@ -157,7 +157,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [PermisosController::class, 'index']);
             Route::get('/{id}', [PermisosController::class, 'show']);
             Route::post('/', [PermisosController::class, 'store']);
-            Route::put('/{id}', [PermisosController::class, 'update']);
+            Route::put('/{id}', [PermisosController::class, 'edit']);
             Route::delete('/{id}', [PermisosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [PermisosController::class, 'restore']);
         });
@@ -167,7 +167,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [RolController::class, 'index']);
             Route::get('/{id}', [RolController::class, 'show']);
             Route::post('/', [RolController::class, 'store']);
-            Route::put('/{id}', [RolController::class, 'update']);
+            Route::put('/{id}', [RolController::class, 'edit']);
             Route::delete('/{id}', [RolController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [RolController::class, 'restore']);
         });
@@ -177,7 +177,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [MenusController::class, 'index']);
             Route::get('/{id}', [MenusController::class, 'show']);
             Route::post('/', [MenusController::class, 'store']);
-            Route::put('/{id}', [MenusController::class, 'update']);
+            Route::put('/{id}', [MenusController::class, 'edit']);
             Route::delete('/{id}', [MenusController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [MenusController::class, 'restore']);
         });
@@ -187,7 +187,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [RolesMenusController::class, 'index']);
             Route::get('/{id}', [RolesMenusController::class, 'show']);
             Route::post('/', [RolesMenusController::class, 'store']);
-            Route::put('/{id}', [RolesMenusController::class, 'update']);
+            Route::put('/{id}', [RolesMenusController::class, 'edit']);
             Route::delete('/{id}', [RolesMenusController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [RolesMenusController::class, 'restore']);
         });
@@ -197,7 +197,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [TipoEmpresaController::class, 'index']);
             Route::get('/{id}', [TipoEmpresaController::class, 'show']);
             Route::post('/', [TipoEmpresaController::class, 'store']);
-            Route::put('/{id}', [TipoEmpresaController::class, 'update']);
+            Route::put('/{id}', [TipoEmpresaController::class, 'edit']);
             Route::delete('/{id}', [TipoEmpresaController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [TipoEmpresaController::class, 'restore']);
         });
@@ -207,7 +207,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [EmpresasController::class, 'index']);
             Route::get('/{id}', [EmpresasController::class, 'show']);
             Route::post('/', [EmpresasController::class, 'store']);
-            Route::put('/{id}', [EmpresasController::class, 'update']);
+            Route::put('/{id}', [EmpresasController::class, 'edit']);
             Route::delete('/{id}', [EmpresasController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [EmpresasController::class, 'restore']);
         });
@@ -217,7 +217,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [RutasController::class, 'index']);
             Route::get('/{id}', [RutasController::class, 'show']);
             Route::post('/', [RutasController::class, 'store']);
-            Route::put('/{id}', [RutasController::class, 'update']);
+            Route::put('/{id}', [RutasController::class, 'edit']);
             Route::delete('/{id}', [RutasController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [RutasController::class, 'restore']);
         });
@@ -227,7 +227,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [UsersController::class, 'index']);
             Route::get('/{id}', [UsersController::class, 'show']);
             Route::post('/', [UsersController::class, 'store']);
-            Route::put('/{id}', [UsersController::class, 'update']);
+            Route::put('/{id}', [UsersController::class, 'edit']);
             Route::delete('/{id}', [UsersController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [UsersController::class, 'restore']);
         });
@@ -237,7 +237,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [ConductoresController::class, 'index']);
             Route::get('/{id}', [ConductoresController::class, 'show']);
             Route::post('/', [ConductoresController::class, 'store']);
-            Route::put('/{id}', [ConductoresController::class, 'update']);
+            Route::put('/{id}', [ConductoresController::class, 'edit']);
             Route::delete('/{id}', [ConductoresController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [ConductoresController::class, 'restore']);
         });
@@ -247,7 +247,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [TipoVehiculoController::class, 'index']);
             Route::get('/{id}', [TipoVehiculoController::class, 'show']);
             Route::post('/', [TipoVehiculoController::class, 'store']);
-            Route::put('/{id}', [TipoVehiculoController::class, 'update']);
+            Route::put('/{id}', [TipoVehiculoController::class, 'edit']);
             Route::delete('/{id}', [TipoVehiculoController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [TipoVehiculoController::class, 'restore']);
         });
@@ -257,7 +257,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [PropietariosController::class, 'index']);
             Route::get('/{id}', [PropietariosController::class, 'show']);
             Route::post('/', [PropietariosController::class, 'store']);
-            Route::put('/{id}', [PropietariosController::class, 'update']);
+            Route::put('/{id}', [PropietariosController::class, 'edit']);
             Route::delete('/{id}', [PropietariosController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [PropietariosController::class, 'restore']);
         });
@@ -267,7 +267,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [VehiculoController::class, 'index']);
             Route::get('/{id}', [VehiculoController::class, 'show']);
             Route::post('/', [VehiculoController::class, 'store']);
-            Route::put('/{id}', [VehiculoController::class, 'update']);
+            Route::put('/{id}', [VehiculoController::class, 'edit']);
             Route::delete('/{id}', [VehiculoController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [VehiculoController::class, 'restore']);
         });
@@ -277,7 +277,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [ConductoresLicenciaController::class, 'index']);
             Route::get('/{id}', [ConductoresLicenciaController::class, 'show']);
             Route::post('/', [ConductoresLicenciaController::class, 'store']);
-            Route::put('/{id}', [ConductoresLicenciaController::class, 'update']);
+            Route::put('/{id}', [ConductoresLicenciaController::class, 'edit']);
             Route::delete('/{id}', [ConductoresLicenciaController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [ConductoresLicenciaController::class, 'restore']);
         });
@@ -287,7 +287,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [SeguimGpsController::class, 'index']);
             Route::get('/{id}', [SeguimGpsController::class, 'show']);
             Route::post('/', [SeguimGpsController::class, 'store']);
-            Route::put('/{id}', [SeguimGpsController::class, 'update']);
+            Route::put('/{id}', [SeguimGpsController::class, 'edit']);
             Route::delete('/{id}', [SeguimGpsController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [SeguimGpsController::class, 'restore']);
         });
@@ -297,7 +297,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [SeguimEstadoVehController::class, 'index']);
             Route::get('/{id}', [SeguimEstadoVehController::class, 'show']);
             Route::post('/', [SeguimEstadoVehController::class, 'store']);
-            Route::put('/{id}', [SeguimEstadoVehController::class, 'update']);
+            Route::put('/{id}', [SeguimEstadoVehController::class, 'edit']);
             Route::delete('/{id}', [SeguimEstadoVehController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [SeguimEstadoVehController::class, 'restore']);
         });

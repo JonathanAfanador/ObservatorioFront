@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Enums\Tablas;
 use App\Models\documentos;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
-class DocumentosController extends Controller
-{
+class DocumentosController extends Controller{
+
+    const FOLDER = "documentos";
+
     // Constructor
     public function __construct()
     {
@@ -185,15 +188,35 @@ class DocumentosController extends Controller
     /**
      * @OA\Post(
      *     path="/api/documentos",
-     *     summary="Crear un nuevo documento",
+     *     summary="Crear un nuevo documento (form-data con archivo)",
      *     tags={"Documentos"},
      *     security={{"sanctum": {}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="url", type="string", example="https://example.com/archivo.pdf"),
-     *             @OA\Property(property="observaciones", type="string", example="Resolución escaneada y firmada."),
-     *             @OA\Property(property="tipo_doc_id", type="integer", example=1)
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 required={"file","observaciones","tipo_doc_id"},
+     *                 @OA\Property(
+     *                     property="file",
+     *                     description="Archivo a subir (un solo archivo)",
+     *                     type="string",
+     *                     format="binary"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="observaciones",
+     *                     description="Observaciones del documento",
+     *                     type="string",
+     *                     example="Resolución escaneada y firmada."
+     *                 ),
+     *                 @OA\Property(
+     *                     property="tipo_doc_id",
+     *                     description="ID del tipo de documento",
+     *                     type="integer",
+     *                     example=1
+     *                 )
+     *             )
      *         )
      *     ),
      *     @OA\Response(response=201, description="Documento creado exitosamente"),
@@ -203,14 +226,19 @@ class DocumentosController extends Controller
      */
     public function store(Request $request)
     {
+        // ! Validación de archivos
+        try{
+            $this->validateFileUpload( $request, "file" );
+        } catch(\Exception $e){
+            return response()->json(['status' => false, 'errors' => ['file' => [$e->getMessage()]]] , 422);
+        }
+
         $rules = [
-            'url'           => 'required|string',
             'observaciones' => 'required|string',
             'tipo_doc_id'   => 'required|integer|exists:tipo_doc,id',
         ];
 
         $messages = [
-            'url.required'             => 'El campo url es obligatorio.',
             'observaciones.required'   => 'El campo observaciones es obligatorio.',
             'tipo_doc_id.required'     => 'El campo tipo_doc_id es obligatorio.',
             'tipo_doc_id.integer'      => 'El campo tipo_doc_id debe ser un número entero.',
@@ -218,17 +246,22 @@ class DocumentosController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
+
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
+
+        // Almacenar el archivo localmente
+        $file = Storage::disk('local')->put(self::FOLDER, $request->file('file'));
+        $request->merge(['url' => Storage::url($file)]);
 
         return parent::store($request);
     }
 
     /**
-     * @OA\Put(
+     * @OA\Post(
      *     path="/api/documentos/{id}",
-     *     summary="Actualizar un documento existente",
+     *     summary="Actualizar un documento existente (form-data con archivo)",
      *     tags={"Documentos"},
      *     security={{"sanctum": {}}},
      *     @OA\Parameter(
@@ -240,10 +273,28 @@ class DocumentosController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="url", type="string", example="https://example.com/archivo-actualizado.pdf"),
-     *             @OA\Property(property="observaciones", type="string", example="Actualización de documento por nueva firma."),
-     *             @OA\Property(property="tipo_doc_id", type="integer", example=2)
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 required={"file"},
+     *                 @OA\Property(
+     *                     property="file",
+     *                     description="Archivo a subir (un solo archivo)",
+     *                     type="string",
+     *                     format="binary"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="observaciones",
+     *                     type="string",
+     *                     example="Actualización de documento por nueva firma."
+     *                 ),
+     *                 @OA\Property(
+     *                     property="tipo_doc_id",
+     *                     type="integer",
+     *                     example=2
+     *                 )
+     *             )
      *         )
      *     ),
      *     @OA\Response(response=200, description="Documento actualizado exitosamente"),
@@ -251,16 +302,21 @@ class DocumentosController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
-    {
+    public function edit(string $id, Request $request)    {
+
+        // ! Validación de archivos
+        try{
+            $this->validateFileUpload( $request, "file" );
+        } catch(\Exception $e){
+            return response()->json(['status' => false, 'errors' => ['file' => [$e->getMessage()]]] , 422);
+        }
+
         $rules = [
-            'url'           => 'required|string',
             'observaciones' => 'required|string',
             'tipo_doc_id'   => 'required|integer|exists:tipo_doc,id',
         ];
 
         $messages = [
-            'url.required'             => 'El campo url es obligatorio.',
             'observaciones.required'   => 'El campo observaciones es obligatorio.',
             'tipo_doc_id.required'     => 'El campo tipo_doc_id es obligatorio.',
             'tipo_doc_id.integer'      => 'El campo tipo_doc_id debe ser un número entero.',
@@ -271,6 +327,24 @@ class DocumentosController extends Controller
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
+
+        // Eliminar el archivo anterior si se subió uno nuevo
+        $file = $request->file('file');
+        if (!$file){
+            return;
+        }
+        $documento = documentos::find($id);
+        if (!$documento || !$documento->url) {
+            return;
+        }
+
+        // Obtener la ruta del archivo anterior
+        $previousFilePath = str_replace('/storage/', '', $documento->url);
+        Storage::disk('local')->delete($previousFilePath);
+
+        // Almacenar el nuevo archivo
+        $newFilePath = Storage::disk('local')->put(self::FOLDER, $file);
+        $request->merge(['url' => Storage::url($newFilePath)]);
 
         return parent::update($id, $request);
     }

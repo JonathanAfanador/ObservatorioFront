@@ -26,6 +26,8 @@ Dentro este proyecto se incluye una carpeta llamada `theftp` que contiene todo e
     - `DB_DATABASE`: Nombre de la base de datos que has creado para el proyecto.
     - `DB_USERNAME`: Nombre de usuario para acceder a la base de datos.
     - `DB_PASSWORD`: Contraseña del usuario de la base de datos.
+    - `MAX_SIZE_FILES_IN_MB`: Tamaño máximo permitido para los archivos subidos (en megabytes).
+    - `MIMETYPES_ALLOWED`: Tipos MIME permitidos para los archivos subidos, separados por comas (por ejemplo, `application/pdf,image/jpeg`).
 
 3. **Instalar Dependencias**: Navega a la carpeta `theftp` y ejecuta el siguiente comando para instalar las dependencias del proyecto utilizando Composer:
     ```bash
@@ -53,7 +55,14 @@ Dentro este proyecto se incluye una carpeta llamada `theftp` que contiene todo e
     * * * * * php /ruta/a/tu/proyecto/theftp/artisan schedule:run >> /dev/null 2>&1
     ```
 
-8. **Iniciar el Servidor de Desarrollo**: Finalmente, inicia el servidor de desarrollo con el siguiente comando:
+8. **Configurar Permisos de Carpetas**: Asegúrate de que las carpetas `storage` y `bootstrap/cache` tengan los permisos adecuados para que el servidor web pueda escribir en ellas. Puedes hacerlo ejecutando los siguientes comandos:
+    ```bash
+    php artisan storage:link
+    chmod -R 775 storage
+    chmod -R 775 bootstrap/cache
+    ```
+
+9. **Iniciar el Servidor de Desarrollo**: Finalmente, inicia el servidor de desarrollo con el siguiente comando:
     ```bash
     php artisan serve
     ```

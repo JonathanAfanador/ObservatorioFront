@@ -44,10 +44,14 @@ abstract class Controller{
     // Contructor que recibe un Model con el que trabajara el controlador
     protected $model;
     protected $table = "";
+    protected $MAX_SIZE_FILES_IN_MB;
+    protected $MIMETYPES_ALLOWED;
 
     public function __construct(Model $model, Tablas $table){
         $this->model = $model;
         $this->table = $table->value;
+        $this->MAX_SIZE_FILES_IN_MB = env('MAX_SIZE_FILES_IN_MB', 10);
+        $this->MIMETYPES_ALLOWED = env('MIMETYPES_ALLOWED', ''); // Coma-separated list of allowed MIME types
     }
 
     /**
@@ -704,6 +708,42 @@ abstract class Controller{
                 'error' => $e->getMessage(),
             ], $e->getCode() ?: 400);
         }
+    }
+
+    private static function throwFileException(string $message, int $code = 422){
+        throw new Exception($message, $code);
+    }
+
+    private function getAllowedMimeTypesArray(): array{
+        return array_filter(array_map('trim', explode(',', $this->MIMETYPES_ALLOWED)));
+    }
+
+    public function validateFileUpload(Request $request, string $fileKey){
+        if (!$request->hasFile($fileKey)) {
+            self::throwFileException("No se ha proporcionado ningún archivo para la clave '{$fileKey}'.");
+        }
+
+        $file = $request->file($fileKey);
+
+        if (!$file) {
+            self::throwFileException("El archivo proporcionado para la clave '{$fileKey}' es inválido.");
+        }
+
+        // Validar tamaño del archivo
+        $size = $file->getSize();
+        $maxSizeInBytes = $this->MAX_SIZE_FILES_IN_MB * 1024 * 1024;
+
+        if ($size > $maxSizeInBytes) {
+            self::throwFileException("El tamaño del archivo excede el límite máximo de {$this->MAX_SIZE_FILES_IN_MB} MB.");
+        }
+
+        // Validar tipo MIME
+        $allowedMimeTypes = $this->getAllowedMimeTypesArray();
+        if (count($allowedMimeTypes) >= 1 && !in_array($file->getMimeType(), $allowedMimeTypes)) {
+            self::throwFileException("El tipo de archivo '{$file->getMimeType()}' no está permitido. Tipos permitidos: " . implode(', ', $allowedMimeTypes) . ".");
+        }
+
+        return $file;
     }
 
 }
