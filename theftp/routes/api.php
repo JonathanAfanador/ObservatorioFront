@@ -93,7 +93,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
         });
 
         // -- Tipo Ident Routes
-        Route::prefix('tipo_ident')->group(function (){
+        Route::prefix('tipo_doc')->group(function (){
             Route::get('/', [TipoDocController::class, 'index']);
             Route::get('/{id}', [TipoDocController::class, 'show']);
             Route::post('/', [TipoDocController::class, 'store']);

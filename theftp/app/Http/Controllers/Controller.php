@@ -227,7 +227,8 @@ abstract class Controller{
                         'en un conjunto (in)'=> '{"column":"id","operator":"in","value":[1,2,3]}',
                         'no en un conjunto (not in)'=> '{"column":"id","operator":"not in","value":[4,5,6]}',
                         'nulo (null)'=> '{"column":"deleted_at","operator":"null"}',
-                        'no nulo (not null)'=> '{"column":"updated_at","operator":"not null"}'
+                        'no nulo (not null)'=> '{"column":"updated_at","operator":"not null"}',
+                        'like'=> '{"column":"name","operator":"like","value":"%John%"}',
                     ]
             ], 422);
         }
@@ -316,13 +317,13 @@ abstract class Controller{
             // Aplicar filtros si se especifican
             if (!empty($filter)) {
                 // Validación interna de la estructura de cada filtro
-                $allowedOperators = ['=', '!=', '>', '<', '>=', '<=', 'in', 'not in', 'null', 'not null', 'between', 'not between'];
+                $allowedOperators = ['=', '!=', '>', '<', '>=', '<=', 'in', 'not in', 'null', 'not null', 'between', 'not between', 'like'];
 
                 foreach ($filter as $f) {
-                    if (!isset($f['column'], $f['operator'], $f['value'])) {
+                    if (!isset($f['column'], $f['operator'], $f['value']) && !in_array($f['operator'], ['null', 'not null', 'like'])) {
                         // Omitimos o lanzamos una excepción si la estructura de un filtro es inválida.
                         // Aquí elegimos lanzar una excepción para ser estricto.
-                        throw new Exception("La estructura de un filtro es inválida. Se requiere 'column', 'operator' y 'value' (excepto para null/not null).");
+                        throw new Exception("La estructura de un filtro es inválida. Se requiere 'column', 'operator' y 'value' (excepto para null/not null, like).");
                     }
 
                     if (!in_array($f['operator'], $allowedOperators)) {
@@ -367,6 +368,9 @@ abstract class Controller{
                                 $method = ($operator === 'between') ? 'whereBetween' : 'whereNotBetween';
                                 $query->{$method}($column, $value);
                             }
+                            break;
+                        case 'like':
+                            $query->where($column, 'like', $value);
                             break;
                     }
                 }
