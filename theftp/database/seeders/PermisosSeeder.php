@@ -44,7 +44,7 @@ class PermisosSeeder extends Seeder
                     $create = $read = $update = $delete = true;
                 } elseif ($roleId === 2) {
                     // Secretaria de tránsito: igual que admin pero auditoria todo FALSE
-                    if ($tabla === Tablas::AUDITORIA->value) {
+                    if ($tabla === Tablas::AUDIT->value) {
                         $create = $read = $update = $delete = false;
                     } else {
                         $create = $read = $update = $delete = true;
@@ -52,12 +52,12 @@ class PermisosSeeder extends Seeder
                 } elseif ($roleId === 3) {
                     // Empresa de transporte
                     // read true en todas menos auditoria
-                    $read = ($tabla !== Tablas::AUDITORIA->value);
+                    $read = ($tabla !== Tablas::AUDIT->value);
 
                     // create/update true por defecto salvo excepciones
                     $isTipo = str_contains($tabla, 'tipo'); // tipo_doc, tipo_ident, tipo_vehiculo...
                     $isException = in_array($tabla, [
-                        Tablas::AUDITORIA->value,
+                        Tablas::AUDIT->value,
                         Tablas::EMPRESAS->value,
                     ]) || $isTipo || in_array($tabla, ['categorias_licencias','restriccion_lic']);
 
@@ -71,11 +71,11 @@ class PermisosSeeder extends Seeder
                     $delete = false;
                 } elseif (in_array($roleId, [4,5])) {
                     // Usuario UPC e Invitado: ver todas menos auditoria
-                    $read = ($tabla !== Tablas::AUDITORIA->value);
+                    $read = ($tabla !== Tablas::AUDIT->value);
                     $create = $update = $delete = false;
                 } else {
                     // default seguro: solo lectura excepto auditoria
-                    $read = ($tabla !== Tablas::AUDITORIA->value);
+                    $read = ($tabla !== Tablas::AUDIT->value);
                 }
 
                 // Inserción idempotente: updateOrInsert por rol+tabla

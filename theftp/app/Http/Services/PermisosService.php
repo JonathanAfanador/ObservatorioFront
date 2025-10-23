@@ -41,7 +41,7 @@ class PermisosService
   public static function verificarPermisoIndividual($tabla, ...$permisos){
     return self::verificarPermisos([
       [
-        'tabla' => $tabla,
+        'tabla' => $tabla->value ?? $tabla,
         'acciones' => $permisos
       ]
     ]);

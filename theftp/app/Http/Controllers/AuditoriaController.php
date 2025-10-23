@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\V1;
+namespace App\Http\Controllers;
 
 use App\Enums\Acciones;
 use App\Enums\Tablas;
@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 class AuditoriaController extends Controller{
 
     public function __construct(){
-        parent::__construct(new Audit(), Tablas::AUDITORIA);
+        parent::__construct(new Audit(), Tablas::AUDIT);
     }
 
     /**
@@ -113,7 +113,7 @@ class AuditoriaController extends Controller{
     public function getFieldsPaginated(Request $request){
 
         try{
-            PermisosService::verificarPermisoIndividual(Tablas::AUDITORIA, Acciones::READ);
+            PermisosService::verificarPermisoIndividual(Tablas::AUDIT, Acciones::READ);
         } catch (Exception $e){
             return response()->json([
                 'message' => $e->getMessage()

@@ -25,7 +25,7 @@ use App\Http\Controllers\TipoDocController;
 use App\Http\Controllers\TipoVehiculoController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiculoController;
-use App\Http\Controllers\V1\AuditoriaController;
+use App\Http\Controllers\AuditoriaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
 use App\Http\Middleware\ForceJsonResponse;

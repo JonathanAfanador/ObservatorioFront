@@ -4,8 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use OwenIt\Auditing\Contracts\Auditable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @OA\Schema(
@@ -117,8 +115,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Audit extends Model{
     use HasFactory;
-    use SoftDeletes;
-
 
     protected $table = "audits";
 

@@ -29,7 +29,7 @@ enum Tablas: string {
     case TIPO_EMPRESA = 'tipo_empresa';
     case USERS = 'users';
     case VEHICULO = 'vehiculo';
-    case AUDITORIA = 'auditoria';
+    case AUDIT = 'auditoria';
 
     public static function getValues(): array
     {
