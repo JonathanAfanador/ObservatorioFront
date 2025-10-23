@@ -7261,27 +7261,37 @@
                 "tags": [
                     "Rutas"
                 ],
-                "summary": "Crear una nueva ruta",
+                "summary": "Crear una nueva ruta (form-data con un solo archivo)",
                 "operationId": "0706e374f27d2da22e1aafbcc3398fee",
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
+                                "required": [
+                                    "file",
+                                    "name",
+                                    "municipios_id",
+                                    "empresa_id"
+                                ],
                                 "properties": {
+                                    "file": {
+                                        "description": "Archivo único (ej. geojson)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
                                     "name": {
+                                        "description": "Nombre de la ruta",
                                         "type": "string",
                                         "example": "Ruta 101"
                                     },
-                                    "file_name": {
-                                        "type": "string",
-                                        "example": "ruta_101.geojson"
-                                    },
                                     "municipios_id": {
+                                        "description": "ID del municipio",
                                         "type": "integer",
                                         "example": 1
                                     },
                                     "empresa_id": {
+                                        "description": "ID de la empresa",
                                         "type": "integer",
                                         "example": 1
                                     }
@@ -7414,12 +7424,12 @@
                     }
                 ]
             },
-            "put": {
+            "post": {
                 "tags": [
                     "Rutas"
                 ],
-                "summary": "Actualizar una ruta existente",
-                "operationId": "bcbe0b28b978c4c0983dea4a2fc639bc",
+                "summary": "Actualizar una ruta existente (form-data con un solo archivo)",
+                "operationId": "78cc5b774c6d39a251bc8148d63d3c14",
                 "parameters": [
                     {
                         "name": "id",
@@ -7435,22 +7445,32 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
+                                "required": [
+                                    "file",
+                                    "name",
+                                    "municipios_id",
+                                    "empresa_id"
+                                ],
                                 "properties": {
+                                    "file": {
+                                        "description": "Archivo único (ej. geojson)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
                                     "name": {
+                                        "description": "Nombre de la ruta",
                                         "type": "string",
                                         "example": "Ruta 101 Actualizada"
                                     },
-                                    "file_name": {
-                                        "type": "string",
-                                        "example": "ruta_101_v2.geojson"
-                                    },
                                     "municipios_id": {
+                                        "description": "ID del municipio",
                                         "type": "integer",
                                         "example": 2
                                     },
                                     "empresa_id": {
+                                        "description": "ID de la empresa",
                                         "type": "integer",
                                         "example": 1
                                     }

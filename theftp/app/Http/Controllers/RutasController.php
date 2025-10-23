@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Enums\Tablas;
 use App\Models\rutas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class RutasController extends Controller
 {
+
+    const FOLDER = 'rutas';
+
     // Constructor
     public function __construct()
     {
@@ -89,16 +93,21 @@ class RutasController extends Controller
     /**
      * @OA\Post(
      *     path="/api/rutas",
-     *     summary="Crear una nueva ruta",
+     *     summary="Crear una nueva ruta (form-data con un solo archivo)",
      *     tags={"Rutas"},
      *     security={{"sanctum": {}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="Ruta 101"),
-     *             @OA\Property(property="file_name", type="string", example="ruta_101.geojson"),
-     *             @OA\Property(property="municipios_id", type="integer", example=1),
-     *             @OA\Property(property="empresa_id", type="integer", example=1)
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 @OA\Property(property="file", type="string", format="binary", description="Archivo único (ej. geojson)"),
+     *                 @OA\Property(property="name", type="string", description="Nombre de la ruta", example="Ruta 101"),
+     *                 @OA\Property(property="municipios_id", type="integer", description="ID del municipio", example=1),
+     *                 @OA\Property(property="empresa_id", type="integer", description="ID de la empresa", example=1),
+     *                 required={"file","name","municipios_id","empresa_id"}
+     *             )
      *         )
      *     ),
      *     @OA\Response(response=201, description="Ruta creada exitosamente"),
@@ -108,9 +117,16 @@ class RutasController extends Controller
      */
     public function store(Request $request)
     {
+
+        // ! Validación de archivos
+        try{
+            $this->validateFileUpload( $request, "file" );
+        } catch(\Exception $e){
+            return response()->json(['status' => false, 'errors' => ['file' => [$e->getMessage()]]] , 422);
+        }
+
         $rules = [
             'name'          => 'required|string|max:255',
-            'file_name'     => 'required|string',
             'municipios_id' => 'required|integer|exists:municipios,id',
             'empresa_id'    => 'required|integer|exists:empresas,id',
         ];
@@ -119,8 +135,6 @@ class RutasController extends Controller
             'name.required'           => 'El campo nombre es obligatorio.',
             'name.string'             => 'El campo nombre debe ser una cadena de texto.',
             'name.max'                => 'El campo nombre no debe exceder 255 caracteres.',
-            'file_name.required'      => 'El campo file_name es obligatorio.',
-            'file_name.string'        => 'El campo file_name debe ser una cadena de texto.',
             'municipios_id.required'  => 'El campo municipio es obligatorio.',
             'municipios_id.integer'   => 'El campo municipio debe ser un número entero.',
             'municipios_id.exists'    => 'El municipio especificado no existe.',
@@ -134,23 +148,32 @@ class RutasController extends Controller
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
 
+        // Almacenar el archivo localmente
+        $file = Storage::disk('local')->put(self::FOLDER, $request->file('file'));
+        $request->merge(['file_name' => Storage::url($file)]);
+
         return parent::store($request);
     }
 
     /**
-     * @OA\Put(
+     * @OA\Post(
      *     path="/api/rutas/{id}",
-     *     summary="Actualizar una ruta existente",
+     *     summary="Actualizar una ruta existente (form-data con un solo archivo)",
      *     tags={"Rutas"},
      *     security={{"sanctum": {}}},
      *     @OA\Parameter(name="id", in="path", description="ID de la ruta", required=true, @OA\Schema(type="integer", example=1)),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="Ruta 101 Actualizada"),
-     *             @OA\Property(property="file_name", type="string", example="ruta_101_v2.geojson"),
-     *             @OA\Property(property="municipios_id", type="integer", example=2),
-     *             @OA\Property(property="empresa_id", type="integer", example=1)
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 @OA\Property(property="file", type="string", format="binary", description="Archivo único (ej. geojson)"),
+     *                 @OA\Property(property="name", type="string", description="Nombre de la ruta", example="Ruta 101 Actualizada"),
+     *                 @OA\Property(property="municipios_id", type="integer", description="ID del municipio", example=2),
+     *                 @OA\Property(property="empresa_id", type="integer", description="ID de la empresa", example=1),
+     *                 required={"file","name","municipios_id","empresa_id"}
+     *             )
      *         )
      *     ),
      *     @OA\Response(response=200, description="Ruta actualizada exitosamente"),
@@ -160,9 +183,16 @@ class RutasController extends Controller
      */
     public function edit(string $id, Request $request)
     {
+
+        // ! Validación de archivos
+        try{
+            $this->validateFileUpload( $request, "file" );
+        } catch(\Exception $e){
+            return response()->json(['status' => false, 'errors' => ['file' => [$e->getMessage()]]] , 422);
+        }
+
         $rules = [
             'name'          => 'required|string|max:255',
-            'file_name'     => 'required|string',
             'municipios_id' => 'required|integer|exists:municipios,id',
             'empresa_id'    => 'required|integer|exists:empresas,id',
         ];
@@ -171,8 +201,6 @@ class RutasController extends Controller
             'name.required'           => 'El campo nombre es obligatorio.',
             'name.string'             => 'El campo nombre debe ser una cadena de texto.',
             'name.max'                => 'El campo nombre no debe exceder 255 caracteres.',
-            'file_name.required'      => 'El campo file_name es obligatorio.',
-            'file_name.string'        => 'El campo file_name debe ser una cadena de texto.',
             'municipios_id.required'  => 'El campo municipio es obligatorio.',
             'municipios_id.integer'   => 'El campo municipio debe ser un número entero.',
             'municipios_id.exists'    => 'El municipio especificado no existe.',
@@ -185,6 +213,25 @@ class RutasController extends Controller
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
+
+                // Eliminar el archivo anterior si se subió uno nuevo
+        $file = $request->file('file');
+        if (!$file){
+            return;
+        }
+
+        $data = rutas::find($id);
+        if (!$data || !$data->file_name) {
+            return;
+        }
+
+        // Obtener la ruta del archivo anterior
+        $previousFilePath = str_replace('/storage/', '', $data->file_name);
+        Storage::disk('local')->delete($previousFilePath);
+
+        // Almacenar el nuevo archivo
+        $newFilePath = Storage::disk('local')->put(self::FOLDER, $file);
+        $request->merge(['file_name' => Storage::url($newFilePath)]);
 
         return parent::update($id, $request);
     }

@@ -217,7 +217,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/', [RutasController::class, 'index']);
             Route::get('/{id}', [RutasController::class, 'show']);
             Route::post('/', [RutasController::class, 'store']);
-            Route::put('/{id}', [RutasController::class, 'edit']);
+            Route::post('/{id}', [RutasController::class, 'edit']);
             Route::delete('/{id}', [RutasController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [RutasController::class, 'restore']);
         });
