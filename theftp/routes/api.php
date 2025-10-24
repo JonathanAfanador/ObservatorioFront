@@ -232,6 +232,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [UsersController::class, 'edit']);
             Route::delete('/{id}', [UsersController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [UsersController::class, 'restore']);
+            Route::patch('/{id}/role', [UsersController::class, 'patch']);
         });
 
         // -- Conductores Routes

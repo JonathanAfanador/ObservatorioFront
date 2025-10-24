@@ -13,6 +13,151 @@
     },
     "paths": {
         "/api": {},
+        "/api/auditoria/{field}/uniques": {
+            "get": {
+                "tags": [
+                    "Auditoría"
+                ],
+                "summary": "Obtener valores únicos de un campo en la tabla de auditoría",
+                "operationId": "32c1357343d36fc4a11e47d67c9ff0d0",
+                "parameters": [
+                    {
+                        "name": "field",
+                        "in": "path",
+                        "description": "Campo de la tabla de auditoría para obtener valores únicos",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "event"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Valores únicos obtenidos exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "El campo no es válido"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/auditoria": {
+            "get": {
+                "tags": [
+                    "Auditoría"
+                ],
+                "summary": "Obtener registros de auditoría paginados",
+                "operationId": "3df1a60d3cb68b50513b21c5c8a1065a",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "itemsPerPage",
+                        "in": "query",
+                        "description": "Cantidad de elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Texto de búsqueda",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "updated"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "Columna para ordenar",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "description": "Dirección de ordenamiento (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Registros de auditoría obtenidos exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        },
+                                        "page": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "itemsPerPage": {
+                                            "type": "integer",
+                                            "example": 10
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error en los parámetros de entrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/barrios": {
             "get": {
                 "tags": [
@@ -10839,142 +10984,50 @@
                 ]
             }
         },
-        "/api/auditoria/{field}/uniques": {
-            "get": {
+        "/api/users/{id}/role": {
+            "patch": {
                 "tags": [
-                    "Auditoría"
+                    "Users"
                 ],
-                "summary": "Obtener valores únicos de un campo en la tabla de auditoría",
-                "operationId": "3b67f1b015d0e15670b0122a9a75b2ec",
+                "summary": "Actualizar el rol de un usuario",
+                "operationId": "afb67fb4e2fe99f3c45a5b77b61aab00",
                 "parameters": [
                     {
-                        "name": "field",
+                        "name": "id",
                         "in": "path",
-                        "description": "Campo de la tabla de auditoría para obtener valores únicos",
+                        "description": "ID del usuario",
                         "required": true,
-                        "schema": {
-                            "type": "string",
-                            "example": "event"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Valores únicos obtenidos exitosamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "El campo no es válido"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/auditoria": {
-            "get": {
-                "tags": [
-                    "Auditoría"
-                ],
-                "summary": "Obtener registros de auditoría paginados",
-                "operationId": "ef113beb78e2fcb3120b096924850f20",
-                "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "Número de página",
-                        "required": false,
                         "schema": {
                             "type": "integer",
                             "example": 1
                         }
-                    },
-                    {
-                        "name": "itemsPerPage",
-                        "in": "query",
-                        "description": "Cantidad de elementos por página",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "example": 10
-                        }
-                    },
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Texto de búsqueda",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "example": "updated"
-                        }
-                    },
-                    {
-                        "name": "orderBy",
-                        "in": "query",
-                        "description": "Columna para ordenar",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "example": "id"
-                        }
-                    },
-                    {
-                        "name": "orderDirection",
-                        "in": "query",
-                        "description": "Dirección de ordenamiento (asc o desc)",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "example": "asc"
-                        }
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "Registros de auditoría obtenidos exitosamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "integer",
-                                            "example": 100
-                                        },
-                                        "page": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "itemsPerPage": {
-                                            "type": "integer",
-                                            "example": 10
-                                        }
-                                    },
-                                    "type": "object"
-                                }
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "rol_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
                             }
                         }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rol del usuario actualizado exitosamente"
                     },
-                    "400": {
-                        "description": "Error en los parámetros de entrada"
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
                     }
                 },
                 "security": [
@@ -13364,6 +13417,10 @@
     },
     "tags": [
         {
+            "name": "Auditoría",
+            "description": "Auditoría"
+        },
+        {
             "name": "Barrios",
             "description": "Barrios"
         },
@@ -13458,10 +13515,6 @@
         {
             "name": "Users",
             "description": "Users"
-        },
-        {
-            "name": "Auditoría",
-            "description": "Auditoría"
         },
         {
             "name": "Auth",

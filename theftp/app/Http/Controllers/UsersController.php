@@ -260,4 +260,71 @@ class UsersController extends Controller
     {
         return parent::restore($id);
     }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/users/{id}/role",
+     *     summary="Actualizar el rol de un usuario",
+     *     tags={"Users"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, description="ID del usuario", @OA\Schema(type="integer", example=1)),
+     *    @OA\RequestBody(
+     *        required=true,
+     *       @OA\JsonContent(
+     *            @OA\Property(property="rol_id", type="integer", example=2)
+     *       )
+     *   ),
+     *    @OA\Response(response=200, description="Rol del usuario actualizado exitosamente"),
+     *    @OA\Response(response=404, description="Usuario no encontrado"),
+     *    @OA\Response(response=422, description="Error de validación")
+     * )
+     */
+    public function updateRole(string $id, Request $request){
+        // Validación de entrada
+        $rules = [
+            'rol_id' => 'required|integer|exists:rol,id',
+        ];
+
+        $messages = [
+            'rol_id.required' => 'El campo rol es obligatorio.',
+            'rol_id.integer'  => 'El campo rol debe ser un número entero.',
+            'rol_id.exists'   => 'El rol especificado no existe.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        // !Revisar 2) (Opcional) Respuesta idempotente si ya tiene ese rol
+        // !TODO: Nota: hacemos el mismo chequeo de permisos que el padre para mantener coherencia
+        try {
+            \App\Http\Services\PermisosService::verificarPermisoIndividual($this->table, \App\Enums\Acciones::UPDATE);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], $e->getCode() ?: 400);
+        }
+
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Usuario no encontrado.'], 404);
+        }
+
+        $previous = (int) ($user->rol_id ?? 0);
+        $new = (int) $request->input('rol_id');
+        if ($previous === $new) {
+            return response()->json([
+                'status' => true,
+                'message' => 'El usuario ya tiene el rol especificado.',
+                'data' => [
+                    'user_id' => $user->id,
+                    'previous_rol_id' => $previous ?: null,
+                    'new_rol_id' => $new,
+                ],
+            ], 200);
+        }
+
+        // Limitar el payload a solo el campo rol_id y delegar el patch al padre
+        $request->replace(['rol_id' => $new]);
+        return parent::patch($id, $request);
+    }
 }
