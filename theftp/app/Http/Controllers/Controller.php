@@ -714,6 +714,98 @@ abstract class Controller{
         }
     }
 
+    // !TODO: Método PATCH genérico (a implementar en controladores hijos según necesidad)
+    // ! Sugiero revisión
+    public function patch(string $id, Request $request){
+        // -- Permisos
+        try{
+            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
+
+        // -- Lógica
+        try{
+            $record = $this->model->find($id);
+            if(!$record){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Registro no encontrado.',
+                ], 404);
+            }
+
+            // Validar que haya campos para actualizar
+            $payload = $request->all();
+            if (empty($payload)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No se proporcionaron campos para actualizar.',
+                ], 400);
+            }
+
+            // Proteger campos immutables
+            // !TODO: ejemplo id, created_at, updated_at, deleted_at
+            $immutableFields = ['id', 'created_at', 'updated_at', 'deleted_at'];
+            $rawData = $request->except($immutableFields);
+
+            $data = [];
+            foreach ($rawData as $key => $value) {
+                if ($record->isFillable($key)) {
+                    $data[$key] = $value;
+                }
+            }
+
+            // Aplicar cambios parciales y dectectar cambios
+            $record->fill($data);
+
+            // Si no hay modificaciones, retornar mensaje
+            if (!$record->isDirty()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'No se realizaron cambios en el registro.',
+                    'data' => $record,
+                ], 200);
+            }
+
+            // Capturar los campos modificados
+            $dirty = $record->getDirty();
+            $changes = [];
+            foreach ($dirty as $attr => $newValue) {
+                $changes[$attr] = [
+                    'from' => $record->getOriginal($attr),
+                    'to' => $newValue,
+                ];
+            }
+
+            // Guardar cambios
+            $record->save();
+
+            // Mensaje según los campos modificados
+            $changedKeys = array_keys($changes);
+            $attrList = implode(', ', $changedKeys);
+            $message = count($changedKeys) === 1
+                ? "El campo '{$attrList}' ha sido actualizado."
+                : "Los campos '{$attrList}' han sido actualizados.";
+
+            // Respuesta exitosa
+            return response()->json([
+                'status' => true,
+                'message' => $message,
+                'data' => $record,
+                'changes' => $changes,
+            ], 200);
+        } catch (Exception $e){
+            return response()->json([
+                'status' => false,
+                'message' => 'Error al actualizar el registro.',
+                'error' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
+    }
+
     private static function throwFileException(string $message, int $code = 422){
         throw new Exception($message, $code);
     }
