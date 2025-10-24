@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Tablas;
+use App\Enums\Acciones;
 use App\Http\Services\PermisosService;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -300,7 +301,7 @@ class UsersController extends Controller
         // !Revisar 2) (Opcional) Respuesta idempotente si ya tiene ese rol
         // !TODO: Nota: hacemos el mismo chequeo de permisos que el padre para mantener coherencia
         try {
-            PermisosService::verificarPermisoIndividual($this->table, \App\Enums\Acciones::UPDATE);
+            PermisosService::verificarPermisoIndividual(Tablas::USERS, Acciones::UPDATE);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], $e->getCode() ?: 400);
         }

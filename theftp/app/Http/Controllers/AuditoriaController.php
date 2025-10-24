@@ -25,23 +25,31 @@ class AuditoriaController extends Controller{
      *     summary="Listar auditorías (paginado, filtros y relaciones)",
      *     tags={"Auditoría"},
      *     security={{"sanctum": {}}},
-     *     @OA\Parameter(name="page", in="query", @OA\Schema(type="integer", example=1)),
-     *     @OA\Parameter(name="limit", in="query", @OA\Schema(type="integer", example=10)),
+     *     @OA\Parameter(name="page", in="query",
+     *         @OA\Schema(type="integer", example=1)),
+     *     @OA\Parameter(name="limit", in="query",
+     *         @OA\Schema(type="integer", example=10)),
      *     @OA\Parameter(name="columns", in="query", description="Campos separados por coma o *",
-     *         @OA\Schema(type="string", example="id,event,created_at")
+     *         @OA\Schema(type="string", example="*")
      *     ),
-     *     @OA\Parameter(name="orderBy", in="query", @OA\Schema(type="string", example="id")),
-     *     @OA\Parameter(name="orderDirection", in="query", @OA\Schema(type="string", enum={"asc","desc"}, example="asc")),
+     *     @OA\Parameter(name="orderBy", in="query",
+     *         @OA\Schema(type="string", example="id")),
+     *     @OA\Parameter(name="orderDirection", in="query",
+     *         @OA\Schema(type="string", example="asc")),
      *     @OA\Parameter(name="include", in="query", description="Relaciones separadas por coma",
-     *         @OA\Schema(type="string", example="user,auditable")
+     *         @OA\Schema(type="string", example="user")
      *     ),
      *     @OA\Parameter(name="filter", in="query", description="JSON con filtros avanzados (ver respuestas de error para ejemplos)",
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", example={ "column": "event", "operator": "like", "value": "%created%" })
      *     ),
-     *     @OA\Parameter(name="includeSoftDeleted", in="query", @OA\Schema(type="boolean", example=false)),
-     *     @OA\Parameter(name="onlySoftDeleted", in="query", @OA\Schema(type="boolean", example=false)),
-     *     @OA\Parameter(name="includeRelatedSoftDeleted", in="query", @OA\Schema(type="boolean", example=false)),
-     *     @OA\Parameter(name="onlyRelatedSoftDeleted", in="query", @OA\Schema(type="boolean", example=false)),
+     *     @OA\Parameter(name="includeSoftDeleted", in="query",
+     *         @OA\Schema(type="boolean", example=false)),
+     *     @OA\Parameter(name="onlySoftDeleted", in="query",
+     *         @OA\Schema(type="boolean", example=false)),
+     *     @OA\Parameter(name="includeRelatedSoftDeleted", in="query",
+     *         @OA\Schema(type="boolean", example=false)),
+     *     @OA\Parameter(name="onlyRelatedSoftDeleted", in="query",
+     *         @OA\Schema(type="boolean", example=false)),
      *     @OA\Response(response=200, description="OK"),
      *     @OA\Response(response=400, description="Parámetro include no permitido o error de validación"),
      *     @OA\Response(response=422, description="Errores de validación")
@@ -58,12 +66,18 @@ class AuditoriaController extends Controller{
      *     summary="Obtener detalle de una auditoría por ID",
      *     tags={"Auditoría"},
      *     security={{"sanctum": {}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Parameter(name="include", in="query", @OA\Schema(type="string", example="user,auditable")),
-     *     @OA\Parameter(name="includeSoftDeleted", in="query", @OA\Schema(type="boolean", example=false)),
-     *     @OA\Parameter(name="onlySoftDeleted", in="query", @OA\Schema(type="boolean", example=false)),
-     *     @OA\Parameter(name="includeRelatedSoftDeleted", in="query", @OA\Schema(type="boolean", example=false)),
-     *     @OA\Parameter(name="onlyRelatedSoftDeleted", in="query", @OA\Schema(type="boolean", example=false)),
+     *     @OA\Parameter(name="id", in="path", required=true,
+     *         @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="include", in="query",
+     *         @OA\Schema(type="string", example="user,auditable")),
+     *     @OA\Parameter(name="includeSoftDeleted", in="query",
+     *         @OA\Schema(type="boolean", example=false)),
+     *     @OA\Parameter(name="onlySoftDeleted", in="query",
+     *         @OA\Schema(type="boolean", example=false)),
+     *     @OA\Parameter(name="includeRelatedSoftDeleted", in="query",
+     *         @OA\Schema(type="boolean", example=false)),
+     *     @OA\Parameter(name="onlyRelatedSoftDeleted", in="query",
+     *         @OA\Schema(type="boolean", example=false)),
      *     @OA\Response(response=200, description="OK"),
      *     @OA\Response(response=404, description="No encontrado")
      * )
@@ -88,7 +102,7 @@ class AuditoriaController extends Controller{
     public function getUniqueFields(string $field) {
         try {
             // Verificar permisos
-            PermisosService::verificarPermisoIndividual(Acciones::READ, Tablas::AUDIT);
+            PermisosService::verificarPermisoIndividual(Tablas::AUDIT, Acciones::READ);
         } catch (Exception $e) {
             return response()->json([
                 'status' => false,
