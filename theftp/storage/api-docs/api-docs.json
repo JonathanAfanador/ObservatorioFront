@@ -13,41 +13,119 @@
     },
     "paths": {
         "/api": {},
-        "/api/auditoria/{field}/uniques": {
+        "/api/auditoria": {
             "get": {
                 "tags": [
                     "Auditoría"
                 ],
-                "summary": "Obtener valores únicos de un campo en la tabla de auditoría",
-                "operationId": "32c1357343d36fc4a11e47d67c9ff0d0",
+                "summary": "Listar auditorías (paginado, filtros y relaciones)",
+                "operationId": "a9dcf9fa8619c4661c20c58e6fbec03e",
                 "parameters": [
                     {
-                        "name": "field",
-                        "in": "path",
-                        "description": "Campo de la tabla de auditoría para obtener valores únicos",
-                        "required": true,
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "columns",
+                        "in": "query",
+                        "description": "Campos separados por coma o *",
                         "schema": {
                             "type": "string",
-                            "example": "event"
+                            "example": "*"
+                        }
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "orderDirection",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "Relaciones separadas por coma",
+                        "schema": {
+                            "type": "string",
+                            "example": "user"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "JSON con filtros avanzados (ver respuestas de error para ejemplos)",
+                        "schema": {
+                            "type": "string",
+                            "example": {
+                                "column": "event",
+                                "operator": "like",
+                                "value": "%created%"
+                            }
+                        }
+                    },
+                    {
+                        "name": "includeSoftDeleted",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlySoftDeleted",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Valores únicos obtenidos exitosamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
+                        "description": "OK"
                     },
                     "400": {
-                        "description": "El campo no es válido"
+                        "description": "Parámetro include no permitido o error de validación"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
                     }
                 },
                 "security": [
@@ -57,98 +135,105 @@
                 ]
             }
         },
-        "/api/auditoria": {
+        "/api/auditoria/{id}": {
             "get": {
                 "tags": [
                     "Auditoría"
                 ],
-                "summary": "Obtener registros de auditoría paginados",
-                "operationId": "3df1a60d3cb68b50513b21c5c8a1065a",
+                "summary": "Obtener detalle de una auditoría por ID",
+                "operationId": "612f4208521201ee50915eaa42765c4c",
                 "parameters": [
                     {
-                        "name": "page",
-                        "in": "query",
-                        "description": "Número de página",
-                        "required": false,
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
                         "schema": {
-                            "type": "integer",
-                            "example": 1
+                            "type": "integer"
                         }
                     },
                     {
-                        "name": "itemsPerPage",
+                        "name": "include",
                         "in": "query",
-                        "description": "Cantidad de elementos por página",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "example": 10
-                        }
-                    },
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Texto de búsqueda",
-                        "required": false,
                         "schema": {
                             "type": "string",
-                            "example": "updated"
+                            "example": "user,auditable"
                         }
                     },
                     {
-                        "name": "orderBy",
+                        "name": "includeSoftDeleted",
                         "in": "query",
-                        "description": "Columna para ordenar",
-                        "required": false,
                         "schema": {
-                            "type": "string",
-                            "example": "id"
+                            "type": "boolean",
+                            "example": false
                         }
                     },
                     {
-                        "name": "orderDirection",
+                        "name": "onlySoftDeleted",
                         "in": "query",
-                        "description": "Dirección de ordenamiento (asc o desc)",
-                        "required": false,
                         "schema": {
-                            "type": "string",
-                            "example": "asc"
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "includeRelatedSoftDeleted",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "onlyRelatedSoftDeleted",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Registros de auditoría obtenidos exitosamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "integer",
-                                            "example": 100
-                                        },
-                                        "page": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "itemsPerPage": {
-                                            "type": "integer",
-                                            "example": 10
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/auditoria/{field}/uniques": {
+            "get": {
+                "tags": [
+                    "Auditoría"
+                ],
+                "summary": "Valores únicos de un campo de auditoría",
+                "operationId": "54a351fffc27abb0563ff85841b7c3d4",
+                "parameters": [
+                    {
+                        "name": "field",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "event"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     },
                     "400": {
-                        "description": "Error en los parámetros de entrada"
+                        "description": "Campo no válido"
+                    },
+                    "403": {
+                        "description": "Sin permiso"
                     }
                 },
                 "security": [

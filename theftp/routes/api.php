@@ -47,8 +47,9 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
 
         // -- Auditoria Routes
         Route::prefix('auditoria')->group(function (){
-            Route::get('/', [AuditoriaController::class,'getFieldsPaginated']);
-            Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniquesFields']);
+            Route::get('/', [AuditoriaController::class,'index']);
+            Route::get('/{id}', [AuditoriaController::class,'show']);
+            Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniqueFields']);
         });
 
         // -- Municipios Routes
