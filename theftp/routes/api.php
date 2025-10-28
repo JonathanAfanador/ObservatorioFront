@@ -125,7 +125,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
         });
 
         // -- Restricciones Licencia Routes
-        Route::prefix('restricciones_licencia')->group(function (){
+        Route::prefix('restriccion_lic')->group(function (){
             Route::get('/', [RestriccionLicController::class, 'index']);
             Route::get('/{id}', [RestriccionLicController::class, 'show']);
             Route::post('/', [RestriccionLicController::class, 'store']);
@@ -195,7 +195,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
         });
 
         // -- Tipo Empresa Routes
-        Route::prefix('tipo_empresa')->group(function (){
+        Route::prefix('tipo-empresa')->group(function (){
             Route::get('/', [TipoEmpresaController::class, 'index']);
             Route::get('/{id}', [TipoEmpresaController::class, 'show']);
             Route::post('/', [TipoEmpresaController::class, 'store']);
@@ -247,7 +247,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
         });
 
         // -- Tipo Vehiculo Routes
-        Route::prefix('tipo_vehiculo')->group(function (){
+        Route::prefix('tipo-vehiculo')->group(function (){
             Route::get('/', [TipoVehiculoController::class, 'index']);
             Route::get('/{id}', [TipoVehiculoController::class, 'show']);
             Route::post('/', [TipoVehiculoController::class, 'store']);
@@ -277,7 +277,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
         });
 
         // -- Conductores Licencias Routes
-        Route::prefix('conductores_licencias')->group(function (){
+        Route::prefix('conductores-licencias')->group(function (){
             Route::get('/', [ConductoresLicenciaController::class, 'index']);
             Route::get('/{id}', [ConductoresLicenciaController::class, 'show']);
             Route::post('/', [ConductoresLicenciaController::class, 'store']);
@@ -287,7 +287,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
         });
 
         // -- Seguimientos GPS Routes
-        Route::prefix('seguim_gps')->group(function (){
+        Route::prefix('seguim-gps')->group(function (){
             Route::get('/', [SeguimGpsController::class, 'index']);
             Route::get('/{id}', [SeguimGpsController::class, 'show']);
             Route::post('/', [SeguimGpsController::class, 'store']);
@@ -297,7 +297,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
         });
 
         // -- Seguimientos Estado Vehículo Routes
-        Route::prefix('seguim_estado_veh')->group(function (){
+        Route::prefix('seguim-estado-veh')->group(function (){
             Route::get('/', [SeguimEstadoVehController::class, 'index']);
             Route::get('/{id}', [SeguimEstadoVehController::class, 'show']);
             Route::post('/', [SeguimEstadoVehController::class, 'store']);

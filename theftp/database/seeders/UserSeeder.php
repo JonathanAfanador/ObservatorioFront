@@ -70,7 +70,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'persona_id'        => $popPersonaId(),
                 'rol_id'            => $getRolId('Secretaria de tránsito'),
-                'empresa_id'        => self::ID_EMPRESA_ATANASIO, 
+                'empresa_id'        => self::ID_EMPRESA_ATANASIO,
                 'remember_token'    => Str::random(10),
             ],
             [
@@ -82,7 +82,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'persona_id'        => $popPersonaId(),
                 'rol_id'            => $getRolId('Empresa_transporte'),
-                'empresa_id'        => self::ID_EMPRESA_ATANASIO, 
+                'empresa_id'        => self::ID_EMPRESA_ATANASIO,
                 'remember_token'    => Str::random(10),
             ],
             [
@@ -94,7 +94,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'persona_id'        => $popPersonaId(),
                 'rol_id'            => $getRolId('Usuario_upc'),
-                'empresa_id'        => self::ID_EMPRESA_ATANASIO, 
+                'empresa_id'        => self::ID_EMPRESA_ATANASIO,
                 'remember_token'    => Str::random(10),
             ],
             [
@@ -106,7 +106,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => null,
                 'persona_id'        => $popPersonaId(),
                 'rol_id'            => $getRolId('Invitado'),
-                'empresa_id'        => self::ID_EMPRESA_RAPIDO_DEL_CARMEN, 
+                'empresa_id'        => self::ID_EMPRESA_RAPIDO_DEL_CARMEN,
                 'remember_token'    => Str::random(10),
             ],
         ];

@@ -34,6 +34,11 @@ class DatabaseSeeder extends Seeder
             ConductoresSeeder::class,
             LicenciasSeeder::class,
             PermisosSeeder::class,
+            MenusSeeder::class,
+            RolesMenusSeeder::class,
+            ConductoresLicenciasSeeder::class,
+            SeguimEstadoVehSeeder::class,
+            SeguimGpsSeeder::class,
         ]);
 
     }
