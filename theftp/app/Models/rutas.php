@@ -84,7 +84,6 @@ class rutas extends Model implements Auditable
         'name',
         'file_name',
         'empresa_id',
-        'municipios_id',
     ];
 
     // Relación con el modelo empresas

@@ -7455,8 +7455,7 @@
                         "description": "Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible",
                         "required": false,
                         "schema": {
-                            "type": "string",
-                            "example": "municipio,empresa"
+                            "type": "string"
                         }
                     },
                     {
@@ -7564,7 +7563,6 @@
                                 "required": [
                                     "file",
                                     "name",
-                                    "municipios_id",
                                     "empresa_id"
                                 ],
                                 "properties": {
@@ -7577,11 +7575,6 @@
                                         "description": "Nombre de la ruta",
                                         "type": "string",
                                         "example": "Ruta 101"
-                                    },
-                                    "municipios_id": {
-                                        "description": "ID del municipio",
-                                        "type": "integer",
-                                        "example": 1
                                     },
                                     "empresa_id": {
                                         "description": "ID de la empresa",
@@ -7637,7 +7630,7 @@
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "example": "municipio,empresa"
+                            "example": "empresa.municipio"
                         }
                     },
                     {
@@ -7743,7 +7736,6 @@
                                 "required": [
                                     "file",
                                     "name",
-                                    "municipios_id",
                                     "empresa_id"
                                 ],
                                 "properties": {
@@ -7756,11 +7748,6 @@
                                         "description": "Nombre de la ruta",
                                         "type": "string",
                                         "example": "Ruta 101 Actualizada"
-                                    },
-                                    "municipios_id": {
-                                        "description": "ID del municipio",
-                                        "type": "integer",
-                                        "example": 2
                                     },
                                     "empresa_id": {
                                         "description": "ID de la empresa",

@@ -30,7 +30,7 @@ class RutasController extends Controller
      *     @OA\Parameter(name="columns", in="query", description="Columnas a seleccionar, separadas por comas. Usar * traerá todas las columnas", required=false, @OA\Schema(type="string", example="*")),
      *     @OA\Parameter(name="orderBy", in="query", description="Columna para ordenar los resultados", required=false, @OA\Schema(type="string", example="id")),
      *     @OA\Parameter(name="orderDirection", in="query", description="Dirección de ordenamiento (asc o desc)", required=false, @OA\Schema(type="string", example="asc")),
-     *     @OA\Parameter(name="include", in="query", description="Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible", required=false, @OA\Schema(type="string", example="municipio,empresa")),
+     *     @OA\Parameter(name="include", in="query", description="Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible", required=false, @OA\Schema(type="string")),
      *     @OA\Parameter(
      *         name="filter",
      *         in="query",
@@ -67,7 +67,7 @@ class RutasController extends Controller
      *     tags={"Rutas"},
      *     security={{"sanctum": {}}},
      *     @OA\Parameter(name="id", in="path", description="ID de la ruta", required=true, @OA\Schema(type="integer", example=1)),
-     *     @OA\Parameter(name="include", in="query", description="Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible", required=false, @OA\Schema(type="string", example="municipio,empresa")),
+     *     @OA\Parameter(name="include", in="query", description="Relaciones a incluir, separadas por comas. Si se introduce una inválida saldrá la lista disponible", required=false, @OA\Schema(type="string", example="empresa.municipio")),
      *     @OA\Parameter(name="includeSoftDeleted", in="query", description="Incluir registros deshabilitados (soft deleted)", required=false, @OA\Schema(type="boolean", example=false)),
      *     @OA\Parameter(name="onlySoftDeleted", in="query", description="Solo registros deshabilitados (soft deleted)", required=false, @OA\Schema(type="boolean", example=false)),
      *     @OA\Parameter(name="includeRelatedSoftDeleted", in="query", description="Incluir registros deshabilitados en relaciones", required=false, @OA\Schema(type="boolean", example=false)),
@@ -104,9 +104,8 @@ class RutasController extends Controller
      *                 type="object",
      *                 @OA\Property(property="file", type="string", format="binary", description="Archivo único (ej. geojson)"),
      *                 @OA\Property(property="name", type="string", description="Nombre de la ruta", example="Ruta 101"),
-     *                 @OA\Property(property="municipios_id", type="integer", description="ID del municipio", example=1),
      *                 @OA\Property(property="empresa_id", type="integer", description="ID de la empresa", example=1),
-     *                 required={"file","name","municipios_id","empresa_id"}
+     *                 required={"file","name","empresa_id"}
      *             )
      *         )
      *     ),
@@ -127,7 +126,6 @@ class RutasController extends Controller
 
         $rules = [
             'name'          => 'required|string|max:255',
-            'municipios_id' => 'required|integer|exists:municipios,id',
             'empresa_id'    => 'required|integer|exists:empresas,id',
         ];
 
@@ -135,9 +133,6 @@ class RutasController extends Controller
             'name.required'           => 'El campo nombre es obligatorio.',
             'name.string'             => 'El campo nombre debe ser una cadena de texto.',
             'name.max'                => 'El campo nombre no debe exceder 255 caracteres.',
-            'municipios_id.required'  => 'El campo municipio es obligatorio.',
-            'municipios_id.integer'   => 'El campo municipio debe ser un número entero.',
-            'municipios_id.exists'    => 'El municipio especificado no existe.',
             'empresa_id.required'     => 'El campo empresa es obligatorio.',
             'empresa_id.integer'      => 'El campo empresa debe ser un número entero.',
             'empresa_id.exists'       => 'La empresa especificada no existe.',
@@ -170,9 +165,8 @@ class RutasController extends Controller
      *                 type="object",
      *                 @OA\Property(property="file", type="string", format="binary", description="Archivo único (ej. geojson)"),
      *                 @OA\Property(property="name", type="string", description="Nombre de la ruta", example="Ruta 101 Actualizada"),
-     *                 @OA\Property(property="municipios_id", type="integer", description="ID del municipio", example=2),
      *                 @OA\Property(property="empresa_id", type="integer", description="ID de la empresa", example=1),
-     *                 required={"file","name","municipios_id","empresa_id"}
+     *                 required={"file","name","empresa_id"}
      *             )
      *         )
      *     ),
@@ -193,7 +187,6 @@ class RutasController extends Controller
 
         $rules = [
             'name'          => 'required|string|max:255',
-            'municipios_id' => 'required|integer|exists:municipios,id',
             'empresa_id'    => 'required|integer|exists:empresas,id',
         ];
 
@@ -201,9 +194,6 @@ class RutasController extends Controller
             'name.required'           => 'El campo nombre es obligatorio.',
             'name.string'             => 'El campo nombre debe ser una cadena de texto.',
             'name.max'                => 'El campo nombre no debe exceder 255 caracteres.',
-            'municipios_id.required'  => 'El campo municipio es obligatorio.',
-            'municipios_id.integer'   => 'El campo municipio debe ser un número entero.',
-            'municipios_id.exists'    => 'El municipio especificado no existe.',
             'empresa_id.required'     => 'El campo empresa es obligatorio.',
             'empresa_id.integer'      => 'El campo empresa debe ser un número entero.',
             'empresa_id.exists'       => 'La empresa especificada no existe.',
