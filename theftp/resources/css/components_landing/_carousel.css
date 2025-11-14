@@ -1,0 +1,155 @@
+/* ----------------------------------
+   Carrusel (Swiper.js) - v3 (Más grande)
+   ---------------------------------- */
+
+/* 1. HACEMOS EL CARRUSEL MÁS ANCHO */
+.swiper {
+  padding-bottom: 50px !important;
+  overflow: visible !important;
+  max-width: 1400px; /* <-- CAMBIO: Más ancho (antes 1200px) */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 2. NUEVO ESTILO para el <a> que envuelve todo */
+.carousel-slide-link {
+  display: block;
+  color: inherit; /* Hereda el color (blanco del overlay) */
+  text-decoration: none;
+  border-radius: var(--radius); /* Hereda el radio del wrapper */
+  overflow: hidden; /* Asegura que el zoom no se salga */
+}
+.carousel-slide-link .car-slide-wrapper {
+  /* Mantenemos el wrapper, pero el link lo envuelve */
+  position: relative;
+  background: var(--gray-800);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-strong);
+  transition: transform 0.4s ease; /* Efecto para el zoom */
+}
+.carousel-slide-link:hover .car-slide-wrapper {
+  transform: scale(1.03); /* Sutil zoom al pasar el mouse */
+}
+
+
+/* 3. HACEMOS EL CARRUSEL MÁS ALTO */
+.car-image-full {
+  width: 100%;
+  height: 650px; /* <-- CAMBIO: Más alto (antes 520px) */
+  /* background-image es manejado por tu <style> en el Blade */
+}
+
+/* 4. DEGRADADO (sin cambios) */
+.car-slide-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0.1) 40%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  z-index: 1;
+  /* Transición para que el degradado acompañe el zoom */
+  transition: opacity 0.4s ease; 
+}
+.carousel-slide-link:hover .car-slide-wrapper::after {
+  opacity: 0.8; /* Hacemos el degradado un poco más fuerte en hover */
+}
+
+/* 5. TEXTO SUPERPUESTO (sin botón) */
+.car-body-overlay {
+  position: absolute;
+  bottom: 4.5rem; 
+  left: 15%;
+  right: 15%;
+  z-index: 2;
+  color: var(--white);
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); 
+}
+
+.car-body-overlay h3 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.car-body-overlay p {
+  margin: 1rem auto 0; /* Centrado y solo margen superior */
+  line-height: 1.6;
+  opacity: 0.9;
+  font-size: 1.125rem;
+  max-width: 520px;
+}
+
+/* 6. ESTILOS DE SWIPER (sin cambios) */
+
+/* Paginación */
+.swiper-pagination {
+  bottom: 2rem !important;
+  z-index: 3;
+}
+.swiper-pagination-bullet {
+  width: 30px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--white) !important;
+  opacity: 0.4;
+  transition: opacity 0.2s ease, width 0.2s ease;
+}
+.swiper-pagination-bullet-active {
+  opacity: 1 !important;
+  width: 40px;
+}
+
+/* Flechas */
+.swiper-button-next,
+.swiper-button-prev {
+  color: var(--white) !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  opacity: 0.7;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 24px !important;
+  font-weight: 800;
+}
+
+/* 7. RESPONSIVE (con altura actualizada) */
+
+@media (max-width: 768px) {
+  .swiper-button-next,
+  .swiper-button-prev {
+    display: none !important;
+  }
+  
+  /* Altura en móvil */
+  .car-image-full {
+    height: 550px; /* <-- CAMBIO: Más alto (antes 450px) */
+  }
+
+  /* Ajustamos el texto */
+  .car-body-overlay {
+    bottom: 3.5rem;
+    left: 10%;
+    right: 10%;
+  }
+  .car-body-overlay h3 {
+    font-size: 1.5rem;
+  }
+  .car-body-overlay p {
+    font-size: 1rem;
+    margin-top: 0.75rem;
+  }
+}

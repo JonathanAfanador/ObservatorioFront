@@ -1,0 +1,49 @@
+/* -------------------------
+   Botones
+   ------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  border-radius: 80px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn-primary {
+  background-color: var(--accent-green);
+  color: var(--white);
+  border-color: var(--accent-green);
+}
+
+.btn-primary:hover {
+  background-color: #2a7d2e; /* Un poco más oscuro al hacer hover */
+  border-color: #2a7d2e;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.btn-ghost:hover {
+  background-color: var(--accent-green);
+  color: var(--white);
+}

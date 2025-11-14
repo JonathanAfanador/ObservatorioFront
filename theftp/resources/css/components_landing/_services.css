@@ -1,0 +1,79 @@
+/* -------------------------
+   Servicios
+   ------------------------- */
+.service-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem; /* 48px */
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.service-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: var(--white);
+  padding: 2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-fast);
+}
+.service-item:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-strong);
+}
+
+.service-item h3 {
+  font-size: 1.6em;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.service-image-link {
+  display: block;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  border-radius: calc(var(--radius) / 2);
+  overflow: hidden;
+}
+.service-item img {
+  width: 100%;
+  max-width: 450px; /* Límite para que no crezca demasiado */
+  height: 300px;
+  object-fit: cover;
+  transition: transform var(--transition-fast);
+}
+.service-item a:hover img {
+  transform: scale(1.05);
+}
+
+.service-item h4 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.service-item p {
+  font-size: 1.125rem; /* 18px */
+  color: var(--gray-800);
+  margin: 5px 0;
+  opacity: 0.9;
+  flex-grow: 1; /* Empuja los botones al fondo */
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+/* Desktop: 2 columnas */
+@media (min-width: 900px) {
+  .service-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

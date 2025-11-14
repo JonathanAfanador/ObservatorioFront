@@ -1,0 +1,26 @@
+/* -------------------------
+   Variables globales
+   ------------------------- */
+:root {
+  /* Colores principales */
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --primary: #e20000;
+  --primary-2: #d42300;
+  --accent-blue: #3366cc;     /* Azul institucional (Gov.co) */
+  --accent-green: #319637;    /* Verde institucional (Alcaldía/Unipiloto) */
+  --primary-3: #71e238ff;       /* Verde brillante (efectos hover) */
+  --white: #fff;
+  --black: #000;
+  --gray-100: #f8f9fa;
+  --gray-800: #343a40;
+
+  /* Estilos reutilizables */
+  --radius: 16px;
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-strong: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+  /* Transiciones */
+  --transition-fast: 0.2s ease;
+  --transition-smooth: 0.4s ease;
+}

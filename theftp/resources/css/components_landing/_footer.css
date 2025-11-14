@@ -1,0 +1,226 @@
+/* -------------------------
+   Footer (CORREGIDO)
+   ------------------------- */
+.site-footer {
+  background-color: var(--accent-green);
+  color: #f0f0f0;
+  padding-top: 3rem; /* Espacio verde arriba */
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--white);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* Header del footer: logos e info */
+.footer-header-top {
+  display: flex;
+  flex-direction: column; /* Móvil: stackeado */
+  justify-content: space-between;
+  gap: 1.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1.5rem;
+}
+.header-info {
+  flex: 1;
+}
+.alcaldia-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--accent-green);
+}
+.address {
+  font-size: 0.9em;
+  color: var(--gray-800);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+.header-logo {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+.girardot-logo {
+  width: 100px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Contacto y Reloj */
+.contact-info {
+  display: flex;
+  flex-direction: column; /* Móvil: stackeado */
+  justify-content: space-between;
+  gap: 1.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1.5rem;
+}
+.info-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.info-group p {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--gray-800);
+  line-height: 1.5;
+}
+.info-group a {
+  color: var(--accent-green);
+  text-decoration: underline;
+  font-weight: 600;
+  font-size: 0.9em;
+  word-break: break-all;
+}
+.clock-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--primary-2);
+  background: var(--gray-100);
+  align-self: center;
+}
+.inm-logo {
+  height: 40px;
+  width: auto;
+}
+.clock-time {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  font-family: 'Poppins', monospace;
+}
+
+/* Políticas */
+.policies-section {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1.5rem;
+}
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.policies-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.policies-list a {
+  font-size: 0.9em;
+  color: var(--accent-green);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+/* Redes Sociales */
+.social-links-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+}
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--gray-800);
+  font-weight: 500;
+  font-size: 0.9em;
+  transition: color var(--transition-fast);
+}
+.social-link svg {
+  color: var(--accent-green);
+  transition: transform var(--transition-fast);
+}
+.social-link:hover {
+  color: var(--accent-green);
+}
+.social-link:hover svg {
+  transform: scale(1.2);
+}
+
+/* Info inferior (Semillero) */
+.footer-bottom-info {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--accent-green);
+  color: var(--white);
+  padding: 1.5rem 1.25rem;
+  gap: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.logo-semillero {
+  height: 50px;
+  width: auto;
+  border-radius: 8px;
+}
+
+/* Barra Gov.co */
+.site-bottom-bar {
+  width: 100%;
+  background: var(--accent-blue);
+  padding: 1rem 0;
+}
+.container-bottom {
+  display: flex;
+  flex-direction: column; /* Móvil: apilado */
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.logo-colombia,
+.logo-govco {
+  height: 40px; /* Tamaño móvil */
+  width: auto;
+  object-fit: contain;
+}
+
+/* --- Media Queries del Footer --- */
+@media (min-width: 768px) {
+  .footer-header-top {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .contact-info {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .clock-container {
+    align-self: flex-start;
+  }
+  .social-links-section {
+    justify-content: space-between;
+  }
+
+  /* Aquí le decimos que en desktop cambie a fila */
+  .container-bottom {
+    flex-direction: row; /* Desktop: en fila */
+    align-items: center; /* Centramos verticalmente */
+    gap: 2rem;
+  }
+  
+  .logo-colombia,
+  .logo-govco {
+    height: 60px; /* Tamaño desktop */
+  }
+}

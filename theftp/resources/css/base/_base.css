@@ -1,0 +1,91 @@
+/* -------------------------
+   Estilos base
+   ------------------------- */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--bg); /* Un color sólido de fallback */
+  color: var(--text);
+  line-height: 1.6;
+  
+  /* Prepara el body para el fondo en el pseudo-elemento */
+  position: relative;
+  z-index: 1;
+}
+
+/* Esta es la capa de fondo.
+  La aislamos del 'body' para que no se repinte al hacer scroll.
+*/
+body::before {
+  content: '';
+  position: fixed;  /* La clave, igual que background-attachment: fixed */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: -1;      /* La pone detrás de todo el contenido */
+  
+  /* Aplicamos el fondo aquí */
+  background-image: url('../../images/background.svg');
+  background-repeat: repeat;
+  background-size: auto; 
+  background-position: top left;
+  
+  /* Pista para el navegador: "Oye, esta capa va a cambiar,
+    prepárate." Ayuda a la GPU.
+  */
+  will-change: transform; 
+}
+
+/* Contenedor mejorado:
+  - 100% de ancho en móviles (con padding)
+  - Ancho máximo en desktops
+*/
+.container {
+  width: 100%;
+  max-width: 1280px; /* Ancho máximo estándar para desktops */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.25rem;  /* 20px */
+  padding-right: 1.25rem; /* 20px */
+}
+
+/* Encabezado de sección reutilizable */
+.section-head {
+  text-align: center;
+  margin-bottom: 2.5rem; /* 40px */
+  max-width: 650px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section-head h2 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem); /* Título responsivo */
+  font-weight: 700;
+  margin: 0;
+}
+
+.section-head p {
+  font-size: 1.125rem; /* 18px */
+  color: var(--gray-800);
+  opacity: 0.9;
+  margin-top: 0.5rem;
+}
+
+/* Clase de utilidad para todas las secciones */
+.section {
+  padding-top: clamp(3rem, 6vw, 5rem);    /* 48px a 80px */
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+main {
+  /* Altura del logo móvil (60px) + padding (16px * 2) = 92px */
+  padding-top: 92px; 
+}
+
+/* En desktop, el header es más alto */
+@media (min-width: 1024px) {
+  main {
+    /* Altura del logo desktop (80px) + padding (16px * 2) = 112px */
+    padding-top: 112px;
+  }
+}

@@ -81,7 +81,7 @@ class DatabaseBackupCommand extends Command
             return Command::FAILURE;
         }
 
-        $this->info("🎉 ¡Backup creado exitosamente! Ubicación: $filePath");
+        $this->info(" ¡Backup creado exitosamente! Ubicación: $filePath");
         return Command::SUCCESS;
     }
 }

@@ -1,11 +1,26 @@
+/* 1. Importa la base de Tailwind (esto trae @tailwind base, components, utilities) */
 @import 'tailwindcss';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* INYECTAMOS TUS ESTILOS EN LAS CAPAS (LAYERS) DE TAILWIND */
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* variables globales y estilos de base (body, container...)
+ */
+@layer base {
+    @import './base/_variables.css';
+    @import './base/_reset.css';
+    @import './base/_base.css'; 
 }
+
+/* * Aquí van todos los componentes (.btn, .site-header, .hero-split...)
+ */
+@layer components {
+    @import './components_landing/_buttons.css';
+    @import './components_landing/_header.css';
+    @import './components_landing/_hero.css';
+    @import './components_landing/_carousel.css';
+    @import './components_landing/_services.css';
+    @import './components_landing/_features.css';
+    @import './components_landing/_footer.css';
+}
+
+
