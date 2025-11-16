@@ -28,12 +28,16 @@ use App\Http\Controllers\VehiculoController;
 use App\Http\Controllers\AuditoriaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
+use App\Http\Controllers\V1\ReportesController;
+use App\Http\Controllers\V1\EstadisticasController;
+use App\Http\Controllers\SecretariaController;
 use App\Http\Middleware\ForceJsonResponse;
 
 // Registro y Login
 Route::middleware(ForceJsonResponse::class)->group(function (){
     Route::prefix('auth')->group(function (){
         Route::post('/register', [AuthController::class, 'registro']);
+        Route::post('/register-upc', [AuthController::class, 'registroUPC']);
         Route::post('/login', [AuthController::class, 'login']);
     });
 
@@ -304,6 +308,27 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [SeguimEstadoVehController::class, 'edit']);
             Route::delete('/{id}', [SeguimEstadoVehController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [SeguimEstadoVehController::class, 'restore']);
+        });
+
+        // -- Reportes Routes
+        Route::prefix('reportes')->group(function (){
+            Route::get('/empresas', [ReportesController::class, 'empresas']);
+            Route::get('/conductores-activos', [ReportesController::class, 'conductoresActivos']);
+            Route::get('/vehiculos-operativos', [ReportesController::class, 'vehiculosOperativos']);
+            Route::get('/rutas-activas', [ReportesController::class, 'rutasActivas']);
+            Route::get('/resoluciones', [ReportesController::class, 'resoluciones']);
+        });
+
+        // -- Estadísticas Routes
+        Route::prefix('estadisticas')->group(function (){
+            Route::get('/resumen', [EstadisticasController::class, 'resumen']);
+            Route::get('/detallado', [EstadisticasController::class, 'detallado']);
+        });
+
+        // -- Secretaría Estadísticas Routes
+        Route::prefix('secretaria/estadisticas')->group(function (){
+            Route::get('/resumen', [SecretariaController::class, 'resumen']);
+            Route::get('/detallado', [SecretariaController::class, 'detallado']);
         });
     });
 });
