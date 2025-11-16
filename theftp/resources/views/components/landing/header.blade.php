@@ -17,11 +17,18 @@
             <a href="#contacto">Contacto</a>
         </nav>
 
-        {{-- Botones Auth (Desktop) --}}
-        <div class="auth-desktop">
-            {{-- ... comentario ... --}}
-        <a {{-- href="{{ route('login') }}" --}} class="btn btn-ghost">Iniciar sesión</a>
-        <a {{-- href="{{ route('register') }}" --}} class="btn btn-primary">Registro</a>
+        {{-- 
+          ¡CAMBIOS AQUÍ! 
+          Se añadieron IDs y secciones separadas para invitados y usuarios.
+        --}}
+        
+        <div class="auth-desktop" id="auth-guest-desktop">
+            <a href="{{ route('login') }}" class="btn btn-ghost">Iniciar sesión</a>
+            <a href="{{ route('register') }}" class="btn btn-primary">Registro</a>
+        </div>
+        
+        <div class="auth-desktop hidden" id="auth-user-desktop">
+            <button class="btn-logout btn btn-ghost">Cerrar Sesión</button>
         </div>
         
         {{-- Botón Menú Móvil --}}
@@ -48,9 +55,20 @@
         <li><span><a href="#servicios" class="offcanvas-link">Servicios</a></span></li>
         <li><span><a href="#funcionalidades" class="offcanvas-link">Funcionalidades</a></span></li>
         <li><span><a href="#contacto" class="offcanvas-link">Contacto</a></span></li>
-        <li class="offcanvas-auth">
-            <a  class="btn btn-ghost">Iniciar sesión</a>
-            <a  class="btn btn-primary">Registro</a>
+        
+        {{-- 
+          ¡CAMBIOS AQUÍ! 
+          Se añadieron IDs y secciones separadas para invitados y usuarios.
+        --}}
+
+        <li class="offcanvas-auth" id="auth-guest-mobile">
+            <a href="{{ route('login') }}" class="btn btn-ghost">Iniciar sesión</a>
+            <a href="{{ route('register') }}" class="btn btn-primary">Registro</a>
+        </li>
+        
+        <li class="offcanvas-auth hidden" id="auth-user-mobile">
+            {{-- Usamos un 'width: 100%' para que ocupe el espacio --}}
+            <button class="btn-logout btn btn-ghost" style="width: 100%;">Cerrar Sesión</button>
         </li>
     </ul>
 </nav>

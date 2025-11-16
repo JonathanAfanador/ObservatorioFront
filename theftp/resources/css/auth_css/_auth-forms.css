@@ -1,0 +1,145 @@
+/* ----------------------------------
+   Estilos de Autenticación (¡Actualizados!)
+   ---------------------------------- */
+
+/* La tarjeta blanca principal (sin cambios) */
+.auth-card {
+  background-color: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-strong);
+  overflow: hidden;
+  padding: 2rem;
+}
+
+/* Contenedor de logos (sin cambios) */
+.auth-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+.auth-logos img {
+  height: 64px;
+  width: auto;
+  object-fit: contain;
+}
+.auth-logos .divider {
+  width: 1px;
+  height: 48px;
+  background-color: #ddd;
+}
+
+/* Título (sin cambios) */
+.auth-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+}
+
+/* Estilos para los campos del formulario */
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-800);
+}
+.form-input {
+  display: block;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: all var(--transition-fast);
+}
+.form-input:focus {
+  border-color: var(--accent-green);
+  box-shadow: 0 0 0 3px rgba(49, 150, 55, 0.1);
+  outline: none;
+}
+.form-select {
+  display: block;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background-color: var(--white);
+}
+.form-helper-text {
+  font-size: 0.75rem; /* 12px (text-xs) */
+  color: #6b7280; /* text-gray-500 */
+  margin-top: 0.25rem; /* 4px (mt-1) */
+  font-style: italic;
+}
+
+/* Wrapper de ícono (sin cambios) */
+.form-input-icon-wrapper {
+  position: relative;
+}
+.form-input-icon-wrapper .icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  width: 20px;
+  height: 20px;
+}
+.form-input-icon-wrapper .form-input {
+  padding-left: 40px;
+}
+
+/* ¡BOTÓN ACTUALIZADO! 
+  Cambiamos a 'pill shape' y ajustamos la fuente.
+*/
+.btn-auth-primary {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 14px 24px; /* Un poco más alto */
+  border-radius: 9999px; /* ¡Pill shape! */
+  font-weight: 700; /* Más bold */
+  font-size: 0.9375rem; /* 15px */
+  color: var(--white);
+  background-color: var(--accent-green);
+  border: 2px solid var(--accent-green);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-transform: none; /* Quitamos mayúsculas */
+  letter-spacing: normal; /* Quitamos tracking */
+}
+.btn-auth-primary:hover {
+  background-color: #2a7d2e;
+  border-color: #2a7d2e;
+  box-shadow: var(--shadow-soft);
+}
+.btn-auth-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ¡ENLACE INFERIOR ACTUALIZADO! 
+  Ajustamos la fuente.
+*/
+.auth-bottom-link {
+  display: block;
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9375rem; /* 15px */
+  color: var(--text); /* Texto principal más oscuro */
+}
+.auth-bottom-link a {
+  font-weight: 700; /* Más bold */
+  color: var(--accent-green);
+  text-decoration: none; /* Quitamos subrayado */
+}
+.auth-bottom-link a:hover {
+  text-decoration: underline; /* Subrayado solo en hover */
+}
