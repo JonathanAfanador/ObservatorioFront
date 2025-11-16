@@ -171,6 +171,19 @@ if (registerForm) {
         const nui = data.nui;
         // Asumiendo 1: Cédula, 2: T.I., 3: C.E. (basado en el select)
         if (tipoIdent === '1') { // Cédula Ciudadanía
+            if (!/^\d{7,10}$/.test(nui)) {
+                showValidationError('nui', 'La Cédula de Ciudadanía debe tener entre 7 y 10 dígitos.');
+                isValid = false;
+            }
+        } else if (tipoIdent === '2' || tipoIdent === '7') { // Tarjeta Identidad o PEP (ambos 10)
+            if (!/^\d{10}$/.test(nui)) {
+                showValidationError('nui', 'Este documento debe tener 10 dígitos numéricos.');
+                isValid = false;
+            }
+        } else if (tipoIdent === '3') { // Cédula Extranjería
+            if (!/^\d{8,10}$/.test(nui)) {
+                showValidationError('nui', 'La Cédula de Extranjería debe tener entre 8 y 10 dígitos.');
+                isValid = false;
             }
         } else if (tipoIdent === '5') { // Pasaporte
             if (!/^[A-Za-z0-9]{6,9}$/.test(nui)) {
@@ -220,6 +233,18 @@ if (registerForm) {
             isValid = false;
         }
 
+        if (!isValid) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Registrar';
+            return; // Detiene el envío
+        }
+        
+        submitButton.innerHTML = 'Registrando...';
+        
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': data._token 
