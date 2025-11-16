@@ -25,3 +25,24 @@ Route::get('/register', function () {
 
 })->name('register');
 
+/*
+|--------------------------------------------------------------------------
+| Rutas del Dashboard
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('dashboard')->name('dashboard.')->group(function () {
+    
+    // Ruta para el Admin (aunque la implementemos después)
+    Route::view('/admin', 'dashboard.admin')->name('admin');
+
+    // Ruta para la Secretaría
+    Route::view('/secretaria', 'dashboard.secretaria')->name('secretaria');
+
+    // Ruta para la Empresa
+    Route::view('/empresa', 'dashboard.empresa')->name('empresa');
+
+    // Ruta para UPC
+    Route::view('/upc', 'dashboard.upc')->name('upc');
+
+});

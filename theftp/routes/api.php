@@ -40,8 +40,8 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
     Route::middleware('auth:sanctum')->group(function (){
         // -- Auth Routes
         Route::prefix('auth')->group(function (){
-            Route::get('/logout', [AuthController::class, 'logout']);
-            Route::get('/global-logout', [AuthController::class, 'globalLogout']);
+            Route::post('/logout', [AuthController::class, 'logout']);
+            Route::post('/global-logout', [AuthController::class, 'globalLogout']);
             Route::get('/me', [AuthController::class, 'me']);
         });
 
