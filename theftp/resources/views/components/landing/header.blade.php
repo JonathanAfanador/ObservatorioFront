@@ -1,6 +1,6 @@
 <header class="site-header" id="site-header">
     <div class="container">
-        
+
         <div class="brand">
             {{-- Asegúrate de poner estas imágenes en public/images/ --}}
             <img src="{{ asset('images/logo-alcaldia.png') }}" alt="Alcaldía de Girardot" class="logo" />
@@ -20,10 +20,10 @@
         {{-- Botones Auth (Desktop) --}}
         <div class="auth-desktop">
             {{-- ... comentario ... --}}
-        <a {{-- href="{{ route('login') }}" --}} class="btn btn-ghost">Iniciar sesión</a>
-        <a {{-- href="{{ route('register') }}" --}} class="btn btn-primary">Registro</a>
+        <a href="/login" class="btn btn-ghost">Iniciar sesión</a>
+        <a href="/registro" class="btn btn-primary">Registro</a>
         </div>
-        
+
         {{-- Botón Menú Móvil --}}
         <button class="btn-nav-toggle" id="btn-nav-toggle" aria-label="Abrir menú" aria-expanded="false">
             <div class="btn--bg"></div>
@@ -49,8 +49,8 @@
         <li><span><a href="#funcionalidades" class="offcanvas-link">Funcionalidades</a></span></li>
         <li><span><a href="#contacto" class="offcanvas-link">Contacto</a></span></li>
         <li class="offcanvas-auth">
-            <a  class="btn btn-ghost">Iniciar sesión</a>
-            <a  class="btn btn-primary">Registro</a>
+            <a href="/login" class="btn btn-ghost">Iniciar sesión</a>
+            <a href="/registro" class="btn btn-primary">Registro</a>
         </li>
     </ul>
 </nav>
