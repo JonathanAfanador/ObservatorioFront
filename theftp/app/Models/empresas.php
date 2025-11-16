@@ -80,11 +80,7 @@ class empresas extends Model implements Auditable
     protected $fillable = [
         'nit',
         'name',
-        'razon_social',
         'tipo_empresa_id',
-        'representante_legal',
-        'email',
-        'telefono',
     ];
 
     public function usuarios(){

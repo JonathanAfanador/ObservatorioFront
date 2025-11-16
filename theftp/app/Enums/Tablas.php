@@ -30,7 +30,6 @@ enum Tablas: string {
     case USERS = 'users';
     case VEHICULO = 'vehiculo';
     case AUDIT = 'audits';
-    case REPORTES = 'reportes';
 
     public static function getValues(): array
     {

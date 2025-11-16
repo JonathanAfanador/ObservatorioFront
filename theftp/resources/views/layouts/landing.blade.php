@@ -14,13 +14,8 @@
 
 </head>
 <body style="overflow-x: hidden;">
-
-</head>
-<body style="overflow-x: hidden;">
+    
     @yield('content')
-
-    {{-- Render any pushed scripts from child views --}}
-    @stack('scripts')
 
 </body>
 </html>
