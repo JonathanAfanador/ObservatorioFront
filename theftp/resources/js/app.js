@@ -278,89 +278,193 @@ if (registerForm) {
     });
 }
 
-// --- FUNCIÓN PARA EL LOGIN (Sigue igual) ---
-const loginForm = document.getElementById('login-form');
+// --- FUNCIÓN PARA EL LOGIN (¡REEMPLAZADA Y CORREGIDA!) ---
+const loginFormEl = document.getElementById('login-form'); // Renombrada
 
-if (loginForm) {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('registered') === 'true') {
-        const successMessage = document.getElementById('form-success-message');
-        if(successMessage) {
-            successMessage.textContent = '¡Registro exitoso! Por favor, inicia sesión.';
-            successMessage.classList.remove('hidden');
-        }
-    }
-    
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+if (loginFormEl) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('registered') === 'true') {
+        const successMessage = document.getElementById('form-success-message');
+        if(successMessage) {
+            successMessage.textContent = '¡Registro exitoso! Por favor, inicia sesión.';
+            successMessage.classList.remove('hidden');
+        }
+    }
+    
+    loginFormEl.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-        const submitButton = document.getElementById('submit-button');
-        const errorMessageDiv = document.getElementById('form-error-message');
-        submitButton.disabled = true;
-        submitButton.innerHTML = 'Ingresando...';
-        clearErrors(); // ¡Llamamos a la versión actualizada!
+        const submitButton = document.getElementById('submit-button');
+        const errorMessageDiv = document.getElementById('form-error-message');
+        submitButton.disabled = true;
+        submitButton.innerHTML = 'Ingresando...';
+        clearErrors(); 
 
-        const formData = new FormData(loginForm);
-        const data = Object.fromEntries(formData.entries());
+        const formData = new FormData(loginFormEl);
+        const data = Object.fromEntries(formData.entries());
 
-        try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
+        let loginResult; 
+        let token; // Mover el token aquí
+
+        try {
+            // --- PASO 1: Iniciar Sesión ---
+
+            const loginResponse = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': data._token
+                },
+                body: JSON.stringify(data)
+            });
+
+            loginResult = await loginResponse.json();
+
+          	if (!loginResponse.ok) {
+                throw new Error(loginResult.message || 'Credenciales incorrectas.');
+            }
+
+            token = loginResult.token; // Asigna el token
+            localStorage.setItem('auth_token', token);
+
+            // --- PASO 2: Verificar Rol ---
+            submitButton.innerHTML = 'Verificando rol...';
+
+            const meResponse = await fetch('/api/auth/me', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                }
+            });
+
+            if (!meResponse.ok) {
+                throw new Error('No se pudo verificar la sesión de usuario.');
+            }
+
+            const userResult = await meResponse.json();
+            
+            // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+            // Comprobamos si userResult.data existe. Si no, usamos userResult.
+            const user = userResult.data ? userResult.data : userResult; 
+
+            // --- Ahora la comprobación funcionará ---
+            if (!user || !user.rol_id) { 
+                // Agregamos un log para ver qué está llegando
+                console.error("Respuesta de /api/auth/me no válida:", userResult);
+                throw new Error('Respuesta de usuario inválida. No se encontró el rol_id.');
+            }
+            
+            const roleId = parseInt(user.rol_id, 10);
+            
+            // --- PASO 2.5: Obtener la descripción del ROL ---
+            submitButton.innerHTML = 'Cargando datos...';
+            
+            const rolResponse = await fetch(`/api/rol/${roleId}`, {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, // Usamos el mismo token
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': data._token
-                },
-                body: JSON.stringify(data)
+                }
             });
 
-            const result = await response.json();
+            if (!rolResponse.ok) {
+                throw new Error('No se pudo cargar la información del rol.');
+            }
+            
+            const rolResult = await rolResponse.json();
+            
+            // Asumiendo que /api/rol/{id} devuelve { data: { ...rol... } }
+            // O, si no, solo { ...rol... }
+            const rol = rolResult.data ? rolResult.data : rolResult; 
 
-            if (!response.ok) {
-                errorMessageDiv.textContent = result.message || 'Credenciales incorrectas.';
-                errorMessageDiv.classList.remove('hidden');
-            } else {
-                localStorage.setItem('auth_token', result.token);
-                window.location.href = '/'; 
+            if (!rol || !rol.descripcion) {
+                 console.error("Respuesta de /api/rol/{id} no válida:", rolResult);
+                 throw new Error('Información del rol inválida.');
             }
 
-        } catch (error) {
-            errorMessageDiv.textContent = 'Error de conexión. Intenta de nuevo.';
-            errorMessageDiv.classList.remove('hidden');
-        } finally {
-            submitButton.disabled = false;
-            submitButton.innerHTML = 'Iniciar Sesión';
-        }
-    });
+            // --- Ahora sí, guarda todo ---
+            localStorage.setItem('user_name', user.name);
+            localStorage.setItem('user_role_id', roleId);
+            localStorage.setItem('user_role_desc', rol.descripcion);
+
+
+            // --- PASO 3: Redirigir según el Rol ---
+            // IDs basados en tu Seeder:
+            // 1: Administrador
+            // 2: Secretaria de tránsito
+            // 3: Empresa de transporte
+            // 4: Usuario UPC
+            
+            switch (roleId) {
+                case 1:
+                    window.location.href = '/dashboard/admin'; // Panel de Admin
+                    break;
+                case 2:
+                    window.location.href = '/dashboard/secretaria'; // Panel de Secretaría
+                    break;
+                case 3:
+                    window.location.href = '/dashboard/empresa'; // Panel de Empresa
+                    break;
+                case 4:
+                    window.location.href = '/dashboard/upc'; // Panel de UPC
+                    break;
+                case 5: // Invitado
+                default: // Otros roles
+                     throw new Error('Tu rol (' + rol.descripcion + ') no tiene un panel de acceso asignado.');
+            }
+
+        } catch (error) {
+            // Limpia el token si cualquier paso falla
+            clearAuthStorage(); 
+            errorMessageDiv.textContent = error.message;
+            errorMessageDiv.classList.remove('hidden');
+            
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Iniciar Sesión';
+        } 
+    });
 }
 
-// --- FUNCIÓN PARA EL LOGOUT (Sigue igual) ---
+// --- FUNCIÓN PARA EL LOGOUT (REEMPLAZADA Y CORREGIDA) ---
+
+// Función utilitaria para limpiar todo el localStorage de sesión
+function clearAuthStorage() {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_role_id');
+    localStorage.removeItem('user_role_desc');
+}
+
 async function handleLogout(e) {
-    e.preventDefault();
-    const token = localStorage.getItem('auth_token');
-    if (!token) return;
+    e.preventDefault();
+    const token = localStorage.getItem('auth_token');
+    
+    if (token) {
+        try {
+            // CORRECCIÓN: El endpoint de logout es POST según el Swagger
+            await fetch('/api/auth/logout', {
+                method: 'POST', 
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                }
+            });
+        } catch (error) {
+            console.error('Error during server logout:', error);
+all-contributors.svg
+        }
+    }
 
-    try {
-        const response = await fetch('/api/auth/logout', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json',
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Fallo al cerrar sesión en el servidor');
-        }
-        
-    } catch (error) {
-        console.error('Error during logout:', error);
-    } finally {
-        localStorage.removeItem('auth_token');
-        window.location.href = '/';
-    }
+    // Siempre limpia el storage y redirige a login
+    clearAuthStorage();
+    window.location.href = '/login'; // Redirige a la página de login
 }
 
+// Asigna el evento a todos los botones de logout 
+// (Tanto en la landing como en los dashboards)
 document.querySelectorAll('.btn-logout').forEach(button => {
-    button.addEventListener('click', handleLogout);
+    button.addEventListener('click', handleLogout);
 });
