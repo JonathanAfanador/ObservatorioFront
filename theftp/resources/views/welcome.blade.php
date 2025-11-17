@@ -6,7 +6,7 @@
 
     {{-- 3. Ponemos todos nuestros componentes aquí dentro --}}
     <x-landing.header />
-
+    
     <main>
         <x-landing.hero />
         <x-landing.carousel />
