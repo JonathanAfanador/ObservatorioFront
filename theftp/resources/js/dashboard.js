@@ -174,9 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
             
-            // Siempre limpia y redirige a login
-           clearAuthStorage();
-            window.location.href = '/login';
+            // Siempre limpia y redirige 
+            clearAuthStorage();
+           window.location.href = '/login?status=logged-out';
         });
     });
 });
