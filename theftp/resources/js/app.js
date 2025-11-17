@@ -212,7 +212,7 @@ function showValidationError(field, message) {
     const helper = document.getElementById(`helper-${field}`);
     if (helper) {
         helper.classList.add('hidden');
-  d }
+   }
     // Muestra el error
     const errorSpan = document.getElementById(`error-${field}`);
     if (errorSpan) {
