@@ -38,6 +38,143 @@
   background-color: #ddd;
 }
 
+.btn-dashboard {
+  /* Pegas todos los estilos que tenías en línea */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding:  0 20px;
+  font-size: 0.85rem;
+  min-height: 50px;
+  font-weight: 600;
+  white-space: nowrap;
+  /* ¡Importante! 'btn-primary' ya le da el fondo, 
+     solo necesitas asegurar el color del texto y el ícono */
+  color: var(--white) !important; 
+  
+}
+
+.btn-dashboard svg {
+    /* Defines el color del ícono SVG anidado */
+    stroke: var(--white);
+    width: 24px;
+    height: 22px;
+    flex-shrink: 0;
+}
+/*
+ Estilos del Dropdown de Perfil (Invitado)
+*/
+
+/*. El contenedor principal
+   (Necesita ser 'relative' para anclar el menú)
+*/
+.profile-dropdown {
+    position: relative;
+    display: inline-block; /* Se asegura que se alinee en la fila */
+}
+
+/*  El botón "Mi Perfil"
+   (Lo estilizamos para que se vea como un 'btn-ghost')
+*/
+.profile-btn {
+    /* Reseteo de estilos de botón */
+    background-color: transparent;
+    cursor: pointer;
+    
+    /* Layout: texto y flecha en fila */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Espacio entre "Mi Perfil" y la flecha */
+
+    /* Estilos para que coincida con "Cerrar Sesión" */
+    border: 2px solid var(--accent-green);
+    color: var(--accent-green);
+    min-height: 48px; /* Misma altura que .btn-dashboard */
+    padding: 0 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 999px; /* Lo hace una píldora */
+    transition: all 0.2s ease;
+}
+
+/*  Efecto Hover y Focus del botón */
+.profile-btn:hover,
+.profile-btn:focus {
+    background-color: var(--accent-green);
+    color: var(--white);
+    
+    /* El 'stroke' cambia el color de la flecha SVG */
+    stroke: var(--white); 
+}
+
+/*  La flecha SVG dentro del botón */
+.profile-btn svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+    stroke: var(--accent-green); /* Color inicial de la flecha */
+}
+
+/* El contenido del dropdown (la caja que aparece)
+   (Está oculta por defecto)
+*/
+.profile-content {
+    /* Oculto por defecto con animación de opacidad y escala */
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: all 0.2s ease;
+
+    /* Posicionamiento (abajo a la derecha del botón) */
+    position: absolute;
+    top: calc(100% + 10px); /* 10px por debajo del botón */
+    right: 0;
+    z-index: 100;
+
+    /* Estilos de la caja */
+    background: var(--white);
+    border-radius: var(--radius); /* (ej. 16px) */
+    box-shadow: var(--shadow-strong);
+    padding: 1rem; /* 16px de padding interno */
+    min-width: 280px; /* Ancho mínimo para que no se vea apretado */
+}
+
+/*  La información dentro de la caja */
+.profile-info {
+    text-align: left; /* Alinea el texto a la izquierda */
+}
+
+.profile-info-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text);
+    text-transform: capitalize;
+    margin-bottom: 2px;
+}
+
+.profile-info-role {
+    font-size: 0.9rem;
+    color: var(--gray-800);
+    text-transform: capitalize;
+}
+
+/* 
+   Cuando .profile-dropdown tiene la clase .is-active...
+*/
+.profile-dropdown.is-active .profile-content {
+    /* ...el contenido se muestra */
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.profile-dropdown.is-active .profile-btn svg {
+    /* ...la flecha del botón rota 180 grados */
+    transform: rotate(180deg);
+}
+
 /* --- 2. Navegación Desktop (Oculta por defecto) --- */
 .nav-wrapper-desktop,
 .auth-desktop {
@@ -237,4 +374,25 @@
   .offcanvas-nav {
     display: none !important; /* Ocultamos los de móvil */
   }
+}
+.auth-desktop {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* 12px de espacio entre los botones */
+}
+
+/* * (Opcional pero recomendado) 
+ * Tu JS ya añade 'hidden' a los navs internos. 
+ * Esta regla se asegura de que 'hidden' signifique 'display: none;'
+*/
+.auth-desktop .hidden {
+    display: none;
+}
+
+/* * Esto asegura que el nav público empuje
+ * a los botones de auth hacia la derecha.
+*/
+.site-header .container #nav-public-links {
+    margin-right: auto;
+    margin-left: 1.5rem; 
 }
