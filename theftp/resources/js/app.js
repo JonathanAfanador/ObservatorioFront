@@ -127,157 +127,210 @@ const registerForm = document.getElementById('register-form');
 
 // Función para mostrar un error y ocultar la ayuda
 function showValidationError(field, message) {
-    // Oculta la ayuda
-    const helper = document.getElementById(`helper-${field}`);
-    if (helper) {
-        helper.classList.add('hidden');
-    }
-    // Muestra el error
-    const errorSpan = document.getElementById(`error-${field}`);
-    if (errorSpan) {
-        errorSpan.textContent = message;
-        errorSpan.classList.remove('hidden');
-    }
+    // Oculta la ayuda
+    const helper = document.getElementById(`helper-${field}`);
+    if (helper) {
+        helper.classList.add('hidden');
+  d }
+    // Muestra el error
+    const errorSpan = document.getElementById(`error-${field}`);
+    if (errorSpan) {
+        errorSpan.textContent = message;
+        // Si el mensaje está vacío, oculta el span, si no, muéstralo
+        errorSpan.classList.toggle('hidden', !message); 
+    }
 }
 
 if (registerForm) {
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); 
-        
-        const submitButton = document.getElementById('submit-button');
-        const errorMessageDiv = document.getElementById('form-error-message');
-        submitButton.disabled = true;
-        submitButton.innerHTML = 'Validando...';
-        clearErrors(); // Restablece el formulario (muestra ayudas, oculta errores)
 
-        const formData = new FormData(registerForm);
-        const data = Object.fromEntries(formData.entries());
-        
-        let isValid = true;
+    // --- ¡NUEVO CÓDIGO! (Parte 1: Reactividad UX) ---
+    // Lógica para deshabilitar el campo NUI dinámicamente
+    const tipoIdentSelect = document.getElementById('tipo_ident_id');
+    const nuiInput = document.getElementById('nui');
+    const nuiHelper = document.getElementById('helper-nui');
+    const nuiError = document.getElementById('error-nui');
 
-        // 1. Nombres y Apellidos
-        const nameRegex = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+( [A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?$/;
-        if (!nameRegex.test(data.name.trim())) {
-            showValidationError('name', 'Debe ser 1 o 2 nombres, cada uno iniciando con mayúscula (ej. "Juan Pablo").');
-            isValid = false;
-        }
-        if (!nameRegex.test(data.last_name.trim())) {
-            showValidationError('last_name', 'Debe ser 1 o 2 apellidos, cada uno iniciando con mayúscula (ej. "Medina Ortíz").');
-            isValid = false;
-        }
-        
-        // 2. NUI (Documento) - Dinámico
-        const tipoIdent = data.tipo_ident_id;
-        const nui = data.nui;
-        // Asumiendo 1: Cédula, 2: T.I., 3: C.E. (basado en el select)
-        if (tipoIdent === '1') { // Cédula Ciudadanía
-            if (!/^\d{7,10}$/.test(nui)) {
-                showValidationError('nui', 'La Cédula de Ciudadanía debe tener entre 7 y 10 dígitos.');
-                isValid = false;
-            }
-        } else if (tipoIdent === '2' || tipoIdent === '7') { // Tarjeta Identidad o PEP (ambos 10)
-            if (!/^\d{10}$/.test(nui)) {
-                showValidationError('nui', 'Este documento debe tener 10 dígitos numéricos.');
-                isValid = false;
-            }
-        } else if (tipoIdent === '3') { // Cédula Extranjería
-            if (!/^\d{8,10}$/.test(nui)) {
-                showValidationError('nui', 'La Cédula de Extranjería debe tener entre 8 y 10 dígitos.');
-                isValid = false;
-            }
-        } else if (tipoIdent === '5') { // Pasaporte
-            if (!/^[A-Za-z0-9]{6,9}$/.test(nui)) {
-                showValidationError('nui', 'El Pasaporte debe tener entre 6 y 9 caracteres alfanuméricos.');
-                isValid = false;
-            }
-        } else if (!nui) {
-            showValidationError('nui', 'El campo es obligatorio.');
-            isValid = false;
-        } else if (!tipoIdent) {
-            showValidationError('tipo_ident_id', 'Debes seleccionar un tipo de documento.');
-            isValid = false;
-        }
+    // !! CORRECCIÓN !! 
+    // Basado en tu captura de pantalla, el ID es '8'.
+    const ID_SIN_IDENTIFICACION = '8'; 
 
-        // 3. Teléfono (10 dígitos)
-        if (!/^\d{10}$/.test(data.phone_number)) {
-            showValidationError('phone_number', 'El número de teléfono debe tener 10 dígitos.');
-            isValid = false;
-        }
+    if (tipoIdentSelect && nuiInput) {
+        tipoIdentSelect.addEventListener('change', (e) => {
+            const selectedValue = e.target.value;
 
-        // 4. Contraseña
-        const pass = data.password;
-        let passwordErrors = [];
-        if (pass.length < 8) passwordErrors.push('mínimo 8 caracteres');
-        
-        let typesCount = 0;
-        if (/[A-Z]/.test(pass)) typesCount++;
-        if (/[a-z]/.test(pass)) typesCount++;
-        if (/\d/.test(pass)) typesCount++;
-        if (/[!@#$%^()_+\-=\[\]{}]/.test(pass)) typesCount++;
-        
-        if (typesCount < 3) passwordErrors.push('combinar 3 de 4 tipos (mayús, minús, núm, símbolo)');
-        
-        const obvious = ['1234', 'abcd', 'qwerty', 'password', 'admin'];
-        if (obvious.some(seq => pass.toLowerCase().includes(seq))) {
-            passwordErrors.push('no contener secuencias obvias');
-        }
+            if (selectedValue === ID_SIN_IDENTIFICACION) {
+                // Deshabilita y limpia el campo NUI
+                nuiInput.disabled = true;
+                nuiInput.value = '';
+                
+                // Oculta ayuda y errores
+                if (nuiHelper) nuiHelper.classList.add('hidden');
+                if (nuiError) nuiError.classList.add('hidden');
+                
+                // Limpia cualquier error de validación previo
+                showValidationError('nui', ''); 
 
-        if (passwordErrors.length > 0) {
-            showValidationError('password', `La contraseña debe tener ${passwordErrors.join(', ')}.`);
-            isValid = false;
-        }
-
-        // 5. Confirmación de Contraseña
-        if (pass !== data.password_confirmation) {
-            showValidationError('password_confirmation', 'Las contraseñas no coinciden.');
-            isValid = false;
-        }
-
-        if (!isValid) {
-            submitButton.disabled = false;
-            submitButton.innerHTML = 'Registrar';
-            return; // Detiene el envío
-        }
-        
-        submitButton.innerHTML = 'Registrando...';
-        
-        try {
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': data._token 
-                },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                if (response.status === 422) {
-                    for (const field in result.errors) {
-                        // ¡CAMBIO! Llama a la nueva función
-                        showValidationError(field, result.errors[field][0]);
-                    }
-                } else {
-                    errorMessageDiv.textContent = result.message || 'Ocurrió un error inesperado.';
-                    errorMessageDiv.classList.remove('hidden');
-                }
             } else {
-                window.location.href = '/login?registered=true';
+                // Habilita el campo y muestra la ayuda
+                nuiInput.disabled = false;
+                if (nuiHelper) nuiHelper.classList.remove('hidden');
             }
+        });
+    }
+    // --- FIN DEL NUEVO CÓDIGO ---
 
-        } catch (error) {
-            errorMessageDiv.textContent = 'Error de conexión. Intenta de nuevo.';
-            errorMessageDiv.classList.remove('hidden');
-        } finally {
-            submitButton.disabled = false;
-            submitButton.innerHTML = 'Registrar';
-        }
-    });
+
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); 
+        
+        const submitButton = document.getElementById('submit-button');
+        const errorMessageDiv = document.getElementById('form-error-message');
+        submitButton.disabled = true;
+        submitButton.innerHTML = 'Validando...';
+        clearErrors(); // Restablece el formulario (muestra ayudas, oculta errores)
+
+        const formData = new FormData(registerForm);
+        const data = Object.fromEntries(formData.entries());
+        
+        let isValid = true;
+
+        // 1. Nombres y Apellidos (Sin cambios)
+        const nameRegex = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+( [A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?$/;
+        if (!nameRegex.test(data.name.trim())) {
+            showValidationError('name', 'Debe ser 1 o 2 nombres, cada uno iniciando con mayúscula (ej. "Juan Pablo").');
+            isValid = false;
+        }
+        if (!nameRegex.test(data.last_name.trim())) {
+            showValidationError('last_name', 'Debe ser 1 o 2 apellidos, cada uno iniciando con mayúscula (ej. "Medina Ortíz").');
+            isValid = false;
+        }
+        
+        // --- ¡LÓGICA MODIFICADA! (Parte 2: Validación Submit) ---
+        // 2. NUI (Documento) - Dinámico
+        const tipoIdent = data.tipo_ident_id;
+        const nui = data.nui;
+        
+        // !! CORRECCIÓN !! 
+        // Basado en tu captura de pantalla, el ID es '8'.
+        const ID_SIN_IDENTIFICACION_SUBMIT = '8';
+
+        // Solo validamos NUI si NO es "Sin Identificación"
+        if (tipoIdent !== ID_SIN_IDENTIFICACION_SUBMIT) { 
+            
+            // Asumiendo 1: Cédula, 2: T.I., 3: C.E. (basado en el select)
+            if (tipoIdent === '1') { // Cédula Ciudadanía
+                if (!/^\d{7,10}$/.test(nui)) {
+                    showValidationError('nui', 'La Cédula de Ciudadanía debe tener entre 7 y 10 dígitos.');
+                    isValid = false;
+                }
+            } else if (tipoIdent === '2' || tipoIdent === '7') { // Tarjeta Identidad o PEP (ambos 10)
+                if (!/^\d{10}$/.test(nui)) {
+                    showValidationError('nui', 'Este documento debe tener 10 dígitos numéricos.');
+                    isValid = false;
+                }
+            } else if (tipoIdent === '3') { // Cédula Extranjería
+                if (!/^\d{8,10}$/.test(nui)) {
+                    showValidationError('nui', 'La Cédula de Extranjería debe tener entre 8 y 10 dígitos.');
+                    isValid = false;
+                }
+            } else if (tipoIdent === '5') { // Pasaporte
+                if (!/^[A-Za-z0-9]{6,9}$/.test(nui)) {
+                    showValidationError('nui', 'El Pasaporte debe tener entre 6 y 9 caracteres alfanuméricos.');
+                    isValid = false;
+                }
+            } else if (!nui) { // <-- Esta es la validación "obligatorio"
+                showValidationError('nui', 'El campo es obligatorio.');
+                isValid = false;
+            }
+        
+        } // --- FIN DE LA LÓGICA MODIFICADA ---
+
+        // Esta validación (si se seleccionó un tipo) se ejecuta siempre
+        if (!tipoIdent) {
+            showValidationError('tipo_ident_id', 'Debes seleccionar un tipo de documento.');
+            isValid = false;
+        }
+
+        // 3. Teléfono (10 dígitos) (Sin cambios)
+        if (!/^\d{10}$/.test(data.phone_number)) {
+            showValidationError('phone_number', 'El número de teléfono debe tener 10 dígitos.');
+            isValid = false;
+        }
+
+        // 4. Contraseña (Sin cambios)
+        const pass = data.password;
+        let passwordErrors = [];
+        if (pass.length < 8) passwordErrors.push('mínimo 8 caracteres');
+        
+        let typesCount = 0;
+        if (/[A-Z]/.test(pass)) typesCount++;
+        if (/[a-z]/.test(pass)) typesCount++;
+        if (/\d/.test(pass)) typesCount++;
+        if (/[!@#$%^()_+\-=\[\]{}]/.test(pass)) typesCount++;
+        
+        if (typesCount < 3) passwordErrors.push('combinar 3 de 4 tipos (mayús, minús, núm, símbolo)');
+        
+        const obvious = ['1234', 'abcd', 'qwerty', 'password', 'admin'];
+        if (obvious.some(seq => pass.toLowerCase().includes(seq))) {
+            passwordErrors.push('no contener secuencias obvias');
+       }
+
+        if (passwordErrors.length > 0) {
+            showValidationError('password', `La contraseña debe tener ${passwordErrors.join(', ')}.`);
+            isValid = false;
+        }
+
+        // 5. Confirmación de Contraseña (Sin cambios)
+        if (pass !== data.password_confirmation) {
+            showValidationError('password_confirmation', 'Las contraseñas no coinciden.');
+        isValid = false;
+        }
+
+        if (!isValid) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Registrar';
+            return; // Detiene el envío
+        }
+        
+        submitButton.innerHTML = 'Registrando...';
+        
+        try {
+            // ... (Resto del fetch, sin cambios) ...
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': data._token 
+                },
+                body: JSON.stringify(data)
+          });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              if (response.status === 422) {
+                    for (const field in result.errors) {
+                        // ¡CAMBIO! Llama a la nueva función
+                        showValidationError(field, result.errors[field][0]);
+                    }
+                } else {
+                    errorMessageDiv.textContent = result.message || 'Ocurrió un error inesperado.';
+                  errorMessageDiv.classList.remove('hidden');
+                }
+            } else {
+                window.location.href = '/login?registered=true';
+            }
+
+        } catch (error) {
+            errorMessageDiv.textContent = 'Error de conexión. Intenta de nuevo.';
+          errorMessageDiv.classList.remove('hidden');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Registrar';
+        }
+    });
 }
-
 // --- FUNCIÓN PARA EL LOGIN (REEMPLAZADA Y CORREGIDA) ---
 const loginFormEl = document.getElementById('login-form'); // Renombrada
 
