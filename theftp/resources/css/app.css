@@ -19,6 +19,7 @@
     @import './components_landing/_features.css';
     @import './components_landing/_footer.css';
     @import './auth_css/_auth-forms.css';
+    @import './auth_css/_auth-alert.css';
 }
 
 

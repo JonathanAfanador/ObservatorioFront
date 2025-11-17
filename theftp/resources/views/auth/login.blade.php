@@ -11,7 +11,24 @@
         <h2 class="auth-title">
             Iniciar sesión
         </h2>
-    
+        
+        <div id="auth-alert-box" class="auth-alert" role="alert" aria-live="assertive" aria-atomic="true">
+            <span class="auth-alert-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </span>
+            <div class="auth-alert-content">
+                <p class="auth-alert-title">Sesión cerrada</p>
+                <p class="auth-alert-message">Has cerrado sesión correctamente.</p>
+            </div>
+            <button type="button" class="auth-alert-close" aria-label="Cerrar alerta">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
         <div id="form-error-message" class="hidden p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert"></div>
         <div id="form-success-message" class="hidden p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg" role="alert"></div>
 
