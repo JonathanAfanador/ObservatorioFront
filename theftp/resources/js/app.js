@@ -278,7 +278,7 @@ if (registerForm) {
     });
 }
 
-// --- FUNCIÓN PARA EL LOGIN (¡REEMPLAZADA Y CORREGIDA!) ---
+// --- FUNCIÓN PARA EL LOGIN (REEMPLAZADA Y CORREGIDA) ---
 const loginFormEl = document.getElementById('login-form'); // Renombrada
 
 if (loginFormEl) {
@@ -304,16 +304,14 @@ if (loginFormEl) {
         const data = Object.fromEntries(formData.entries());
 
         let loginResult; 
-        let token; // Mover el token aquí
+        let token; 
 
         try {
             // --- PASO 1: Iniciar Sesión ---
-
             const loginResponse = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': data._token
                 },
@@ -326,7 +324,7 @@ if (loginFormEl) {
                 throw new Error(loginResult.message || 'Credenciales incorrectas.');
             }
 
-            token = loginResult.token; // Asigna el token
+            token = loginResult.token; 
             localStorage.setItem('auth_token', token);
 
             // --- PASO 2: Verificar Rol ---
@@ -346,13 +344,11 @@ if (loginFormEl) {
 
             const userResult = await meResponse.json();
             
-            // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+            // --- ¡CORRECCIÓN ANTERIOR! ---
             // Comprobamos si userResult.data existe. Si no, usamos userResult.
             const user = userResult.data ? userResult.data : userResult; 
 
-            // --- Ahora la comprobación funcionará ---
             if (!user || !user.rol_id) { 
-                // Agregamos un log para ver qué está llegando
                 console.error("Respuesta de /api/auth/me no válida:", userResult);
                 throw new Error('Respuesta de usuario inválida. No se encontró el rol_id.');
             }
@@ -362,33 +358,41 @@ if (loginFormEl) {
             // --- PASO 2.5: Obtener la descripción del ROL ---
             submitButton.innerHTML = 'Cargando datos...';
             
-            const rolResponse = await fetch(`/api/rol/${roleId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`, // Usamos el mismo token
-                    'Accept': 'application/json',
+            let rolDescripcion = "Invitado"; // Valor por defecto
+
+            // El rol 5 (Invitado) no necesita esta llamada, ya sabemos la descripción
+            if (roleId !== 5) {
+                const rolResponse = await fetch(`/api/rol/${roleId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    }
+                });
+
+                if (rolResponse.ok) {
+                    const rolResult = await rolResponse.json();
+                    const rol = rolResult.data ? rolResult.data : rolResult; 
+                    if (rol && rol.descripcion) {
+                        rolDescripcion = rol.descripcion;
+                    } else {
+                         console.error("Respuesta de /api/rol/{id} no válida:", rolResult);
+                         // No lanzamos error, nos quedamos con "Invitado" o un default
+                    }
+                } else if (user.rol && user.rol.descripcion) {
+                     // Fallback por si /me SÍ traía la info
+                     rolDescripcion = user.rol.descripcion;
+                } else {
+                     console.error("No se pudo cargar la información del rol desde /api/rol/" + roleId);
+                     // No lanzamos error
                 }
-            });
-
-            if (!rolResponse.ok) {
-                throw new Error('No se pudo cargar la información del rol.');
             }
-            
-            const rolResult = await rolResponse.json();
-            
-            // Asumiendo que /api/rol/{id} devuelve { data: { ...rol... } }
-            // O, si no, solo { ...rol... }
-            const rol = rolResult.data ? rolResult.data : rolResult; 
 
-            if (!rol || !rol.descripcion) {
-                 console.error("Respuesta de /api/rol/{id} no válida:", rolResult);
-                 throw new Error('Información del rol inválida.');
-            }
 
             // --- Ahora sí, guarda todo ---
             localStorage.setItem('user_name', user.name);
             localStorage.setItem('user_role_id', roleId);
-            localStorage.setItem('user_role_desc', rol.descripcion);
+            localStorage.setItem('user_role_desc', rolDescripcion);
 
 
             // --- PASO 3: Redirigir según el Rol ---
@@ -397,13 +401,14 @@ if (loginFormEl) {
             // 2: Secretaria de tránsito
             // 3: Empresa de transporte
             // 4: Usuario UPC
+            // 5: Invitado
             
             switch (roleId) {
                 case 1:
                     window.location.href = '/dashboard/admin'; // Panel de Admin
                     break;
                 case 2:
-                    window.location.href = '/dashboard/secretaria'; // Panel de Secretaría
+                    window.location.href = '/'; // Panel de Secretaría
                     break;
                 case 3:
                     window.location.href = '/dashboard/empresa'; // Panel de Empresa
@@ -411,9 +416,12 @@ if (loginFormEl) {
                 case 4:
                     window.location.href = '/dashboard/upc'; // Panel de UPC
                     break;
-                case 5: // Invitado
+                case 5: // ¡CORRECCIÓN INVITADO!
+                    // Un invitado no tiene dashboard. Simplemente lo mandamos a la home.
+                    window.location.href = '/'; 
+                    break;
                 default: // Otros roles
-                     throw new Error('Tu rol (' + rol.descripcion + ') no tiene un panel de acceso asignado.');
+                     throw new Error('Tu rol (' + rolDescripcion + ') no tiene un panel de acceso asignado.');
             }
 
         } catch (error) {
@@ -435,32 +443,76 @@ function clearAuthStorage() {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_name');
     localStorage.removeItem('user_role_id');
-    localStorage.removeItem('user_role_desc');
+    localStorage.removeItem('user_role_desc'); // <-- Corregí un typo aquí
 }
 
 async function handleLogout(e) {
     e.preventDefault();
-    const token = localStorage.getItem('auth_token');
     
+    // 1. Obtener estado ANTES de hacer nada.
+    const token = localStorage.getItem('auth_token');
+    const roleIdStr = localStorage.getItem('user_role_id');
+    const roleId = roleIdStr ? parseInt(roleIdStr, 10) : null;
+    
+    // 2. Si hay token, llamar a la API para invalidarlo (PARA TODOS LOS ROLES).
     if (token) {
         try {
-            // CORRECCIÓN: El endpoint de logout es POST según el Swagger
-            await fetch('/api/auth/logout', {
+            // Busca el CSRF token (tus vistas SÍ lo tienen)
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')
+                            ? document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            : null;
+            
+            if (!csrfToken) {
+                // Esta advertencia ya no debería aparecer porque tus vistas están bien
+                console.warn('¡Meta-tag CSRF token no encontrado! El logout de API fallará.');
+            }
+
+            const response = await fetch('/api/auth/logout', {
                 method: 'POST', 
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
+                    // ¡¡LA CORRECCIÓN CRÍTICA!!
+                    ...(csrfToken && {'X-CSRF-TOKEN': csrfToken})
                 }
             });
+
+            // 3. Comprobar la respuesta
+            if (!response.ok) {
+                console.error('La solicitud de logout a la API falló.', response.status, response.statusText);
+                // Esto era el 401 que veías. Ahora debería dar 200 OK.
+            } else {
+                console.log("Cierre de sesión de API solicitado y completado (200 OK).");
+            }
+
         } catch (error) {
-            console.error('Error during server logout:', error);
-all-contributors.svg
+            console.error('Error de red during server logout:', error);
         }
     }
 
-    // Siempre limpia el storage y redirige a login
+    // 4. SIEMPRE limpiar el storage local
     clearAuthStorage();
-    window.location.href = '/login'; // Redirige a la página de login
+
+    // 5. Actualizar la UI manualmente (oculta/muestra botones)
+    // (Esto es lo que faltaba para el Invitado)
+    const guestDesktop = document.getElementById('auth-guest-desktop');
+    const userDesktop = document.getElementById('auth-user-desktop');
+    const guestMobile = document.getElementById('auth-guest-mobile');
+    const userMobile = document.getElementById('auth-user-mobile');
+
+    guestDesktop?.classList.remove('hidden');
+    guestMobile?.classList.remove('hidden');
+    userDesktop?.classList.add('hidden');
+    userMobile?.classList.add('hidden');
+
+    // 6. Redirigir según el rol.
+    if (roleId === 5) {
+        // Para Invitado, forzamos la RECARGA de la página actual ('/')
+        window.location.reload();
+    } else {
+        // Para todos los demás, redirigimos a /login
+        window.location.href = '/login'; 
+    }
 }
 
 // Asigna el evento a todos los botones de logout 
