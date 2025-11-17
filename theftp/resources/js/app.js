@@ -75,27 +75,108 @@ document.addEventListener('DOMContentLoaded', () => {
       link.addEventListener('click', () => toggleMenu(false));
     });
   }
+const token = localStorage.getItem('auth_token');
+// Elementos de Botones (Login/Logout)
+    const guestDesktop = document.getElementById('auth-guest-desktop');
+    const userDesktop = document.getElementById('auth-user-desktop');
+    const guestMobile = document.getElementById('auth-guest-mobile');
+    const userMobile = document.getElementById('auth-user-mobile');
 
-  // --- Lógica del Header (Estado de Login) (Sigue igual) ---
-  const token = localStorage.getItem('auth_token');
-  const guestDesktop = document.getElementById('auth-guest-desktop');
-  const userDesktop = document.getElementById('auth-user-desktop');
-  const guestMobile = document.getElementById('auth-guest-mobile');
-  const userMobile = document.getElementById('auth-user-mobile');
+    // Elementos de Navegación (Links)
+    const publicNav = document.getElementById('nav-public-links');
+    const adminNav = document.getElementById('nav-admin-links');
+    const guestProfileNav = document.getElementById('nav-guest-profile');
+    
+    // Links del Menú Móvil (para ocultar/mostrar)
+    const publicNavMobile = document.getElementById('nav-public-links-mobile');
+    const adminNavMobile = document.getElementById('nav-admin-links-mobile');
+    const guestProfileMobile = document.getElementById('nav-guest-profile-mobile');
 
-  if (token) {
-      guestDesktop?.classList.add('hidden');
-      guestMobile?.classList.add('hidden');
-      userDesktop?.classList.remove('hidden');
-      userMobile?.classList.remove('hidden');
-  } else {
-      guestDesktop?.classList.remove('hidden');
-      guestMobile?.classList.remove('hidden');
-      userDesktop?.classList.add('hidden');
-      userMobile?.classList.add('hidden');
-  }
+
+    if (token) {
+        // --- 1. MOSTRAR BOTÓN DE LOGOUT ---
+        guestDesktop?.classList.add('hidden');
+        guestMobile?.classList.add('hidden');
+        userDesktop?.classList.remove('hidden');
+        userMobile?.classList.remove('hidden');
+
+        // --- 2. OCULTAR LINKS PÚBLICOS ---
+        publicNav?.classList.add('hidden');
+        publicNavMobile?.classList.add('hidden');
+
+        // --- 3. MOSTRAR NAVBAR DE USUARIO (Panel o Perfil) ---
+        const roleId = parseInt(localStorage.getItem('user_role_id'), 10);
+        const userName = localStorage.getItem('user_name') || 'Usuario';
+        const userRole = localStorage.getItem('user_role_desc') || 'Invitado';
+        
+
+        if (roleId === 5) {
+            // --- Es INVITADO ---
+            guestProfileNav?.classList.remove('hidden');
+            guestProfileMobile?.classList.remove('hidden');
+            
+            // Poblar el dropdown de perfil (Desktop)
+            document.getElementById('profile-btn-name').textContent = userName;
+            document.getElementById('profile-info-name').textContent = userName;
+            document.getElementById('profile-info-role').textContent = userRole;
+
+            // Poblar el perfil (Móvil)
+            document.getElementById('profile-info-name-mobile').textContent = userName;
+            document.getElementById('profile-info-role-mobile').textContent = userRole;
+
+            // Lógica para abrir/cerrar el dropdown
+            const profileBtn = document.getElementById('profile-toggle-btn');
+            const profileDropdown = profileBtn?.closest('.profile-dropdown');
+            
+            if(profileBtn && profileDropdown) {
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Evita que el clic se propague al documento
+                    profileDropdown.classList.toggle('is-active');
+                });
+            }
+
+            // Opcional: Cerrar si se hace clic fuera
+            document.addEventListener('click', (e) => {
+                if (profileDropdown && !profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.remove('is-active');
+                }
+            });
+
+        } else {
+            // --- Es un ROL CON PANEL (Admin, Secre, etc.) ---
+            const dashboardPath = localStorage.getItem('user_dashboard_path');
+
+            if (dashboardPath && dashboardPath !== '/') {
+                // Poner el link correcto (Desktop)
+                const adminDashLink = document.getElementById('admin-dashboard-link');
+                adminDashLink?.setAttribute('href', dashboardPath);
+                adminNav?.classList.remove('hidden');
+                
+                // Poner el link correcto (Móvil)
+                const adminDashLinkMobile = document.getElementById('admin-dashboard-link-mobile');
+                adminDashLinkMobile?.setAttribute('href', dashboardPath);
+                adminNavMobile?.classList.remove('hidden');
+            }
+        }
+                startInactivityTracker();
+    } else {
+        // --- 4. NO HAY TOKEN (Visitante normal) ---
+        guestDesktop?.classList.remove('hidden');
+        guestMobile?.classList.remove('hidden');
+        userDesktop?.classList.add('hidden');
+        userMobile?.classList.add('hidden');
+        
+        // Mostrar links públicos
+        publicNav?.classList.remove('hidden');
+        publicNavMobile?.classList.remove('hidden');
+        
+        // Ocultar links de admin/invitado
+        adminNav?.classList.add('hidden');
+        guestProfileNav?.classList.add('hidden');
+        adminNavMobile?.classList.add('hidden');
+        guestProfileMobile?.classList.add('hidden');
+    }
 });
-
 /* |--------------------------------------------------------------------------
 | Lógica de Autenticación por API
 |--------------------------------------------------------------------------
@@ -343,7 +424,18 @@ if (loginFormEl) {
             successMessage.classList.remove('hidden');
         }
     }
-    
+    //  Manejar ?status=inactive ---
+    if (urlParams.get('status') === 'inactive') {
+        if(successMessage) {
+            // Reutilizamos la caja de "éxito" como un "aviso"
+            successMessage.textContent = 'Tu sesión se cerró por 10 minutos de inactividad.';
+            successMessage.classList.remove('hidden');
+            // Le damos un estilo de "aviso" (amarillo pálido)
+            successMessage.style.backgroundColor = '#FFFBEB'; 
+            successMessage.style.borderColor = '#FDE68A';
+            successMessage.style.color = '#92400E';
+        }
+    }
     loginFormEl.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -396,6 +488,7 @@ if (loginFormEl) {
             }
 
             const userResult = await meResponse.json();
+
             
             // --- ¡CORRECCIÓN ANTERIOR! ---
             // Comprobamos si userResult.data existe. Si no, usamos userResult.
@@ -441,41 +534,27 @@ if (loginFormEl) {
                 }
             }
 
+// ---  Guardar la ruta del panel ---
+            let dashboardPath = '/'; // Default para Invitado (rol 5)
+            switch (roleId) {
+                // IDs basados en tu código
+                case 1: dashboardPath = '/dashboard/admin'; break;
+                case 2: dashboardPath = '/dashboard/secretaria'; break;
+                case 3: dashboardPath = '/dashboard/empresa'; break;
+                case 4: dashboardPath = '/dashboard/upc'; break;
+                // case 5 (Invitado) ya está cubierto por el default '/'
+            }
 
-            // --- Ahora sí, guarda todo ---
+            // ---  guarda todo ---
             localStorage.setItem('user_name', user.name);
             localStorage.setItem('user_role_id', roleId);
             localStorage.setItem('user_role_desc', rolDescripcion);
+            // ¡Guardamos la ruta del panel!
+            localStorage.setItem('user_dashboard_path', dashboardPath); 
 
-
-            // --- PASO 3: Redirigir según el Rol ---
-            // IDs basados en tu Seeder:
-            // 1: Administrador
-            // 2: Secretaria de tránsito
-            // 3: Empresa de transporte
-            // 4: Usuario UPC
-            // 5: Invitado
-            
-            switch (roleId) {
-                case 1:
-                    window.location.href = '/dashboard/admin'; // Panel de Admin
-                    break;
-                case 2:
-                    window.location.href = '/'; // Panel de Secretaría
-                    break;
-                case 3:
-                    window.location.href = '/dashboard/empresa'; // Panel de Empresa
-                    break;
-                case 4:
-                    window.location.href = '/dashboard/upc'; // Panel de UPC
-                    break;
-                case 5: // ¡CORRECCIÓN INVITADO!
-                    // Un invitado no tiene dashboard. Simplemente lo mandamos a la home.
-                    window.location.href = '/'; 
-                    break;
-                default: // Otros roles
-                     throw new Error('Tu rol (' + rolDescripcion + ') no tiene un panel de acceso asignado.');
-            }
+            // Redirigir ---
+            // ¡TODOS LOS ROLES AHORA VAN A LA HOME!
+            window.location.href = '/'; 
 
         } catch (error) {
             // Limpia el token si cualquier paso falla
@@ -488,7 +567,6 @@ if (loginFormEl) {
         } 
     });
 }
-
 // --- FUNCIÓN PARA EL LOGOUT (REEMPLAZADA Y CORREGIDA) ---
 
 // Función utilitaria para limpiar todo el localStorage de sesión
@@ -570,3 +648,78 @@ async function handleLogout(e) {
 document.querySelectorAll('.btn-logout').forEach(button => {
     button.addEventListener('click', handleLogout);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Lógica de Inactividad (Cierre de Sesión Automático)
+|--------------------------------------------------------------------------
+*/
+
+let inactivityTimer; // Variable global para el timer
+const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutos en milisegundos
+// const INACTIVITY_TIMEOUT = 5000; // (Usa 5 segundos para hacer pruebas rápidas)
+
+/**
+ * Cierra la sesión por inactividad.
+ * Solo limpia el storage local y redirige.
+ */
+async function logoutDueToInactivity() { // <-- 1. La hacemos async
+    console.log("Cerrando sesión por inactividad...");
+    const token = localStorage.getItem('auth_token');
+
+    // --- ¡NUEVO! LLAMAR A LA API PARA INVALIDAR EL TOKEN ---
+    if (token) {
+        try {
+            // Buscamos el token CSRF (necesario para POST en Laravel)
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')
+                              ? document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                              : null;
+
+            await fetch('/api/auth/logout', { // <-- 2. Llamamos a la API
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    ...(csrfToken && {'X-CSRF-TOKEN': csrfToken})
+                }
+            });
+            console.log("Sesión de API invalidada por inactividad.");
+        } catch (error) {
+            console.error('Error al intentar cerrar sesión de API por inactividad:', error);
+            // Igual continuamos, la limpieza local es lo más importante
+        }
+    }
+
+    // 3. Limpiar el storage local
+    clearAuthStorage();
+    window.location.href = '/login?status=inactive';
+}
+
+/**
+ * Reinicia el temporizador de inactividad.
+ * Se llama cada vez que hay actividad del usuario.
+ */
+function resetInactivityTimer() {
+    // Limpia el timer anterior
+    clearTimeout(inactivityTimer);
+    
+    // Inicia un nuevo timer
+    inactivityTimer = setTimeout(logoutDueToInactivity, INACTIVITY_TIMEOUT);
+}
+
+// Eventos que cuentan como "actividad"
+const activityEvents = ['mousemove', 'keydown', 'click', 'scroll'];
+
+/**
+ * Inicia el seguimiento de actividad del usuario.
+ */
+function startInactivityTracker() {
+    // Asigna el reseteo a todos los eventos de actividad
+    activityEvents.forEach(event => {
+        window.addEventListener(event, resetInactivityTimer);
+    });
+    
+    // Inicia el timer por primera vez
+    console.log(`Iniciando seguimiento de inactividad (${INACTIVITY_TIMEOUT / 1000}s).`);
+    resetInactivityTimer();
+}
