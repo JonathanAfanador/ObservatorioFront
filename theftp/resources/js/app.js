@@ -108,6 +108,7 @@ const token = localStorage.getItem('auth_token');
         const roleId = parseInt(localStorage.getItem('user_role_id'), 10);
         const userName = localStorage.getItem('user_name') || 'Usuario';
         const userRole = localStorage.getItem('user_role_desc') || 'Invitado';
+        
 
         if (roleId === 5) {
             // --- Es INVITADO ---
@@ -157,7 +158,7 @@ const token = localStorage.getItem('auth_token');
                 adminNavMobile?.classList.remove('hidden');
             }
         }
-
+                startInactivityTracker();
     } else {
         // --- 4. NO HAY TOKEN (Visitante normal) ---
         guestDesktop?.classList.remove('hidden');
@@ -423,7 +424,18 @@ if (loginFormEl) {
             successMessage.classList.remove('hidden');
         }
     }
-    
+    //  Manejar ?status=inactive ---
+    if (urlParams.get('status') === 'inactive') {
+        if(successMessage) {
+            // Reutilizamos la caja de "éxito" como un "aviso"
+            successMessage.textContent = 'Tu sesión se cerró por 10 minutos de inactividad.';
+            successMessage.classList.remove('hidden');
+            // Le damos un estilo de "aviso" (amarillo pálido)
+            successMessage.style.backgroundColor = '#FFFBEB'; 
+            successMessage.style.borderColor = '#FDE68A';
+            successMessage.style.color = '#92400E';
+        }
+    }
     loginFormEl.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -636,3 +648,78 @@ async function handleLogout(e) {
 document.querySelectorAll('.btn-logout').forEach(button => {
     button.addEventListener('click', handleLogout);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Lógica de Inactividad (Cierre de Sesión Automático)
+|--------------------------------------------------------------------------
+*/
+
+let inactivityTimer; // Variable global para el timer
+const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutos en milisegundos
+// const INACTIVITY_TIMEOUT = 5000; // (Usa 5 segundos para hacer pruebas rápidas)
+
+/**
+ * Cierra la sesión por inactividad.
+ * Solo limpia el storage local y redirige.
+ */
+async function logoutDueToInactivity() { // <-- 1. La hacemos async
+    console.log("Cerrando sesión por inactividad...");
+    const token = localStorage.getItem('auth_token');
+
+    // --- ¡NUEVO! LLAMAR A LA API PARA INVALIDAR EL TOKEN ---
+    if (token) {
+        try {
+            // Buscamos el token CSRF (necesario para POST en Laravel)
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')
+                              ? document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                              : null;
+
+            await fetch('/api/auth/logout', { // <-- 2. Llamamos a la API
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    ...(csrfToken && {'X-CSRF-TOKEN': csrfToken})
+                }
+            });
+            console.log("Sesión de API invalidada por inactividad.");
+        } catch (error) {
+            console.error('Error al intentar cerrar sesión de API por inactividad:', error);
+            // Igual continuamos, la limpieza local es lo más importante
+        }
+    }
+
+    // 3. Limpiar el storage local
+    clearAuthStorage();
+    window.location.href = '/login?status=inactive';
+}
+
+/**
+ * Reinicia el temporizador de inactividad.
+ * Se llama cada vez que hay actividad del usuario.
+ */
+function resetInactivityTimer() {
+    // Limpia el timer anterior
+    clearTimeout(inactivityTimer);
+    
+    // Inicia un nuevo timer
+    inactivityTimer = setTimeout(logoutDueToInactivity, INACTIVITY_TIMEOUT);
+}
+
+// Eventos que cuentan como "actividad"
+const activityEvents = ['mousemove', 'keydown', 'click', 'scroll'];
+
+/**
+ * Inicia el seguimiento de actividad del usuario.
+ */
+function startInactivityTracker() {
+    // Asigna el reseteo a todos los eventos de actividad
+    activityEvents.forEach(event => {
+        window.addEventListener(event, resetInactivityTimer);
+    });
+    
+    // Inicia el timer por primera vez
+    console.log(`Iniciando seguimiento de inactividad (${INACTIVITY_TIMEOUT / 1000}s).`);
+    resetInactivityTimer();
+}
