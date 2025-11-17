@@ -505,15 +505,12 @@ async function handleLogout(e) {
     userDesktop?.classList.add('hidden');
     userMobile?.classList.add('hidden');
 
-    // 6. Redirigir según el rol.
-    if (roleId === 5) {
-        // Para Invitado, forzamos la RECARGA de la página actual ('/')
-        window.location.reload();
-    } else {
-        // Para todos los demás, redirigimos a /login
-        window.location.href = '/login'; 
+// 6. Redirigir según el rol.
+
+        // Para todos los demás, redirigimos a /login CON EL PARÁMETRO
+        window.location.href = '/login?status=logged-out'; 
     }
-}
+
 
 // Asigna el evento a todos los botones de logout 
 // (Tanto en la landing como en los dashboards)
