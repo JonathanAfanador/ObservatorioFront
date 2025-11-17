@@ -17,7 +17,7 @@ class RolesSeeder extends Seeder
             ['descripcion' => 'Administrador'],
             ['descripcion' => 'Secretaria de tránsito'],
             ['descripcion' => 'Empresa de transporte'],
-            ['descripcion' => 'UPC'],
+            ['descripcion' => 'Usuario UPC'],
             ['descripcion' => 'Invitado']
         ];
 

@@ -1,0 +1,72 @@
+/*
+ * Estilos para la alerta de notificación en auth.
+ * (Se usa en login.blade.php para confirmar logout)
+ */
+
+.auth-alert {
+  /* Oculto por defecto */
+  display: none; 
+  align-items: flex-start;
+  padding: 16px;
+  border-radius: var(--radius);
+  background-color: var(--gray-100);
+  
+  /* Usamos el verde institucional de tu _base.css */
+  border: 1px solid var(--accent-green); 
+  
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 24px; /* 1.5rem */
+  max-width: 448px; /* max-w-md, como el auth-card */
+  width: 100%;
+}
+
+/* Clase que JS añadirá para mostrar la alerta */
+.auth-alert.is-visible {
+  display: flex;
+}
+
+.auth-alert-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: var(--accent-green);
+  margin-right: 12px;
+  margin-top: 2px;
+}
+
+.auth-alert-content {
+  flex-grow: 1;
+}
+
+.auth-alert-title {
+  font-weight: 600; /* semibold */
+  color: var(--text);
+  font-size: 16px; /* text-base */
+}
+
+.auth-alert-message {
+  font-size: 14px; /* text-sm */
+  color: var(--gray-800);
+  margin-top: 4px;
+}
+
+.auth-alert-close {
+  flex-shrink: 0;
+  margin-left: 16px;
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gray-800);
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+}
+
+.auth-alert-close:hover {
+  opacity: 1;
+}
+
+.auth-alert-close svg {
+  width: 20px;
+  height: 20px;
+}

@@ -30,6 +30,7 @@
   background-color: var(--accent-green);
   color: var(--white);
   border-color: var(--accent-green);
+  
 }
 
 .btn-primary:hover {

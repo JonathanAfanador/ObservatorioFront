@@ -36,10 +36,7 @@ body::before {
   will-change: transform; 
 }
 
-/* Contenedor mejorado:
-  - 100% de ancho en móviles (con padding)
-  - Ancho máximo en desktops
-*/
+
 .container {
   width: 100%;
   max-width: 1280px; /* Ancho máximo estándar para desktops */

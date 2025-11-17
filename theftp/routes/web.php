@@ -1,41 +1,48 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
+use App\Models\tipo_ident; // <-- Importa tu modelo
 
+//  ruta de la landing page
 Route::get('/', function () {
     return view('welcome');
 });
 
-use Illuminate\Support\Facades\Route as FacadeRoute;
+// Ruta para MOSTRAR la página de login
+Route::get('/login', function () {
+    return view('auth.login');
+})->name('login'); // Le ponemos nombre para usar route('login')
 
-// Rutas públicas de autenticación - Login y Registro general para todos los roles
-FacadeRoute::get('/login', function(){
-    return view('auth.role-selection');
-})->name('login');
+// Ruta para MOSTRAR la página de registro
+Route::get('/register', function () {
+    
+    // Pasamos los tipos de identificación a la vista
+    $tipos_ident = tipo_ident::whereNull('deleted_at')->get();
+    
+    return view('auth.register', [
+        'tipos_ident' => $tipos_ident
+    ]);
 
-FacadeRoute::get('/registro', function(){
-    return view('auth.register');
 })->name('register');
 
-// Alias para compatibilidad (redirige a /registro)
-FacadeRoute::get('/registro-upc', function(){
-    return redirect('/registro');
+/*
+|--------------------------------------------------------------------------
+| Rutas del Dashboard
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('dashboard')->name('dashboard.')->group(function () {
+    
+    // Ruta para el Admin (aunque la implementemos después)
+    Route::view('/admin', 'dashboard.admin')->name('admin');
+
+    // Ruta para la Secretaría
+    Route::view('/secretaria', 'dashboard.secretaria')->name('secretaria');
+
+    // Ruta para la Empresa
+    Route::view('/empresa', 'dashboard.empresa')->name('empresa');
+
+    // Ruta para UPC
+    Route::view('/upc', 'dashboard.upc')->name('upc');
+
 });
-
-// Ruta para dashboard UPC
-FacadeRoute::get('/dashboard/upc', function(){
-    $user = Auth::user();
-    // Permitimos ver la página a todo el mundo temporalmente.
-    // Las acciones (descargas/edición) quedarán habilitadas solo si el usuario tiene rol UPC.
-    return view('dashboard.upc');
-})->name('dashboard.upc');
-
-// Ruta para dashboard Secretaría
-FacadeRoute::get('/dashboard/secretaria', function(){
-    $user = Auth::user();
-    // Permitimos ver la página a todo el mundo temporalmente.
-    // Las acciones quedarán habilitadas solo si el usuario tiene rol Secretaría.
-    return view('dashboard.secretaria');
-})->name('dashboard.secretaria');
-
