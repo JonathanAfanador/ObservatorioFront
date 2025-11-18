@@ -155,7 +155,7 @@
             <input type="text" id="filter-rutas" placeholder="Filtrar por nombre de ruta..." class="form-input" style="width: 100%;">
 
             <div style="display:flex; gap: 1rem; align-items: center;">
-                <label for="select-empresa-rutas" class="text-sm font-medium text-gray-700 flex-shrink-0">Empresa:</label>
+                <label for="select-empresa-rutas" class="text-sm font-medium text-gray-700 shrink-0">Empresa:</label>
                 <select id="select-empresa-rutas" class="form-input" style="width: 100%;">
                     <option value="">Todas las empresas</option>
                 </select>
@@ -195,7 +195,7 @@
             <input type="text" id="filter-documentos" placeholder="Filtrar por observación o URL..." class="form-input" style="width: 100%;">
 
             <div style="display:flex; gap: 1rem; align-items: center;">
-                <label for="select-tipo-docs" class="text-sm font-medium text-gray-700 flex-shrink-0">Tipo:</label>
+                <label for="select-tipo-docs" class="text-sm font-medium text-gray-700 shrink-0">Tipo:</label>
                 <select id="select-tipo-docs" class="form-input" style="width: 100%;"></select>
             </div>
         </div>
