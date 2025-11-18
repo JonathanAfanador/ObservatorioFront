@@ -1,5 +1,4 @@
-// Ver archivo adjunto - demasiado largo para mostrar aquí
-// Por favor ejecuta el siguiente comando para aplicar la corrección:
+// FIX para dashboard-empresa.js
 // 1. Primero haz backup: copy resources\js\dashboard-empresa.js resources\js\dashboard-empresa.bak
 // 2. El problema principal es que los event listeners se declaran antes del DOM estar listo
 // 3. La solución es mover TODOS dentro de initDashboard() o usar funciones nombradas
