@@ -49,7 +49,7 @@ function redirectToHome(message) {
             if (rolePaths[path].includes(roleId)) {
                 isAuthorized = true;
             }
-            break; 
+            break;
         }
     }
     if (!isAuthorized) {
@@ -108,7 +108,7 @@ function redirectToHome(message) {
         }
 
         userMenuToggle.addEventListener('click', (e) => {
-            e.stopPropagation(); 
+            e.stopPropagation();
             userDropdown.classList.toggle('is-active');
         });
         document.addEventListener('click', (e) => {
@@ -159,26 +159,26 @@ function redirectToHome(message) {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const viewName = link.getAttribute('data-view');
-                
+
                 if (headerTitle) {
                     const span = link.querySelector('span');
                     if(span) headerTitle.textContent = span.textContent;
                 }
-                
+
                 views.forEach(view => {
                     view.style.display = 'none';
                 });
-                
+
                 const activeView = document.getElementById(`view-${viewName}`);
                 if (activeView) {
                     activeView.style.display = 'block';
                 }
-                
+
                 navLinks.forEach(navLink => {
                     navLink.classList.remove('is-active');
                 });
                 link.classList.add('is-active');
-                
+
                 // Cierra el menú móvil si se hace clic en un enlace
                 const sidebar = document.getElementById('dashboard-sidebar');
                 const overlay = document.getElementById('dashboard-overlay');
@@ -212,9 +212,34 @@ function redirectToHome(message) {
         initMobileMenu();
         initUserDropdown();
         populateUserData();
-        
+
         // Lógica de navegación del panel
         initTabNavigation();
+
+        // Configurar el botón "Volver al Inicio" según el rol
+        const btnVolverInicio = document.getElementById('btn-volver-inicio');
+        if (btnVolverInicio) {
+            btnVolverInicio.addEventListener('click', (e) => {
+                e.preventDefault();
+                const roleId = parseInt(localStorage.getItem('user_role_id'), 10);
+
+                // Mapeo de roles a sus landing pages
+                const landingPages = {
+                    1: '/#admin',           // Admin
+                    2: '/#secretaria',      // Secretaría
+                    3: '/#empresa',         // Empresa
+                    4: '/#upc',             // UPC
+                    5: '/',                 // Invitado (landing general)
+                    6: '/#admin',           // Admin secundario
+                    7: '/#secretaria',      // Secretaría secundaria
+                    8: '/#empresa',         // Empresa secundaria
+                    9: '/#upc'              // UPC secundaria
+                };
+
+                const targetUrl = landingPages[roleId] || '/';
+                window.location.href = targetUrl;
+            });
+        }
 
         // NOTA: El botón '.btn-logout' es manejado por 'app.js'
         // que se carga en la misma plantilla.

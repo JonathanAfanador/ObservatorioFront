@@ -1,11 +1,14 @@
 <x-layouts.dashboard>
 
+    <!-- Notification Container -->
+    <div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;"></div>
+
     <!-- UPC - Dashboard: Panel de Consulta y Estadísticas (solo lectura) -->
 
     <!-- 1. Vista Overview (resumen con totales) -->
 <div id="view-overview" class="dashboard-view">
         <div class="content-card">
-            
+
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
                 <div>
                     <h2 class="content-title">Resumen General</h2>
@@ -29,7 +32,7 @@
     <!-- 2. Empresas -->
 <div id="view-empresas" class="dashboard-view" style="display:none;">
     <div class="content-card">
-        
+
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
             <div>
                 <h2 class="content-title">Empresas de Transporte</h2>
@@ -86,7 +89,7 @@
         <div class="filter-bar" style="margin-top: 1rem;">
             <input type="text" id="filter-conductores" placeholder="Filtrar por nombre, apellido o identificación..." class="form-input" style="width: 100%;">
         </div>
-        
+
         <div id="conductores-table" style="margin-top: 1rem;"></div>
     </div>
 </div>
@@ -126,7 +129,7 @@
     <!-- 5. Rutas (selector de empresa) -->
     <div id="view-rutas" class="dashboard-view" style="display:none;">
     <div class="content-card">
-        
+
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
             <div>
                 <h2 class="content-title">Rutas Autorizadas</h2>
@@ -150,7 +153,7 @@
 
         <div class="filter-bar" style="margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <input type="text" id="filter-rutas" placeholder="Filtrar por nombre de ruta..." class="form-input" style="width: 100%;">
-            
+
             <div style="display:flex; gap: 1rem; align-items: center;">
                 <label for="select-empresa-rutas" class="text-sm font-medium text-gray-700 flex-shrink-0">Empresa:</label>
                 <select id="select-empresa-rutas" class="form-input" style="width: 100%;">
@@ -158,7 +161,7 @@
                 </select>
             </div>
         </div>
-        
+
         <div id="rutas-table" style="margin-top: 1rem;"></div>
     </div>
 </div>
@@ -196,7 +199,7 @@
                 <select id="select-tipo-docs" class="form-input" style="width: 100%;"></select>
             </div>
         </div>
-        
+
         <div id="documentos-table" style="margin-top: 1rem;"></div>
     </div>
 </div>
@@ -207,9 +210,9 @@
     <div class="content-card">
         <h2 class="content-title">Estadísticas y Análisis</h2>
         <p class="text-gray-600 mb-4">Panel de análisis con métricas y estadísticas consolidadas del sistema de transporte.</p>
-        
+
         <div id="estadisticas-container" style="margin-top:1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2.5rem;">
-            
+
             <div class="chart-container" style="position: relative; height:300px; padding: 1rem; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <h3 class="text-lg font-semibold text-center mb-3">Vehículos en Servicio por Tipo</h3>
                 <canvas id="graficoVehiculosPorTipo"></canvas>
@@ -234,7 +237,7 @@
                 <h3 class="text-lg font-semibold text-center mb-3">Rutas por Empresa (Top 10)</h3>
                 <canvas id="graficoRutasPorEmpresa"></canvas>
             </div>
-            
+
         </div>
     </div>
 </div>
