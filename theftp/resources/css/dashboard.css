@@ -253,7 +253,7 @@
     transform: scale(0.95) translateY(-10px);
     pointer-events: none;
     transition: all 0.15s ease-out;
-    
+
     position: absolute;
     top: calc(100% + 12px);
     right: 0;
@@ -478,35 +478,80 @@
     background-color: #e5e7eb;
 }
 
-.btn-edit {
-    padding: 0.375rem 0.75rem;
-    background-color: #f59e0b;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-edit:hover {
-    background-color: #d97706;
-}
-
+.btn-edit,
 .btn-delete {
-    padding: 0.375rem 0.75rem;
-    background-color: #ef4444;
-    color: #ffffff;
+    padding: .75rem 1rem;
+    font-size: .875rem;
+    font-weight: 600;
     border: none;
-    border-radius: 4px;
-    font-size: 0.875rem;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background .18s, transform .18s, box-shadow .18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    color: #fff;
 }
+.btn-edit { background:#fbbf24; }
+.btn-edit:hover { background:#f59e0b; }
+.btn-edit svg { stroke:#fff; }
+.btn-delete { background:#f87171; }
+.btn-delete:hover { background:#ef4444; }
+.btn-delete svg path { stroke-width:2.2; }
 
-.btn-delete:hover {
-    background-color: #dc2626;
-}
+.btn-edit:active, .btn-delete:active { transform:scale(.97); }
+@media (prefers-reduced-motion: no-preference){ .btn-edit:hover, .btn-delete:hover { box-shadow:0 4px 12px -2px rgba(0,0,0,.15); transform:translateY(-2px); } }
+
+/* ===== Informes / Tablas ===== */
+.informe-controls { display:flex; flex-direction:column; gap:1rem; margin-bottom:1rem; }
+.resumen-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.75rem; }
+.resumen-item { position:relative; background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:.75rem .85rem .7rem .85rem; display:flex; align-items:center; gap:.65rem; overflow:hidden; isolation:isolate; }
+.resumen-item:before { content:""; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.6),rgba(255,255,255,0)); pointer-events:none; z-index:0; }
+.resumen-icon { width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:#ffffffaa; backdrop-filter:blur(2px); border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,.12); color:#1f2937; }
+.resumen-icon svg { width:22px; height:22px; stroke-width:1.8; }
+.resumen-text { display:flex; flex-direction:column; font-size:.68rem; font-weight:600; letter-spacing:.25px; color:#374151; }
+.resumen-text strong { font-size:1.15rem; font-weight:700; margin-top:.15rem; color:#111827; line-height:1; }
+.resumen-item--total { background:linear-gradient(135deg,#e0f2fe,#f0f9ff); border-color:#bae6fd; }
+.resumen-item--lic { background:linear-gradient(135deg,#ede9fe,#f5f3ff); border-color:#ddd6fe; }
+.resumen-item--sin { background:linear-gradient(135deg,#fee2e2,#ffe4e6); border-color:#fecaca; }
+.resumen-item--vig { background:linear-gradient(135deg,#dcfce7,#f0fdf4); border-color:#bbf7d0; }
+.resumen-item--ven { background:linear-gradient(135deg,#fef3c7,#fffbeb); border-color:#fde68a; }
+.resumen-item:hover { box-shadow:0 6px 14px -4px rgba(0,0,0,.18); transform:translateY(-3px); transition:all .25s; }
+.resumen-grid-enhanced { margin-bottom:.5rem; }
+.filtros-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.75rem; align-items:end; }
+.filtros-grid-enhanced { padding:.75rem .85rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 1px 2px rgba(0,0,0,.06); }
+.filtro-group { display:flex; flex-direction:column; gap:.35rem; }
+.filtro-label { font-size:.65rem; font-weight:600; letter-spacing:.5px; text-transform:uppercase; color:#64748b; }
+.filtro-select { width:100%; padding:.45rem .6rem; border:1px solid #d1d5db; border-radius:6px; background:#fff; font-size:.85rem; }
+.filtro-select--wide { font-size:.8rem; }
+.filtro-select:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 2px rgba(37,99,235,.25); }
+.export-buttons { display:flex; gap:.5rem; justify-content:flex-start; }
+.btn-export { padding:.55rem .9rem; background:#2563eb; color:#fff; border:none; border-radius:6px; font-size:.75rem; font-weight:600; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+.btn-export:hover { background:#1d4ed8; }
+.btn-export svg { width:16px; height:16px; stroke-width:2.2; margin-right:.35rem; }
+.btn-export--primary { display:flex; align-items:center; }
+ .informe-title { font-size:1.05rem; font-weight:700; color:#1f2937; margin-bottom:.65rem; letter-spacing:.5px; }
+ .tabla-wrapper { margin-top:.85rem; background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:.4rem .4rem .8rem; box-shadow:0 4px 12px -3px rgba(0,0,0,.12); }
+ table.data-table { border:0; }
+ table.data-table th { background:#f1f5f9; position:sticky; top:0; }
+ table.data-table tbody tr { transition:background .18s; }
+ table.data-table tbody tr:hover { background:#e0f2fe; }
+
+table.data-table { width:100%; border-collapse:collapse; font-size:.8rem; background:#fff; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; }
+table.data-table thead { background:#f3f4f6; position:sticky; top:0; z-index:1; }
+table.data-table th { text-align:left; padding:.65rem .75rem; font-weight:600; color:#374151; font-size:.75rem; border-bottom:1px solid #e5e7eb; }
+table.data-table td { padding:.55rem .75rem; border-bottom:1px solid #f1f5f9; color:#1f2937; }
+table.data-table tbody tr:nth-child(odd) { background:#fafafa; }
+table.data-table tbody tr:hover { background:#eef2ff; }
+.text-center { text-align:center; }
+
+.badge { display:inline-block; padding:.25rem .55rem; border-radius:9999px; font-size:.65rem; font-weight:600; letter-spacing:.3px; }
+.badge-success { background:#dcfce7; color:#166534; }
+.badge-error { background:#fee2e2; color:#991b1b; }
+.badge-info { background:#dbeafe; color:#1e3a8a; }
+.row-sin td { background:#fff1f2; }
 
 /* ========================================
    DASHBOARD CARDS - Professional Styling
@@ -975,27 +1020,8 @@
     gap: 0.4rem;
 }
 
-.btn-edit.btn-sm {
-    background-color: #f59e0b;
-    color: white;
-}
+.btn-edit.btn-sm, .btn-delete.btn-sm { padding:.6rem .85rem; }
 
-.btn-edit.btn-sm:hover {
-    background-color: #d97706;
-    transform: scale(1.02);
-}
-
-.btn-delete.btn-sm {
-    background-color: #ef4444;
-    color: white;
-}
-
-.btn-delete.btn-sm:hover {
-    background-color: #dc2626;
-    transform: scale(1.02);
-}
-
-/* Estilos para tarjetas de licencias */
 .licencias-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1210,7 +1236,7 @@
     display: flex;
     flex-direction: column; /* Apilado en móvil */
     gap: 0.5rem; /* 8px */
-    
+
     /* En pantallas grandes, se pone en línea */
     @media (min-width: 768px) {
         flex-direction: row;
@@ -1250,7 +1276,7 @@
     color: #ffffff;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    
+
     /* Sombra sutil */
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
@@ -1295,4 +1321,119 @@
     background-color: #B91C1C; /* hover:bg-red-700 */
     transform: scale(1.05); /* Efecto hover */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* ==================================
+   Estilos para Tarjetas de Vehículos
+   ================================== */
+.vehiculos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.vehiculo-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.vehiculo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #d1d5db;
+}
+
+.vehiculo-card button {
+    transition: all 0.2s ease;
+}
+
+.vehiculo-card button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.vehiculo-card button:active {
+    transform: translateY(0);
+}
+
+/* Responsividad para vehículos */
+@media (max-width: 768px) {
+    .vehiculos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==================================
+   Estilos para Tarjetas de Rutas
+   ================================== */
+.rutas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.ruta-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem 1.0rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    transition: all .18s ease;
+}
+.ruta-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px -6px rgba(0,0,0,0.15);
+    border-color: #d1d5db;
+}
+.ruta-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 600;
+    color: #374151;
+}
+.ruta-code-empty { color:#9ca3af; font-style: italic; }
+.ruta-ext-empty { color:#9ca3af; }
+.ruta-code { background:#eef2ff; padding:4px 8px; border-radius:6px; font-size:.65rem; }
+.ruta-ext { background:#f3f4f6; padding:4px 8px; border-radius:6px; font-size:.65rem; }
+.ruta-name { margin:0; font-size:1rem; font-weight:600; color:#1f2937; }
+.ruta-desc { margin:0; font-size:.85rem; line-height:1.3; color:#4b5563; min-height:38px; }
+.ruta-meta { display:flex; flex-direction:column; gap:4px; font-size:.7rem; color:#6b7280; }
+.ruta-meta span strong { color:#374151; }
+.ruta-actions { display:flex; flex-direction:column; gap:.55rem; margin-top:.75rem; }
+.ruta-actions-row { display:flex; gap:.55rem; }
+.ruta-actions .ruta-btn--download { width:100%; flex:none; }
+.ruta-btn { flex:1; padding:.75rem 1rem; border:none; border-radius:10px; font-size:.875rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:.55rem; cursor:pointer; transition:background .18s, transform .18s, box-shadow .18s; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+.ruta-btn svg { width:18px; height:18px; }
+.ruta-btn--download svg { width:20px; height:20px; }
+.ruta-btn--delete svg { width:22px; height:22px; }
+.ruta-btn svg { flex-shrink:0; display:block; }
+.ruta-btn--delete svg path { stroke-width:2.4; }
+.ruta-btn--download svg path { stroke-width:2.4; }
+.ruta-btn:active { transform:scale(.97); }
+.ruta-btn--download { background:#3b82f6; color:#fff; }
+.ruta-btn--download:hover { background:#2563eb; }
+.ruta-btn--edit { background:#fbbf24; color:#fff; }
+.ruta-btn--edit:hover { background:#f59e0b; color:#fff; }
+.ruta-btn--edit svg { stroke:#fff; }
+.ruta-btn--delete { background:#f87171; color:#fff; }
+.ruta-btn--delete:hover { background:#ef4444; }
+@media (prefers-reduced-motion: no-preference){ .ruta-btn:hover { box-shadow:0 4px 12px -2px rgba(0,0,0,.15); transform:translateY(-2px); } }
+
+@media (max-width: 768px) {
+    .rutas-grid { grid-template-columns:1fr; }
+    .ruta-card { padding:1rem; }
 }
