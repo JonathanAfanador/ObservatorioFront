@@ -632,7 +632,7 @@ abstract class Controller{
 
         // -- Permisos
         try{
-            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, ACCIONES::DELETE);
+            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, Acciones::DELETE);
         } catch (Exception $e) {
             return response()->json([
                 'status' => false,
@@ -679,7 +679,7 @@ abstract class Controller{
 
         // -- PERMISOS
         try{
-            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, ACCIONES::DELETE);
+            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, Acciones::DELETE);
         } catch (Exception $e) {
             return response()->json([
                 'status' => false,
