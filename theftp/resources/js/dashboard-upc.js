@@ -62,23 +62,67 @@
         const res = await fetch(path, { headers });
         if (!res.ok) throw new Error('Error consultando ' + path);
         const json = await res.json();
-        return json.data ? json.data : json; // convención del backend
+        // El backend devuelve { status, total, data: { current_page, data: [...], ... } }
+        // Necesitamos acceder a json.data.data para obtener los items reales
+        if (json.data && json.data.data) {
+            return json.data.data; // paginación de Laravel
+        }
+        return json.data ? json.data : json;
     }
 
     function createTableFromArray(items, keys) {
-        if (!Array.isArray(items) || items.length === 0) return '<p>No hay datos.</p>';
-        let html = '<table class="table-auto w-full text-left"><thead><tr>';
-        keys.forEach(k => html += `<th class="px-4 py-2">${k.label}</th>`);
+        if (!Array.isArray(items) || items.length === 0) {
+            return '<div class="empty-state"><p class="text-gray-500 text-center py-8">No hay datos disponibles</p></div>';
+        }
+
+        // Debug: mostrar estructura de datos en consola
+        console.log('Datos recibidos para tabla:', items);
+
+        let html = '<div class="table-container"><table class="modern-table">';
+        html += '<thead><tr>';
+        keys.forEach(k => html += `<th>${k.label}</th>`);
         html += '</tr></thead><tbody>';
-        items.forEach(item => {
-            html += '<tr>';
+        items.forEach((item, index) => {
+            html += `<tr class="${index % 2 === 0 ? 'row-even' : 'row-odd'}">`;
             keys.forEach(k => {
-                const value = item[k.key] !== undefined ? item[k.key] : '';
-                html += `<td class="px-4 py-2">${value}</td>`;
+                let value = '-';
+
+                // Si hay un render personalizado, úsalo
+                if (typeof k.render === 'function') {
+                    try {
+                        value = k.render(item, index);
+                    } catch (e) {
+                        value = '-';
+                    }
+                } else if (k.key) {
+                    // Si es un objeto anidado, intentar acceder a sus propiedades
+                    if (k.key.includes('.')) {
+                        const parts = k.key.split('.');
+                        let temp = item;
+                        for (let part of parts) {
+                            if (temp && typeof temp === 'object' && part in temp) {
+                                temp = temp[part];
+                            } else {
+                                temp = null;
+                                break;
+                            }
+                        }
+                        if (temp !== null && temp !== undefined && temp !== '') {
+                            value = temp;
+                        }
+                    } else {
+                        // Acceso directo a la propiedad
+                        if (item[k.key] !== undefined && item[k.key] !== null && item[k.key] !== '') {
+                            value = item[k.key];
+                        }
+                    }
+                }
+
+                html += `<td>${value}</td>`;
             });
             html += '</tr>';
         });
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
         return html;
     }
 
@@ -91,23 +135,76 @@
             const vehiculos = await apiGet('/api/vehiculos?servicio=true');
             const rutas = await apiGet('/api/rutas');
 
-            const cards = [
-                { title: 'Empresas', value: empresas.length || 0 },
-                { title: 'Conductores', value: conductores.length || 0 },
-                { title: 'Vehículos (en servicio)', value: Array.isArray(vehiculos) ? vehiculos.length : 0 },
-                { title: 'Rutas', value: rutas.length || 0 },
-            ];
+            const totalEmpresas = Array.isArray(empresas) ? empresas.length : 0;
+            const totalConductores = Array.isArray(conductores) ? conductores.length : 0;
+            const totalVehiculos = Array.isArray(vehiculos) ? vehiculos.length : 0;
+            const totalRutas = Array.isArray(rutas) ? rutas.length : 0;
 
-            cardsEl.innerHTML = cards.map(c => `
-                <div class="content-card z-0">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div style="font-weight:600;">${c.title}</div>
-                            <div style="color:#6b7280;">Total</div>
-                        </div>
-                        <div style="font-size:28px; font-weight:700;">${c.value}</div>
+            cardsEl.innerHTML = `
+                <div class="metric-card card-empresas">
+                    <div class="card-header">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                        </svg>
+                        <span class="card-title">Empresas</span>
                     </div>
-                </div>`).join('');
+                    <div class="card-body">
+                        <div class="metric-value">${totalEmpresas}</div>
+                        <div class="metric-label">Registradas</div>
+                    </div>
+                    <div class="card-footer">
+                        <small>Empresas de transporte activas</small>
+                    </div>
+                </div>
+
+                <div class="metric-card card-conductores">
+                    <div class="card-header">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                        </svg>
+                        <span class="card-title">Conductores</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-value">${totalConductores}</div>
+                        <div class="metric-label">Registrados</div>
+                    </div>
+                    <div class="card-footer">
+                        <small>Conductores activos en sistema</small>
+                    </div>
+                </div>
+
+                <div class="metric-card card-vehiculos">
+                    <div class="card-header">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                        </svg>
+                        <span class="card-title">Vehículos</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-value">${totalVehiculos}</div>
+                        <div class="metric-label">En Servicio</div>
+                    </div>
+                    <div class="card-footer">
+                        <small>Vehículos activos en operación</small>
+                    </div>
+                </div>
+
+                <div class="metric-card card-rutas">
+                    <div class="card-header">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
+                        </svg>
+                        <span class="card-title">Rutas</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-value">${totalRutas}</div>
+                        <div class="metric-label">Autorizadas</div>
+                    </div>
+                    <div class="card-footer">
+                        <small>Rutas activas del sistema</small>
+                    </div>
+                </div>
+            `;
 
         } catch (error) {
             cardsEl.innerHTML = `<p class='text-red-600'>Error cargando totales: ${error.message}</p>`;
@@ -117,42 +214,54 @@
     // Cargar tablas
     async function loadEmpresas() {
         const el = document.getElementById('empresas-table');
-        el.innerHTML = 'Cargando...';
+        el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando empresas...</p></div>';
         try {
-            const items = await apiGet('/api/empresas');
+            const items = await apiGet('/api/empresas?include=tipo_empresa');
             el.innerHTML = createTableFromArray(items, [
                 { key: 'id', label: 'ID' },
-                { key: 'nombre', label: 'Nombre' },
-                { key: 'nit', label: 'NIT' }
+                { key: 'name', label: 'Nombre de la Empresa' },
+                { key: 'nit', label: 'NIT' },
+                { key: 'tipo_empresa.descripcion', label: 'Tipo de Empresa' }
             ]);
-        } catch (error) { el.innerHTML = `<p class='text-red-600'>${error.message}</p>`; }
+        } catch (error) {
+            el.innerHTML = `<div class="error-state"><p class='text-red-600 text-center py-8'>Error al cargar empresas: ${error.message}</p></div>`;
+        }
     }
 
     async function loadConductores() {
         const el = document.getElementById('conductores-table');
-        el.innerHTML = 'Cargando...';
+        el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando conductores...</p></div>';
         try {
-            const items = await apiGet('/api/conductores');
+            // Cargamos la relación persona y el tipo de identificación asociado
+            const items = await apiGet('/api/conductores?include=persona,persona.tipo_ident');
+            console.log('Conductores recibidos:', items);
             el.innerHTML = createTableFromArray(items, [
-                { key: 'id', label: 'ID' },
-                { key: 'nombres', label: 'Nombres' },
-                { key: 'apellidos', label: 'Apellidos' },
-                { key: 'identificacion', label: 'Identificación' }
+                { label: '#', render: (_, i) => i + 1 },
+                { key: 'persona.name', label: 'Nombres' },
+                { key: 'persona.last_name', label: 'Apellidos' },
+                { key: 'persona.tipo_ident.descripcion', label: 'Tipo de Identificación' },
+                { key: 'persona.nui', label: 'Identificación' },
+                { key: 'persona.gender', label: 'Género' }
             ]);
-        } catch (error) { el.innerHTML = `<p class='text-red-600'>${error.message}</p>`; }
+        } catch (error) {
+            el.innerHTML = `<div class="error-state"><p class='text-red-600 text-center py-8'>Error al cargar conductores: ${error.message}</p></div>`;
+        }
     }
 
     async function loadVehiculos() {
         const el = document.getElementById('vehiculos-table');
-        el.innerHTML = 'Cargando...';
+        el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando vehículos...</p></div>';
         try {
-            const items = await apiGet('/api/vehiculos?servicio=true');
+            const items = await apiGet('/api/vehiculos?servicio=true&include=tipo_vehiculo');
             el.innerHTML = createTableFromArray(items, [
                 { key: 'id', label: 'ID' },
                 { key: 'placa', label: 'Placa' },
                 { key: 'modelo', label: 'Modelo' },
+                { key: 'tipo_vehiculo.descripcion', label: 'Tipo' }
             ]);
-        } catch (error) { el.innerHTML = `<p class='text-red-600'>${error.message}</p>`; }
+        } catch (error) {
+            el.innerHTML = `<div class="error-state"><p class='text-red-600 text-center py-8'>Error al cargar vehículos: ${error.message}</p></div>`;
+        }
     }
 
     async function loadRutasByEmpresa(empresaId) {
@@ -173,23 +282,42 @@
         sel.innerHTML = '<option value="">Cargando tipos...</option>';
         try {
             const items = await apiGet('/api/tipo_doc');
-            sel.innerHTML = items.map(i => `<option value="${i.id}">${i.descripcion}</option>`).join('');
+            const itemsArray = Array.isArray(items) ? items : [];
+            sel.innerHTML = itemsArray.map(i => `<option value="${i.id}">${i.descripcion}</option>`).join('');
         } catch (error) { sel.innerHTML = '<option value="">Error al cargar</option>'; }
     }
 
     async function loadDocumentosByTipo(tipoId) {
         const el = document.getElementById('documentos-table');
-        el.innerHTML = 'Cargando...';
+        el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando documentos...</p></div>';
         try {
             let path = '/api/documentos';
-            if (tipoId) path += `?tipo_doc_id=${tipoId}`;
+            // Usamos filtro por tipo_doc_id si viene seleccionado
+            if (tipoId) path += `?filter=${encodeURIComponent(JSON.stringify({ column: 'tipo_doc_id', operator: '=', value: Number(tipoId) }))}`;
             const items = await apiGet(path);
             el.innerHTML = createTableFromArray(items, [
-                { key: 'id', label: 'ID' },
-                { key: 'titulo', label: 'Título' },
-                { key: 'fecha', label: 'Fecha' }
+                { label: '#', render: (_, i) => i + 1 },
+                { label: 'Título', render: (item) => {
+                        const obs = item.observaciones && String(item.observaciones).trim();
+                        if (obs) return obs;
+                        if (item.url) {
+                            try {
+                                const url = String(item.url);
+                                const parts = url.split('/');
+                                return parts[parts.length - 1] || '-';
+                            } catch (e) { return '-'; }
+                        }
+                        return '-';
+                    } },
+                { label: 'Fecha', render: (item) => {
+                        if (!item.created_at) return '-';
+                        const d = new Date(item.created_at);
+                        return isNaN(d) ? '-' : d.toLocaleDateString('es-CO');
+                    } }
             ]);
-        } catch (error) { el.innerHTML = `<p class='text-red-600'>${error.message}</p>`; }
+        } catch (error) {
+            el.innerHTML = `<div class='error-state'><p class='text-red-600 text-center py-8'>${error.message}</p></div>`;
+        }
     }
 
     async function loadEmpresasSelect() {
@@ -197,7 +325,8 @@
         sel.innerHTML = '<option value="">Cargando empresas...</option>';
         try {
             const items = await apiGet('/api/empresas');
-            sel.innerHTML = '<option value="">-- Selecciona empresa --</option>' + items.map(i => `<option value="${i.id}">${i.nombre}</option>`).join('');
+            const itemsArray = Array.isArray(items) ? items : [];
+            sel.innerHTML = '<option value="">-- Selecciona empresa --</option>' + itemsArray.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
         } catch (error) { sel.innerHTML = '<option value="">Error al cargar</option>'; }
     }
 
