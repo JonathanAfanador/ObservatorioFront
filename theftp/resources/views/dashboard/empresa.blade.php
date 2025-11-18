@@ -255,6 +255,8 @@
         <div id="modal-asignacion" class="modal-overlay" style="display:none;">
             <div class="modal-content">
                 <h3 class="modal-title">Asignar Vehículo a Ruta</h3>
+                <!-- Usuario actual mostrado aquí para claridad -->
+                <div id="asignacion-usuario-info" style="font-size:0.9rem; color:#6b7280; margin-bottom:0.75rem; display:none;"></div>
                 <form id="form-asignacion">
                     <div class="form-grid">
                         <div class="form-group">
@@ -267,7 +269,8 @@
                         </div>
                         <div class="form-group">
                             <label>Kilometraje</label>
-                            <input type="number" id="asignacion-kilometraje" placeholder="Opcional">
+                            <input type="number" id="asignacion-kilometraje" placeholder="Ej: 12345 (opcional)">
+                            <small style="color:#9ca3af; margin-top:0.35rem; font-size:0.8rem;">Introduce el kilometraje actual del vehículo si lo conoces.</small>
                         </div>
                         <div class="form-group">
                             <label>Fecha</label>
@@ -280,6 +283,7 @@
                         <div class="form-group full-width">
                             <label>Observaciones</label>
                             <textarea id="asignacion-observaciones" rows="3" placeholder="Opcional"></textarea>
+                            <small style="color:#9ca3af; margin-top:0.35rem; font-size:0.8rem;">Anota detalles útiles (ej: estado del vehículo, incidencias, conductor asignado).</small>
                         </div>
                     </div>
                     <div class="modal-actions">
