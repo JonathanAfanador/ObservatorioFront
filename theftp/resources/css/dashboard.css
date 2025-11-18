@@ -13,14 +13,33 @@
     --sidebar-bg-hover: #374151; /* gray-700 */
     --accent-color: #2563eb; /* blue-600 */
     --accent-text: #ffffff;
+    --border-color: #e5e7eb; /* gray-200 */
+    --bg-light: #f9fafb; /* gray-50 */
 }
-
 .dashboard-layout {
     display: flex;
     height: 100vh;
+    width: 100vw;
+    overflow-x: hidden;
+    position: relative;
 }
-
-/* --- Sidebar --- */
+.dashboard-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.dashboard-overlay.is-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+/* --- Sidebar (Barra Lateral) --- */
 .sidebar {
     width: var(--sidebar-width);
     background-color: var(--sidebar-bg);
@@ -28,7 +47,17 @@
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    transition: margin-left 0.3s ease;
+    /* --- ¡NUEVO! Transición para móvil --- */
+    position: fixed;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+}
+.sidebar.is-open {
+    transform: translateX(0);
 }
 
 .sidebar-header {
@@ -38,12 +67,15 @@
     padding: 1rem;
     height: var(--header-height);
     border-bottom: 1px solid var(--sidebar-bg-hover);
+    flex-shrink: 0;
 }
 
 .sidebar-logo {
     height: 40px;
     width: auto;
     object-fit: contain;
+    /* ¡NUEVO! Filtro para que se vean bien en fondo oscuro */
+    filter: brightness(0) invert(1) grayscale(100) brightness(5);
 }
 
 .sidebar-nav {
@@ -54,6 +86,23 @@
     flex-direction: column;
     gap: 0.25rem;
 }
+.sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid var(--sidebar-bg-hover);
+    flex-shrink: 0;
+}
+/* Estilos para botón Volver al Inicio */
+.btn-home {
+    background-color: var(--sidebar-bg-hover);
+    color: var(--sidebar-text);
+    justify-content: center; /* Centrado */
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.btn-home:hover {
+    background-color: #4b5563; /* Un gris un poco más claro */
+    color: #ffffff;
+    border-color: rgba(255,255,255,0.2);
+}
 
 .nav-section-title {
     font-size: 0.75rem;
@@ -62,6 +111,9 @@
     color: #9ca3af; /* gray-400 */
     padding: 0.5rem 0.5rem;
     margin-top: 1rem;
+}
+.nav-section-title:first-child {
+    margin-top: 0;
 }
 
 .nav-link {
@@ -75,25 +127,21 @@
     color: var(--sidebar-text);
     transition: all 0.2s ease;
 }
-
 .nav-link:hover {
     background-color: var(--sidebar-bg-hover);
     color: var(--sidebar-text-hover);
 }
-
 .nav-link.is-active {
     background-color: var(--accent-color);
     color: var(--accent-text);
     font-weight: 600;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
 }
-
 .nav-link svg {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
 }
-
 /* --- Main Content Area --- */
 .dashboard-main {
     flex-grow: 1;
@@ -109,19 +157,23 @@
     justify-content: space-between;
     height: var(--header-height);
     background-color: #ffffff;
-    border-bottom: 1px solid #e5e7eb; /* gray-200 */
-    padding: 0 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 1rem; /* Reducido para móvil */
     flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
 }
 
 .header-left {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem; /* Reducido para móvil */
 }
 
+/* ¡NUEVO! Botón de Menú Móvil */
 .menu-toggle-btn {
-    display: none; /* Oculto en desktop */
+    display: block; /* Visible en móvil */
     padding: 0.5rem;
     border-radius: 8px;
     background: transparent;
@@ -138,9 +190,12 @@
 }
 
 .header-title {
-    font-size: 1.25rem;
+    font-size: 1.125rem; /* Reducido para móvil */
     font-weight: 600;
     color: #111827; /* gray-900 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-right {
@@ -148,18 +203,33 @@
     align-items: center;
 }
 
+/* --- Menú de Usuario Profesional --- */
 .user-menu {
     position: relative;
     display: flex;
     align-items: center;
     gap: 0.75rem;
+}
+.user-menu-toggle { /* ¡NUEVO! Es el botón clickeable */
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    border-radius: 99px;
+    transition: background-color 0.2s ease;
+}
+.user-menu-toggle:hover {
+    background-color: var(--bg-light);
 }
 
 .user-name {
     font-weight: 500;
     color: #374151; /* gray-700 */
     font-size: 0.875rem;
+    display: none; /* Oculto en móvil */
 }
 
 .user-avatar {
@@ -174,68 +244,124 @@
     font-weight: 600;
     font-size: 1rem;
     text-transform: uppercase;
+    flex-shrink: 0;
 }
 
 .user-dropdown {
-    display: none;
+    /* ¡MODIFICADO! Oculto con opacidad y escala */
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+    pointer-events: none;
+    transition: all 0.15s ease-out;
+    
     position: absolute;
     top: calc(100% + 12px);
     right: 0;
-    width: 200px;
+    width: 220px;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-color);
     overflow: hidden;
-    z-index: 50;
+    z-index: 100;
 }
-
-.user-menu:hover .user-dropdown {
-    display: block;
+/* ¡NUEVO! Clase 'is-active' que pone el JS */
+.user-dropdown.is-active {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
 }
 
 .dropdown-header {
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
     color: #6b7280; /* gray-500 */
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dropdown-header-name {
+    display: block;
+    font-weight: 600;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dropdown-link {
-    display: block;
+    display: flex; /* ¡NUEVO! */
+    align-items: center;
+    gap: 0.75rem;
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #ef4444; /* red-500 */
+    color: #374151;
     text-decoration: none;
 }
+.dropdown-link.btn-logout { /* Estilo específico para logout */
+    color: #ef4444; /* red-500 */
+}
+.dropdown-link svg { /* ¡NUEVO! */
+    width: 18px;
+    height: 18px;
+    color: #9ca3af;
+}
+.dropdown-link.btn-logout svg {
+    color: #ef4444;
+}
+
 .dropdown-link:hover {
+    background-color: var(--bg-light);
+    color: #111827;
+}
+.dropdown-link.btn-logout:hover {
     background-color: #fef2f2; /* red-50 */
     color: #dc2626; /* red-600 */
+}
+.dropdown-link.btn-logout:hover svg {
+    color: #dc2626;
 }
 
 
 /* --- Dashboard Content --- */
+/* --- Dashboard Content --- */
 .dashboard-content {
     flex-grow: 1;
     overflow-y: auto; /* El contenido principal hace scroll */
-    padding: 2rem;
+    padding: 1.5rem; /* Reducido para móvil */
+    background-color: var(--bg-light);
 }
 
-.content-card {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
-    padding: 1.5rem;
-}
-
-.content-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #111827;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 0.5rem;
+/* --- Responsive Desktop --- */
+@media (min-width: 1025px) {
+    .dashboard-layout {
+        overflow: hidden; /* Evita scroll en el layout principal */
+    }
+    .sidebar {
+        position: relative; /* Vuelve a ser estático */
+        transform: translateX(0); /* Siempre visible */
+        z-index: 1;
+    }
+    .dashboard-main {
+        width: calc(100% - var(--sidebar-width)); /* Ancho restante */
+    }
+    .dashboard-header {
+        padding: 0 2.5rem; /* Más padding */
+    }
+    .menu-toggle-btn {
+        display: none; /* Oculta botón hamburguesa */
+    }
+    .dashboard-overlay {
+        display: none; /* Oculta overlay */
+    }
+    .user-name {
+        display: block; /* Muestra el nombre */
+    }
+    .dashboard-content {
+        padding: 2rem 2.5rem; /* Más padding */
+    }
 }
 
 /* --- Modal Overlay --- */

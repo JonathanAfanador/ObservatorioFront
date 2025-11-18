@@ -11,95 +11,81 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- 
-      Usamos el app.css que ya tienes, y agregamos un dashboard.css
-      Debes crear este archivo: /resources/css/dashboard.css 
-    -->
-    @vite(['resources/css/app.css', 'resources/css/dashboard.css', 'resources/js/dashboard.js'])
+    @vite(['resources/css/app.css', 'resources/css/dashboard.css', 'resources/js/app.js', 'resources/js/dashboard.js'])
 </head>
-<body class="font-sans antialiased bg-gray-100">
+<body class="font-sans antialiased">
 
-    <div class="dashboard-layout">
-        
-        <!-- ===== Sidebar ===== -->
-        <aside class="sidebar" id="dashboard-sidebar">
-            <div class="sidebar-header">
-                <!-- Logos -->
-                <img src="{{ asset('images/logo-alcaldia.png') }}" alt="Alcaldía" class="sidebar-logo" />
-                <img src="{{ asset('images/logo-unipiloto.png') }}" alt="Unipiloto" class="sidebar-logo" />
-            </div>
-
-            <nav class="sidebar-nav">
-                <p class="nav-section-title">Gestión (Secretaría)</p>
-                
-                <!-- Enlaces del Menú -->
-                <!-- Usamos 'data-view' para el control con JS -->
-                <a href="#subir_resolucion" class="nav-link is-active" data-view="subir_resolucion">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.33 0 4.5 4.5 0 01-1.41 8.775H6.75z" /></svg>
-                    <span>Subir Resolución</span>
-                </a>
-                
-                <a href="#listar_resoluciones" class="nav-link" data-view="listar_resoluciones">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-                    <span>Ver Resoluciones</span>
-                </a>
-
-                <p class="nav-section-title">Consultas</p>
-
-                <a href="#listar_empresas" class="nav-link" data-view="listar_empresas">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m-6-13.5V21m6-16.5V21m6-12V21m-2.25-15l-3 3m0 0l-3-3m3 3V3" /></svg>
-                    <span>Ver Empresas</span>
-                </a>
-                
-                <a href="#listar_rutas" class="nav-link" data-view="listar_rutas">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
-                    <span>Ver Rutas</span>
-                </a>
-                
-                <a href="#reporte_rutas" class="nav-link" data-view="reporte_rutas">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg>
-                    <span>Reporte de Rutas</span>
-                </a>
-            </nav>
-        </aside>
-
-        <!-- ===== Contenido Principal ===== -->
-        <div class="dashboard-main">
+    <div id="dashboard-layout-wrapper" style="visibility: hidden;">
+        <div class="dashboard-layout">
             
-            <!-- ===== Header (Navbar del Dashboard) ===== -->
-            <header class="dashboard-header">
-                <div class="header-left">
-                    <button class="menu-toggle-btn" id="menu-toggle">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-                    </button>
-                    <h1 class="header-title" id="header-title">
-                        Subir Resolución
-                    </h1>
+            <div class="dashboard-overlay" id="dashboard-overlay"></div>
+
+            <aside class="sidebar" id="dashboard-sidebar">
+                <div class="sidebar-header">
+                    <img src="{{ asset('images/logo-alcaldia.png') }}" alt="Alcaldía" class="sidebar-logo" />
+                    <img src="{{ asset('images/logo-unipiloto.png') }}" alt="Unipiloto" class="sidebar-logo" />
                 </div>
 
-                <div class="header-right">
-                    <div class="user-menu">
-                        <span class="user-name" id="user-name-display">Cargando...</span>
-                        <div class="user-avatar" id="user-avatar">?</div>
-                        <div class="user-dropdown">
-                            <div class="dropdown-header" id="user-role-display">...</div>
-                            <a href="#" class="dropdown-link btn-logout">Cerrar Sesión</a>
+                <nav class="sidebar-nav">
+                    </nav>
+
+                <div class="sidebar-footer">
+                    <a href="{{ url('/') }}" class="nav-link btn-home" title="Ir a la página principal">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                        </svg>
+                        <span>Volver al Inicio</span>
+                    </a>
+                </div>
+            </aside>
+
+            <div class="dashboard-main">
+                
+                <header class="dashboard-header">
+                    <div class="header-left">
+                        <button class="menu-toggle-btn" id="menu-toggle" aria-label="Abrir menú">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                        </button>
+                        <h1 class="header-title" id="header-title">
+                            Dashboard
+                        </h1>
+                    </div>
+
+                    <div class="header-right">
+                        <div class="user-menu">
+                            <button class="user-menu-toggle" id="user-menu-toggle" aria-label="Abrir menú de usuario">
+                                <span class="user-name" id="user-name-display">Cargando...</span>
+                                <div class="user-avatar" id="user-avatar">?</div>
+                            </button>
+                            
+                            <div class="user-dropdown" id="user-dropdown">
+                                <div class="dropdown-header" id="user-role-display">
+                                    <span class="dropdown-header-name">...</span>
+                                    <span>...</span>
+                                </div>
+                                <a href="#" class="dropdown-link btn-logout">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                                    </svg>
+                                    <span>Cerrar Sesión</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </header>
+                </header>
 
-            <!-- ===== Slot de Contenido (Aquí se carga la vista) ===== -->
-            <main class="dashboard-content">
-                {{ $slot }}
-            </main>
+                <main class="dashboard-content">
+                    {{ $slot }}
+                </main>
+            </div>
         </div>
     </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>
