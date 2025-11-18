@@ -164,7 +164,7 @@ abstract class Controller{
         // 1. Definición de Reglas de Validación
         $rules = [
             'page' => 'nullable|integer|min:1',
-            'limit' => 'nullable|integer|min:1|max:100', // Limita la paginación a 100 elementos
+            'limit' => 'nullable|integer|min:1|max:3000', // Limita la paginación a 3000 elementos
             'columns' => 'nullable|string', // Se asume una lista separada por comas
             'orderBy' => 'nullable|string|max:50', // Nombre de la columna para ordenar
             'orderDirection' => 'nullable|in:asc,desc',

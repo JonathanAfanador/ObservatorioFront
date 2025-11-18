@@ -16,11 +16,7 @@
             <a href="#funcionalidades">Funcionalidades</a>
             <a href="#contacto">Contacto</a>
         </nav>
-        <!-- 
-        ============================================================
-        ==  ¡NUEVO! Menú Desktop para ROLES CON PANEL (Oculto)   ==
-        ============================================================
-        -->
+
 {{-- 1. CONTENEDOR PARA INVITADOS (SIN CAMBIOS) --}}
         {{-- Tu JS ocultará este bloque --}}
         <div class="auth-desktop" id="auth-guest-desktop">

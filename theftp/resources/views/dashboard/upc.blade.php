@@ -71,15 +71,15 @@
                 <p class="text-gray-600 mb-4">Directorio de conductores habilitados con información de licencias y estado actual.</p>
             </div>
             <div class="export-buttons">
-                    <button class="btn-export" data-format="csv" data-target="empresas" title="Exportar a CSV">
+                    <button class="btn-export" data-format="csv" data-target="conductores" title="Exportar a CSV">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M9.5 11.5Q10.25 11.5 10.63 11.88Q11 12.25 11 13Q11 13.75 10.63 14.13Q10.25 14.5 9.5 14.5H8.5V17H7V11.5H9.5M8.5 13V13.5H9.5Q9.75 13.5 9.88 13.38Q10 13.25 10 13Q10 12.75 9.88 12.63Q9.75 12.5 9.5 12.5H8.5V13M12.5 11.5H14.5V12.5H12.5V14H14.5V15H12.5V17H11V11.5H12.5M15 11.5H17Q17.43 11.5 17.71 11.79Q18 12.07 18 12.5Q18 12.93 17.71 13.21Q17.43 13.5 17 13.5H15V15H17Q17.43 15 17.71 15.29Q18 15.57 18 16Q18 16.43 17.71 16.71Q17.43 17 17 17H15V11.5Z" /></svg>
                         <span>CSV</span>
                     </button>
-                    <button class="btn-export" data-format="excel" data-target="empresas" title="Exportar a Excel">
+                    <button class="btn-export" data-format="excel" data-target="conductores" title="Exportar a Excel">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M12.9 15.9H11.5L9.6 19H8L10.8 14L8 11H9.6L11.4 14.2L13.2 11H14.8L12.1 15L14.8 19H13.2L12.9 15.9Z" /></svg>
                         <span>Excel</span>
                     </button>
-                    <button class="btn-export" data-format="pdf" data-target="empresas" title="Exportar a PDF">
+                    <button class="btn-export" data-format="pdf" data-target="conductores" title="Exportar a PDF">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M9.5 11.5Q10.25 11.5 10.63 11.88Q11 12.25 11 13Q11 13.75 10.63 14.13Q10.25 14.5 9.5 14.5H8.5V17H7V11.5H9.5M8.5 13V13.5H9.5Q9.75 13.5 9.88 13.38Q10 13.25 10 13Q10 12.75 9.88 12.63Q9.75 12.5 9.5 12.5H8.5V13M13.25 11.5Q14 11.5 14.38 11.88Q14.75 12.25 14.75 13Q14.75 13.75 14.38 14.13Q14 14.5 13.25 14.5H12V17H10.5V11.5H13.25M12 13V13.5H13.25Q13.5 13.5 13.63 13.38Q13.75 13.25 13.75 13Q13.75 12.75 13.63 12.63Q13.5 12.5 13.25 12.5H12V13M15.5 11.5H17.5V12.5H15.5V14H17.5V15H15.5V17H14V11.5H15.5Z" /></svg>
                         <span>PDF</span>
                     </button>
@@ -103,15 +103,15 @@
                 <p class="text-gray-600 mb-4">Registro de vehículos habilitados actualmente en servicio de transporte público.</p>
             </div>
             <div class="export-buttons">
-                    <button class="btn-export" data-format="csv" data-target="empresas" title="Exportar a CSV">
+                    <button class="btn-export" data-format="csv" data-target="vehiculos" title="Exportar a CSV">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M9.5 11.5Q10.25 11.5 10.63 11.88Q11 12.25 11 13Q11 13.75 10.63 14.13Q10.25 14.5 9.5 14.5H8.5V17H7V11.5H9.5M8.5 13V13.5H9.5Q9.75 13.5 9.88 13.38Q10 13.25 10 13Q10 12.75 9.88 12.63Q9.75 12.5 9.5 12.5H8.5V13M12.5 11.5H14.5V12.5H12.5V14H14.5V15H12.5V17H11V11.5H12.5M15 11.5H17Q17.43 11.5 17.71 11.79Q18 12.07 18 12.5Q18 12.93 17.71 13.21Q17.43 13.5 17 13.5H15V15H17Q17.43 15 17.71 15.29Q18 15.57 18 16Q18 16.43 17.71 16.71Q17.43 17 17 17H15V11.5Z" /></svg>
                         <span>CSV</span>
                     </button>
-                    <button class="btn-export" data-format="excel" data-target="empresas" title="Exportar a Excel">
+                    <button class="btn-export" data-format="excel" data-target="vehiculos" title="Exportar a Excel">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M12.9 15.9H11.5L9.6 19H8L10.8 14L8 11H9.6L11.4 14.2L13.2 11H14.8L12.1 15L14.8 19H13.2L12.9 15.9Z" /></svg>
                         <span>Excel</span>
                     </button>
-                    <button class="btn-export" data-format="pdf" data-target="empresas" title="Exportar a PDF">
+                    <button class="btn-export" data-format="pdf" data-target="vehiculos" title="Exportar a PDF">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M9.5 11.5Q10.25 11.5 10.63 11.88Q11 12.25 11 13Q11 13.75 10.63 14.13Q10.25 14.5 9.5 14.5H8.5V17H7V11.5H9.5M8.5 13V13.5H9.5Q9.75 13.5 9.88 13.38Q10 13.25 10 13Q10 12.75 9.88 12.63Q9.75 12.5 9.5 12.5H8.5V13M13.25 11.5Q14 11.5 14.38 11.88Q14.75 12.25 14.75 13Q14.75 13.75 14.38 14.13Q14 14.5 13.25 14.5H12V17H10.5V11.5H13.25M12 13V13.5H13.25Q13.5 13.5 13.63 13.38Q13.75 13.25 13.75 13Q13.75 12.75 13.63 12.63Q13.5 12.5 13.25 12.5H12V13M15.5 11.5H17.5V12.5H15.5V14H17.5V15H15.5V17H14V11.5H15.5Z" /></svg>
                         <span>PDF</span>
                     </button>
@@ -136,15 +136,15 @@
                 <p class="text-gray-600 mb-4">Consulta las rutas de transporte autorizadas. Filtra por empresa o nombre.</p>
             </div>
              <div class="export-buttons">
-                    <button class="btn-export" data-format="csv" data-target="empresas" title="Exportar a CSV">
+                    <button class="btn-export" data-format="csv" data-target="rutas" title="Exportar a CSV">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M9.5 11.5Q10.25 11.5 10.63 11.88Q11 12.25 11 13Q11 13.75 10.63 14.13Q10.25 14.5 9.5 14.5H8.5V17H7V11.5H9.5M8.5 13V13.5H9.5Q9.75 13.5 9.88 13.38Q10 13.25 10 13Q10 12.75 9.88 12.63Q9.75 12.5 9.5 12.5H8.5V13M12.5 11.5H14.5V12.5H12.5V14H14.5V15H12.5V17H11V11.5H12.5M15 11.5H17Q17.43 11.5 17.71 11.79Q18 12.07 18 12.5Q18 12.93 17.71 13.21Q17.43 13.5 17 13.5H15V15H17Q17.43 15 17.71 15.29Q18 15.57 18 16Q18 16.43 17.71 16.71Q17.43 17 17 17H15V11.5Z" /></svg>
                         <span>CSV</span>
                     </button>
-                    <button class="btn-export" data-format="excel" data-target="empresas" title="Exportar a Excel">
+                    <button class="btn-export" data-format="excel" data-target="rutas" title="Exportar a Excel">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M12.9 15.9H11.5L9.6 19H8L10.8 14L8 11H9.6L11.4 14.2L13.2 11H14.8L12.1 15L14.8 19H13.2L12.9 15.9Z" /></svg>
                         <span>Excel</span>
                     </button>
-                    <button class="btn-export" data-format="pdf" data-target="empresas" title="Exportar a PDF">
+                    <button class="btn-export" data-format="pdf" data-target="rutas" title="Exportar a PDF">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M9.5 11.5Q10.25 11.5 10.63 11.88Q11 12.25 11 13Q11 13.75 10.63 14.13Q10.25 14.5 9.5 14.5H8.5V17H7V11.5H9.5M8.5 13V13.5H9.5Q9.75 13.5 9.88 13.38Q10 13.25 10 13Q10 12.75 9.88 12.63Q9.75 12.5 9.5 12.5H8.5V13M13.25 11.5Q14 11.5 14.38 11.88Q14.75 12.25 14.75 13Q14.75 13.75 14.38 14.13Q14 14.5 13.25 14.5H12V17H10.5V11.5H13.25M12 13V13.5H13.25Q13.5 13.5 13.63 13.38Q13.75 13.25 13.75 13Q13.75 12.75 13.63 12.63Q13.5 12.5 13.25 12.5H12V13M15.5 11.5H17.5V12.5H15.5V14H17.5V15H15.5V17H14V11.5H15.5Z" /></svg>
                         <span>PDF</span>
                     </button>
@@ -176,15 +176,15 @@
                 <p class="text-gray-600 mb-4">Acceso al repositorio de documentos oficiales y resoluciones administrativas.</p>
             </div>
             <div class="export-buttons">
-                    <button class="btn-export" data-format="csv" data-target="empresas" title="Exportar a CSV">
+                    <button class="btn-export" data-format="csv" data-target="documentos" title="Exportar a CSV">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M9.5 11.5Q10.25 11.5 10.63 11.88Q11 12.25 11 13Q11 13.75 10.63 14.13Q10.25 14.5 9.5 14.5H8.5V17H7V11.5H9.5M8.5 13V13.5H9.5Q9.75 13.5 9.88 13.38Q10 13.25 10 13Q10 12.75 9.88 12.63Q9.75 12.5 9.5 12.5H8.5V13M12.5 11.5H14.5V12.5H12.5V14H14.5V15H12.5V17H11V11.5H12.5M15 11.5H17Q17.43 11.5 17.71 11.79Q18 12.07 18 12.5Q18 12.93 17.71 13.21Q17.43 13.5 17 13.5H15V15H17Q17.43 15 17.71 15.29Q18 15.57 18 16Q18 16.43 17.71 16.71Q17.43 17 17 17H15V11.5Z" /></svg>
                         <span>CSV</span>
                     </button>
-                    <button class="btn-export" data-format="excel" data-target="empresas" title="Exportar a Excel">
+                    <button class="btn-export" data-format="excel" data-target="documentos" title="Exportar a Excel">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M12.9 15.9H11.5L9.6 19H8L10.8 14L8 11H9.6L11.4 14.2L13.2 11H14.8L12.1 15L14.8 19H13.2L12.9 15.9Z" /></svg>
                         <span>Excel</span>
                     </button>
-                    <button class="btn-export" data-format="pdf" data-target="empresas" title="Exportar a PDF">
+                    <button class="btn-export" data-format="pdf" data-target="documentos" title="Exportar a PDF">
                         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M9.5 11.5Q10.25 11.5 10.63 11.88Q11 12.25 11 13Q11 13.75 10.63 14.13Q10.25 14.5 9.5 14.5H8.5V17H7V11.5H9.5M8.5 13V13.5H9.5Q9.75 13.5 9.88 13.38Q10 13.25 10 13Q10 12.75 9.88 12.63Q9.75 12.5 9.5 12.5H8.5V13M13.25 11.5Q14 11.5 14.38 11.88Q14.75 12.25 14.75 13Q14.75 13.75 14.38 14.13Q14 14.5 13.25 14.5H12V17H10.5V11.5H13.25M12 13V13.5H13.25Q13.5 13.5 13.63 13.38Q13.75 13.25 13.75 13Q13.75 12.75 13.63 12.63Q13.5 12.5 13.25 12.5H12V13M15.5 11.5H17.5V12.5H15.5V14H17.5V15H15.5V17H14V11.5H15.5Z" /></svg>
                         <span>PDF</span>
                     </button>
