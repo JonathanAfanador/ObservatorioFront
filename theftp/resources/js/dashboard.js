@@ -1,182 +1,223 @@
- // --- Función utilitaria para limpiar todo el localStorage de sesión ---
+// |--------------------------------------------------------------------------
+// | Lógica del Layout del Dashboard (Versión 2.0)
+// |--------------------------------------------------------------------------
+
+// --- Funciones de Utilidad (Mantenidas de tu versión) ---
 function clearAuthStorage() {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_role_id');
-    localStorage.removeItem('user_role_desc');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_role_id');
+    localStorage.removeItem('user_role_desc');
 }
-
-// --- Función de redirección (FORZAR LOGOUT) ---
 function forceLogout(message) {
-    alert(message);
-    clearAuthStorage();
-    window.location.href = '/login';
+    alert(message);
+    clearAuthStorage();
+    window.location.href = '/login';
 }
-
-// --- Función de redirección a Home (SIN CERRAR SESIÓN) ---
 function redirectToHome(message) {
-    alert(message);
-    window.location.href = '/'; // Redirige a la Home
+    alert(message);
+    window.location.href = '/';
 }
 
-// --- GUARDIÁN DE SEGURIDAD DEL DASHBOARD (ACTUALIZADO) ---
+// --- GUARDIÁN DE SEGURIDAD (Mantenido de tu versión) ---
 (function() {
-    console.log("Ejecutando Guardián de Seguridad del Dashboard...");
+    console.log("Ejecutando Guardián de Seguridad del Dashboard...");
 
-    const token = localStorage.getItem('auth_token');
-    const roleIdStr = localStorage.getItem('user_role_id');
-    const roleDesc = localStorage.getItem('user_role_desc') || "Invitado";
-    const currentPath = window.location.pathname;
+    const token = localStorage.getItem('auth_token');
+    const roleIdStr = localStorage.getItem('user_role_id');
+    const roleDesc = localStorage.getItem('user_role_desc') || "Invitado";
+    const currentPath = window.location.pathname;
 
-    // 1. Si no hay token, ¡fuera!
-    if (!token || !roleIdStr) {
-        forceLogout('Sesión no válida o expirada. Por favor, inicia sesión.');
-        return; // Detiene la ejecución
-    }
+    if (!token || !roleIdStr) {
+        forceLogout('Sesión no válida o expirada. Por favor, inicia sesión.');
+        return;
+    }
+    const roleId = parseInt(roleIdStr, 10);
+    if (roleId === 5) {
+        redirectToHome(`Tu rol de "${roleDesc}" no tiene acceso a los paneles de control.`);
+        return;
+    }
+    const rolePaths = {
+        '/dashboard/admin': [1, 6],
+        '/dashboard/secretaria': [1, 6, 2, 7],
+        '/dashboard/empresa': [1, 6, 3, 8],
+        '/dashboard/upc': [1, 6, 4, 9]
+    };
+    let isAuthorized = false;
+    for (const path in rolePaths) {
+        if (currentPath.startsWith(path)) {
+            if (rolePaths[path].includes(roleId)) {
+                isAuthorized = true;
+            }
+            break; 
+        }
+    }
+    if (!isAuthorized) {
+        redirectToHome(`Tu rol (${roleDesc}) no tiene permisos para acceder a esta página.`);
+        return;
+    }
 
-    const roleId = parseInt(roleIdStr, 10);
-
-    // 2. Regla Específica: El rol 5 (Invitado) NUNCA puede estar en un dashboard.
-    if (roleId === 5) {
-        redirectToHome(`Tu rol de "${roleDesc}" no tiene acceso a los paneles de control.`);
-        return;
-    }
-
-    // 3. Mapeo de rutas a los roles permitidos
-  const rolePaths = {
-        '/dashboard/admin': [1,6],
-        '/dashboard/secretaria': [1, 6, 2, 7], // Admin y Secretaría
-        '/dashboard/empresa': [1, 6, 3, 8],   // Admin y Empresa
-        '/dashboard/upc': [1, 6, 4, 9]        // Admin y UPC
-    };
-
-    let isAuthorized = false;
-
-    // Busca la ruta actual en nuestro mapa de seguridad
-    for (const path in rolePaths) {
-        if (currentPath.startsWith(path)) {
-            if (rolePaths[path].includes(roleId)) {
-                isAuthorized = true;
-            }
-            break; 
-        }
-    }
-
-    // 4. Si la ruta NO estaba en el mapa, o si el rol NO estaba en la lista de permitidos
-    if (!isAuthorized) {
-        redirectToHome(`Tu rol (${roleDesc}) no tiene permisos para acceder a esta página.`);
-        return;
-    }
-
-    // --- ¡AUTORIZADO! ---
-    // Si llegamos aquí, el usuario tiene permiso.
-    // Hacemos visible el layout que ocultamos en el HTML.
-
-    console.log(`Acceso concedido para el rol: ${roleDesc}. Mostrando panel.`);
-    const layoutWrapper = document.getElementById('dashboard-layout-wrapper');
-    if (layoutWrapper) {
-        layoutWrapper.style.visibility = 'visible';
-    }
-
+    // ¡AUTORIZADO! Muestra el layout
+    console.log(`Acceso concedido para el rol: ${roleDesc}. Mostrando panel.`);
+    const layoutWrapper = document.getElementById('dashboard-layout-wrapper');
+    if (layoutWrapper) {
+        layoutWrapper.style.visibility = 'visible';
+    }
 })();
 
 
-// --- LÓGICA DEL PANEL (Se ejecuta después del guardián) ---
-document.addEventListener('DOMContentLoaded', () => {
+// --- LÓGICA DE INTERACTIVIDAD DEL LAYOUT (¡NUEVO!) ---
+(function() {
 
-    // --- Cargar datos del usuario en el Header ---
-    const userName = localStorage.getItem('user_name');
-    const userRoleDesc = localStorage.getItem('user_role_desc');
-    const userNameDisplay = document.getElementById('user-name-display');
-    const userRoleDisplay = document.getElementById('user-role-display');
-    const userAvatar = document.getElementById('user-avatar');
+    /**
+     * Lógica para el menú lateral responsive (móvil)
+     */
+    function initMobileMenu() {
+        const menuToggleBtn = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('dashboard-sidebar');
+        const overlay = document.getElementById('dashboard-overlay');
 
-    // (La verificación de "if (!userName)" se quita de aquí porque el guardián ya lo hizo)
-    if (userName && userRoleDesc && userAvatar) {
-        userNameDisplay.textContent = userName;
-        userRoleDisplay.textContent = userRoleDesc;
-        userAvatar.textContent = userName.charAt(0);
-    }
+        if (!menuToggleBtn || !sidebar || !overlay) {
+            console.warn("Elementos del menú móvil no encontrados.");
+            return;
+        }
 
-    // --- Control del Menú Lateral (Tabs) ---
-    const navLinks = document.querySelectorAll('.nav-link');
-    const views = document.querySelectorAll('.dashboard-view');
-    const headerTitle = document.getElementById('header-title');
+        const toggleMenu = (isOpen) => {
+            sidebar.classList.toggle('is-open', isOpen);
+            overlay.classList.toggle('is-active', isOpen);
+        };
+        menuToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMenu(!sidebar.classList.contains('is-open'));
+        });
+        overlay.addEventListener('click', () => {
+            toggleMenu(false);
+        });
+    }
 
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const viewName = link.getAttribute('data-view');
-            if (headerTitle) {
-                headerTitle.textContent = link.querySelector('span').textContent;
-        }
-            views.forEach(view => {
-                view.style.display = 'none';
-            });
-            const activeView = document.getElementById(`view-${viewName}`);
-            if (activeView) {
-                activeView.style.display = 'block';
-            }
-            navLinks.forEach(navLink => {
-                navLink.classList.remove('is-active');
-            });
-            link.classList.add('is-active');
-            window.location.hash = viewName;
-        });
-    });
+    /**
+     * Lógica para el menú de usuario (arriba a la derecha)
+     */
+    function initUserDropdown() {
+        const userMenuToggle = document.getElementById('user-menu-toggle');
+        const userDropdown = document.getElementById('user-dropdown');
 
-    // --- Cargar vista desde el Hash de la URL (si existe) ---
-    if (window.location.hash) {
-        const hashView = window.location.hash.substring(1);
-        const linkToClick = document.querySelector(`.nav-link[data-view="${hashView}"]`);
-        if (linkToClick) {
-            linkToClick.click();
-     }
-    } else {
-        // Activa el primer link por defecto si no hay hash
-        const firstLink = document.querySelector('.nav-link');
-        if (firstLink) {
-            firstLink.click();
-        }
-    }
+        if (!userMenuToggle || !userDropdown) {
+            console.warn("Elementos del menú de usuario no encontrados.");
+            return;
+        }
 
-    // --- Botón de Logout (Esta lógica es para el Dashboard) ---
-    document.querySelectorAll('.btn-logout').forEach(button => {
-        button.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const token = localStorage.getItem('auth_token');
-            /*
-            const roleIdStr = localStorage.getItem('user_role_id');
-            const roleId = roleIdStr ? parseInt(roleIdStr, 10) : null;
-            
-            // --- ¡ESTO SE DEBE ELIMINAR! ---
-            // (el guardián ya lo bloqueó, pero es una doble-verificación)
-            if (roleId === 5) {
-                clearAuthStorage();
-                window.location.href = '/login'; 
-                return;
-            }
-            */
-            
-            if (token) {
-                             try {
-                                await fetch('/api/auth/logout', {
-                                    method: 'POST', 
-                                    headers: {
-                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                        'Authorization': `Bearer ${token}`,
-                                        'Accept': 'application/json',
-                                    }
-                                });
-                                console.log("Cierre de sesión de API solicitado desde Dashboard.");
-                            } catch (error) {
-                                console.error('Error during server logout:', error);
-                            }
-                        }
-            
-            // Siempre limpia y redirige 
-            clearAuthStorage();
-           window.location.href = '/login?status=logged-out';
-        });
-    });
-});
+        userMenuToggle.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            userDropdown.classList.toggle('is-active');
+        });
+        document.addEventListener('click', (e) => {
+            if (!userMenuToggle.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.classList.remove('is-active');
+            }
+        });
+    }
+
+    /**
+     * Carga los datos del usuario desde localStorage en el header
+     */
+    function populateUserData() {
+        const userNameEl = document.getElementById('user-name-display');
+        const userAvatarEl = document.getElementById('user-avatar');
+        const userRoleEl = document.getElementById('user-role-display');
+
+        const userName = localStorage.getItem('user_name') || 'Usuario';
+        const userRole = localStorage.getItem('user_role_desc') || 'Invitado';
+
+        if (userNameEl) {
+            userNameEl.textContent = userName;
+        }
+        if (userAvatarEl) {
+            userAvatarEl.textContent = userName.charAt(0).toUpperCase();
+        }
+        if (userRoleEl) {
+            userRoleEl.innerHTML = `
+                <span class="dropdown-header-name">${userName}</span>
+                <span>${userRole}</span>
+            `;
+        }
+    }
+
+    /**
+     * Lógica de navegación por Pestañas (Mantenida de tu versión)
+     */
+    function initTabNavigation() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        const views = document.querySelectorAll('.dashboard-view');
+        const headerTitle = document.getElementById('header-title');
+
+        if (!navLinks.length || !views.length) {
+            return;
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const viewName = link.getAttribute('data-view');
+                
+                if (headerTitle) {
+                    const span = link.querySelector('span');
+                    if(span) headerTitle.textContent = span.textContent;
+                }
+                
+                views.forEach(view => {
+                    view.style.display = 'none';
+                });
+                
+                const activeView = document.getElementById(`view-${viewName}`);
+                if (activeView) {
+                    activeView.style.display = 'block';
+                }
+                
+                navLinks.forEach(navLink => {
+                    navLink.classList.remove('is-active');
+                });
+                link.classList.add('is-active');
+                
+                // Cierra el menú móvil si se hace clic en un enlace
+                const sidebar = document.getElementById('dashboard-sidebar');
+                const overlay = document.getElementById('dashboard-overlay');
+                if (sidebar && sidebar.classList.contains('is-open')) {
+                    sidebar.classList.remove('is-open');
+                    overlay.classList.remove('is-active');
+                }
+
+                window.location.hash = viewName;
+            });
+        });
+
+        // Cargar vista desde el Hash (Mantenido de tu versión)
+        if (window.location.hash) {
+            const hashView = window.location.hash.substring(1);
+            const linkToClick = document.querySelector(`.nav-link[data-view="${hashView}"]`);
+            if (linkToClick) {
+                linkToClick.click();
+            }
+        } else {
+            const firstLink = document.querySelector('.nav-link');
+            if (firstLink) {
+                firstLink.click();
+            }
+        }
+    }
+
+    // --- Ejecutar todo cuando el DOM esté listo ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Lógica de layout
+        initMobileMenu();
+        initUserDropdown();
+        populateUserData();
+        
+        // Lógica de navegación del panel
+        initTabNavigation();
+
+        // NOTA: El botón '.btn-logout' es manejado por 'app.js'
+        // que se carga en la misma plantilla.
+    });
+
+})();

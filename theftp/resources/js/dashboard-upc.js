@@ -753,7 +753,7 @@
         const navLinks = document.querySelectorAll('.nav-link');
         const views = document.querySelectorAll('.dashboard-view');
         const headerTitle = document.getElementById('header-title');
-
+        
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
