@@ -1,7 +1,48 @@
 // Dashboard UPC - LÓGICA COMPLETA (Filtros, Exportación y Estadísticas)
 
 (function () {
-    
+
+    // Sistema de notificaciones en página
+    function showNotification(type, title, message, duration = 5000) {
+        const container = document.getElementById('notification-container');
+        if (!container) return;
+
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+
+        const icons = {
+            success: '✓',
+            error: '✕',
+            warning: '⚠',
+            info: 'ℹ'
+        };
+
+        notification.innerHTML = `
+            <div class="notification-icon">${icons[type] || '•'}</div>
+            <div class="notification-content">
+                <div class="notification-title">${title}</div>
+                <div class="notification-message">${message}</div>
+            </div>
+            <button class="notification-close">×</button>
+        `;
+
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.add('closing');
+            setTimeout(() => notification.remove(), 300);
+        });
+
+        container.appendChild(notification);
+
+        if (duration > 0) {
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.classList.add('closing');
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, duration);
+        }
+    }
+
     // Almacén de datos para estadísticas y FILTROS
     let dashboardDataStore = {
         empresas: [],
@@ -56,10 +97,21 @@
         const token = localStorage.getItem('auth_token');
         const headers = { 'Accept': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        
+
         const res = await fetch(path, { headers });
         if (!res.ok) {
             console.error(`Error ${res.status} consultando ${path}`);
+
+            // Si es 401, la sesión expiró o no hay token válido
+            if (res.status === 401) {
+                localStorage.removeItem('auth_token');
+                showNotification('warning', 'Sesión Expirada', 'Tu sesión ha expirado. Serás redirigido al inicio de sesión.', 3000);
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+                throw new Error('Sesión expirada');
+            }
+
             throw new Error(`Error ${res.status} (${res.statusText}) consultando ${path}`);
         }
         const json = await res.json();
@@ -244,7 +296,7 @@
         const el = document.getElementById('conductores-table');
         const filterInput = document.getElementById('filter-conductores');
         const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
-        
+
         const tablaData = dashboardDataStore.conductores
             .map(c => ({ // Mapeo para aplanar
                 id: c.id,
@@ -260,7 +312,7 @@
                        c.apellidos.toLowerCase().includes(searchTerm) ||
                        c.nui.toLowerCase().includes(searchTerm);
             });
-            
+
         el.innerHTML = createTableFromArray(tablaData, [
             { label: '#', render: (_, i) => i + 1 },
             { key: 'nombres', label: 'Nombres' },
@@ -270,7 +322,7 @@
             { key: 'gender', label: 'Género' }
         ], "No se encontraron conductores con ese filtro.");
     }
-    
+
     // --- LOAD CONDUCTORES (SOLO FETCH) ---
     async function loadConductores() {
         const el = document.getElementById('conductores-table');
@@ -278,7 +330,7 @@
         try {
             const response = await apiGet('/api/conductores?include=persona,persona.tipo_ident&limit=100');
             dashboardDataStore.conductores = response.data.data;
-            renderConductoresTable(); 
+            renderConductoresTable();
         } catch (error) {
             el.innerHTML = `<div class="error-state"><p class='text-red-600 text-center py-8'>Error al cargar conductores: ${error.message}</p></div>`;
         }
@@ -308,7 +360,7 @@
             { key: 'id', label: 'ID' },
             { key: 'placa', label: 'Placa' },
             { key: 'modelo', label: 'Modelo' },
-            { key: 'marca', label: 'Marca' }, 
+            { key: 'marca', label: 'Marca' },
             { key: 'tipo_vehiculo.descripcion', label: 'Tipo' }
         ], "No se encontraron vehículos con ese filtro.");
     }
@@ -320,20 +372,20 @@
         try {
             const filtro = {"column":"servicio","operator":"=","value":true};
             const params = `?filter=${encodeURIComponent(JSON.stringify(filtro))}&include=tipo&limit=100`;
-            const response = await apiGet('/api/vehiculos' + params); 
+            const response = await apiGet('/api/vehiculos' + params);
             dashboardDataStore.vehiculos = response.data.data;
-            renderVehiculosTable(); 
+            renderVehiculosTable();
         } catch (error) {
             el.innerHTML = `<div class="error-state"><p class='text-red-600 text-center py-8'>Error al cargar vehículos: ${error.message}</p></div>`;
         }
     }
-    
+
     // --- RENDERIZADO DE TABLA RUTAS (CON FILTRO SELECT Y TEXTO) ---
     function renderRutasTable() {
         const el = document.getElementById('rutas-table');
         const filterSelect = document.getElementById('select-empresa-rutas');
         const filterInput = document.getElementById('filter-rutas');
-        
+
         const empresaId = filterSelect ? filterSelect.value : '';
         const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
@@ -343,7 +395,7 @@
             const matchText = !searchTerm || name.includes(searchTerm);
             return matchEmpresa && matchText;
         });
-        
+
         const tablaData = filteredData.map(r => ({
             id: r.id,
             name: r.name,
@@ -365,8 +417,8 @@
         el.innerHTML = 'Cargando...';
         try {
             const response = await apiGet('/api/rutas?include=empresa');
-            dashboardDataStore.rutas = response.data.data; 
-            renderRutasTable(); 
+            dashboardDataStore.rutas = response.data.data;
+            renderRutasTable();
         } catch (error) { el.innerHTML = `<p class='text-red-600'>${error.message}</p>`; }
     }
 
@@ -375,7 +427,7 @@
         const el = document.getElementById('documentos-table');
         const filterSelect = document.getElementById('select-tipo-docs');
         const filterInput = document.getElementById('filter-documentos');
-        
+
         const tipoId = filterSelect ? filterSelect.value : '';
         const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
@@ -418,7 +470,7 @@
         sel.innerHTML = '<option value="">Cargando tipos...</option>';
         try {
             const response = await apiGet('/api/tipo_doc');
-            sel.innerHTML = '<option value="">-- Todos los tipos --</option>' + 
+            sel.innerHTML = '<option value="">-- Todos los tipos --</option>' +
                             response.data.data.map(i => `<option value="${i.id}">${i.descripcion}</option>`).join('');
         } catch (error) { sel.innerHTML = '<option value="">Error al cargar</option>'; }
     }
@@ -429,7 +481,7 @@
         sel.innerHTML = '<option value="">Cargando empresas...</option>';
         try {
             const response = await apiGet('/api/empresas');
-            sel.innerHTML = '<option value="">-- Todas las empresas --</option>' + 
+            sel.innerHTML = '<option value="">-- Todas las empresas --</option>' +
                             response.data.data.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
         } catch (error) { sel.innerHTML = '<option value="">Error al cargar</option>'; }
     }
@@ -452,16 +504,16 @@
             button.addEventListener('click', (e) => {
                 const format = e.currentTarget.dataset.format;
                 const target = e.currentTarget.dataset.target;
-                
+
                 let dataToExport = [];
                 let headers = [];
                 let filename = `${target}_reporte_${new Date().toISOString().split('T')[0]}`;
                 let title = `Reporte de ${target}`;
-                
+
                 switch(target) {
                     case 'empresas':
                         const searchTermEmp = document.getElementById('filter-empresas').value.toLowerCase();
-                        dataToExport = dashboardDataStore.empresas.filter(e => 
+                        dataToExport = dashboardDataStore.empresas.filter(e =>
                             (e.name && e.name.toLowerCase().includes(searchTermEmp)) ||
                             (e.nit && e.nit.toLowerCase().includes(searchTermEmp))
                         );
@@ -473,7 +525,7 @@
                         ];
                         title = "Reporte de Empresas";
                         break;
-                    
+
                     case 'conductores':
                         const searchTermCond = document.getElementById('filter-conductores').value.toLowerCase();
                         dataToExport = dashboardDataStore.conductores
@@ -495,7 +547,7 @@
 
                     case 'vehiculos':
                         const searchTermVeh = document.getElementById('filter-vehiculos').value.toLowerCase();
-                        dataToExport = dashboardDataStore.vehiculos.filter(v => 
+                        dataToExport = dashboardDataStore.vehiculos.filter(v =>
                             (v.placa && v.placa.toLowerCase().includes(searchTermVeh)) ||
                             (v.marca && v.marca.toLowerCase().includes(searchTermVeh)) ||
                             (v.modelo && v.modelo.toLowerCase().includes(searchTermVeh))
@@ -509,7 +561,7 @@
                         ];
                         title = "Reporte de Vehículos en Servicio";
                         break;
-                    
+
                     case 'rutas':
                         const empIdRuta = document.getElementById('select-empresa-rutas').value;
                         const searchTermRuta = document.getElementById('filter-rutas').value.toLowerCase();
@@ -532,7 +584,7 @@
                         const searchTermDoc = document.getElementById('filter-documentos').value.toLowerCase();
                         dataToExport = dashboardDataStore.documentos.filter(d => {
                             const matchTipo = !tipoIdDoc || (d.tipo_doc_id == tipoIdDoc);
-                            const matchText = !searchTermDoc || 
+                            const matchText = !searchTermDoc ||
                                               (d.observaciones && d.observaciones.toLowerCase().includes(searchTermDoc)) ||
                                               (d.url && d.url.toLowerCase().includes(searchTermDoc));
                             return matchTipo && matchText;
@@ -571,7 +623,7 @@
 
     // --- loadEstadisticas() (Función de Gráficos Corregida) ---
     function loadEstadisticas() {
-        
+
         // --- Gráfico 1: Vehículos por Tipo (Barras Verticales) ---
         try {
             const ctx = document.getElementById('graficoVehiculosPorTipo').getContext('2d');
@@ -596,8 +648,8 @@
                         borderWidth: 1
                     }]
                 },
-                options: { 
-                    responsive: true, 
+                options: {
+                    responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
@@ -627,9 +679,9 @@
                         backgroundColor: ['#EC4899', '#3B82F6', '#8B5CF6', '#6B7280'],
                     }]
                 },
-                options: { 
-                    indexAxis: 'y', 
-                    responsive: true, 
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
@@ -662,11 +714,11 @@
                     }]
                 },
                 options: {
-                    indexAxis: 'y', 
+                    indexAxis: 'y',
                     responsive: true,
-                    maintainAspectRatio: false, 
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } 
+                    scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
                 }
             });
         } catch (e) { console.error("Error al renderizar gráfico de empresas:", e); }
@@ -698,14 +750,14 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, 
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { 
-                        y: { 
+                    scales: {
+                        y: {
                             beginAtZero: true,
-                            ticks: { stepSize: 1 }, 
-                            suggestedMax: 10 
-                        } 
+                            ticks: { stepSize: 1 },
+                            suggestedMax: 10
+                        }
                     }
                 }
             });
@@ -724,9 +776,9 @@
             const data = sorted.map(([,data]) => data);
 
             if (graficosActivos.rutas) graficosActivos.rutas.destroy();
-            
+
             graficosActivos.rutas = new Chart(ctx, {
-                type: 'bar', 
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
@@ -735,12 +787,12 @@
                         backgroundColor: '#8B5CF6'
                     }]
                 },
-                options: { 
-                    indexAxis: 'y', 
-                    responsive: true, 
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } 
+                    scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
                 }
             });
         } catch (e) { console.error("Error al renderizar gráfico de rutas:", e); }
@@ -749,17 +801,17 @@
     // --- DOMContentLoaded (MODIFICADO) ---
     document.addEventListener('DOMContentLoaded', async () => { // <-- 1. AÑADIR ASYNC
         buildUpcMenu();
-        
+
         const navLinks = document.querySelectorAll('.nav-link');
         const views = document.querySelectorAll('.dashboard-view');
         const headerTitle = document.getElementById('header-title');
-        
+
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const viewName = link.getAttribute('data-view');
                 if (headerTitle) headerTitle.textContent = link.querySelector('span').textContent;
-                
+
                 if (viewName === 'estadisticas') {
                     loadEstadisticas();
                 }
@@ -775,7 +827,7 @@
 
         // --- 2. AÑADIR AWAIT PROMISE.ALLSETTLED ---
         // Esto fuerza al código a esperar que TODAS estas funciones terminen
-        await Promise.allSettled([ 
+        await Promise.allSettled([
             loadOverview(),
             loadEmpresas(),
             loadConductores(),
@@ -785,7 +837,7 @@
             loadDocumentos(), // Carga inicial de documentos
             loadRutas()       // Carga inicial de rutas
         ]);
-        
+
         // --- 3. MOVER ESTO AL FINAL ---
         // Ahora, los listeners solo se activan DESPUÉS de que los datos existen
         setupUpcListeners();
@@ -794,14 +846,14 @@
         const overviewLink = document.querySelector('.nav-link[data-view="overview"]');
         const currentHash = window.location.hash.replace('#','');
         const validViews = Array.from(navLinks).map(l => l.getAttribute('data-view'));
-        
-        let linkToClick = overviewLink; 
+
+        let linkToClick = overviewLink;
         if (currentHash && validViews.includes(currentHash)) {
             linkToClick = document.querySelector(`.nav-link[data-view="${currentHash}"]`);
         }
-        
+
         if (linkToClick) {
-            linkToClick.click(); 
+            linkToClick.click();
         } else {
             // Fallback
             views.forEach(v => v.style.display = 'none');
@@ -811,7 +863,7 @@
         }
     });
 
-    
+
     // ---
     // --- FUNCIONES DE EXPORTACIÓN (Sin cambios)
     // ---
@@ -821,7 +873,7 @@
      */
     function handleExportSummary() {
         console.log("Iniciando exportación de resumen (Modo Manual jsPDF)...");
-        
+
         const exportButton = document.getElementById('btn-export-summary');
         if (exportButton) {
             exportButton.disabled = true;
@@ -844,7 +896,7 @@
             const doc = new jsPDF('p', 'mm', 'a4');
             const docWidth = doc.internal.pageSize.getWidth();
             const margin = 20;
-            let y = 30; 
+            let y = 30;
 
             doc.setFontSize(18);
             doc.setFont('helvetica', 'bold');
@@ -860,23 +912,23 @@
             doc.setFont('helvetica', 'bold');
             doc.text("Métricas Principales", margin, y);
             y += 10;
-            
+
             doc.setFontSize(12);
             doc.setFont('helvetica', 'normal');
-            
+
             const cardWidth = docWidth - (margin * 2);
             const cardHeight = 15;
-            const textOffset = 9; 
-            const valueOffset = docWidth - margin - 10; 
+            const textOffset = 9;
+            const valueOffset = docWidth - margin - 10;
 
             // --- Métrica 1: Empresas ---
-            doc.setFillColor(245, 245, 245); 
+            doc.setFillColor(245, 245, 245);
             doc.rect(margin, y, cardWidth, cardHeight, 'F');
             doc.text("Empresas Registradas:", margin + 5, y + textOffset);
             doc.setFont('helvetica', 'bold');
             doc.text(totalEmpresas, valueOffset, y + textOffset, { align: 'right' });
             doc.setFont('helvetica', 'normal');
-            y += 20; 
+            y += 20;
 
             // --- Métrica 2: Conductores ---
             doc.setFillColor(245, 245, 245);
@@ -903,7 +955,7 @@
             doc.setFont('helvetica', 'bold');
             doc.text(totalRutas, valueOffset, y + textOffset, { align: 'right' });
             doc.setFont('helvetica', 'normal');
-            
+
             doc.save(`resumen_general_${new Date().toISOString().split('T')[0]}.pdf`);
 
         } catch (err) {
@@ -1006,7 +1058,7 @@
                 return getDeepValue(row, header.key);
             });
         });
-        
+
         doc.text(title, 14, 20);
         doc.autoTable({
             startY: 25,
@@ -1018,5 +1070,5 @@
         });
         doc.save(filename);
     }
-    
+
 })();

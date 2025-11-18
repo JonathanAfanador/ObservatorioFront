@@ -316,12 +316,22 @@ function buildEmpresaMenu() {
                 <span>Informes</span>
             </a>
         </nav>
+        <div class="sidebar-footer">
+            <a href="#" id="btn-volver-inicio" class="nav-link btn-home" title="Ir a la página principal">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                </svg>
+                <span>Volver al Inicio</span>
+            </a>
+        </div>
     `;
 
     const sidebar = document.querySelector('.sidebar');
     if (sidebar) {
         const nav = sidebar.querySelector('nav');
         if (nav) nav.remove();
+        const footer = sidebar.querySelector('.sidebar-footer');
+        if (footer) footer.remove();
         sidebar.insertAdjacentHTML('beforeend', menuHtml);
 
         // Event listeners para navegación - Agregar después de insertar el HTML
@@ -552,7 +562,13 @@ async function loadConductores() {
                 </div>
 
                 <div class="conductor-card-footer">
-                    <button class="btn-edit btn-sm btn-edit-conductor" data-conductor-id="${c.id}">✏️ Editar</button>
+                    <button class="btn-edit btn-sm btn-edit-conductor" data-conductor-id="${c.id}" title="Editar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="width:18px; height:18px;">
+                            <path d="M4 20h4l10.142-10.142a1.5 1.5 0 000-2.121L15.263 4.857a1.5 1.5 0 00-2.121 0L3 15.999V20Z" />
+                            <path d="M13.5 6.5l4 4" />
+                        </svg>
+                        Editar
+                    </button>
                 </div>
             </div>
         `;
@@ -648,7 +664,48 @@ function updatePhoneValidationMessage() {
         validationMessageDiv.style.color = '#10b981'; // Color verde para válido
     }
 }
-// Abrir modal para agregar conductor
+
+// Validar formato de placa colombiana
+function validatePlaca(placa) {
+    if (!placa) return null;
+
+    // Convertir a mayúsculas
+    placa = placa.toUpperCase().trim();
+
+    // Formato colombiano: 3 letras + 3 números (ABC123)
+    const placaRegex = /^[A-Z]{3}[0-9]{3}$/;
+
+    if (!placaRegex.test(placa)) {
+        return 'La placa debe tener el formato: 3 letras seguidas de 3 números (Ej: ABC123)';
+    }
+
+    return null;
+}
+
+// Actualizar mensaje de validación de placa en tiempo real
+function updatePlacaValidationMessage() {
+    const placa = document.getElementById('vehiculo-placa').value;
+    const validationMessageDiv = document.getElementById('placa-validation-message');
+
+    if (!placa) {
+        validationMessageDiv.style.display = 'none';
+        return;
+    }
+
+    const error = validatePlaca(placa);
+
+    if (error) {
+        validationMessageDiv.textContent = error;
+        validationMessageDiv.style.display = 'block';
+        validationMessageDiv.style.color = '#ef4444'; // Color rojo para errores
+    } else {
+        validationMessageDiv.textContent = '✓ Placa válida';
+        validationMessageDiv.style.display = 'block';
+        validationMessageDiv.style.color = '#10b981'; // Color verde para válido
+    }
+}
+
+// Abrir modal para agregar conductor (restaurado)
 async function openModalConductor() {
     editingId = null;
     document.getElementById('form-conductor').reset();
@@ -661,10 +718,7 @@ async function openModalConductor() {
     const selectTipo = document.getElementById('conductor-tipo-ident');
     selectTipo.innerHTML = '<option value="">Seleccione</option>';
 
-    // Normalizar listado
     const tiposData = normalizeList(tiposIdent);
-
-    // Filtrar solo: Cédula de Ciudadanía, Cédula de Extranjería y Registro Civil
     const tiposPermitidos = ['CÉDULA DE CIUDADANÍA', 'CÉDULA DE EXTRANJERÍA', 'REGISTRO CIVIL'];
     const tiposFiltrados = tiposData.filter(t => t && t.descripcion && tiposPermitidos.includes(t.descripcion.toUpperCase()));
 
@@ -674,7 +728,7 @@ async function openModalConductor() {
         }
     });
 
-    // Agregar event listeners para validación en tiempo real
+    // Event listeners de validación en tiempo real
     document.getElementById('conductor-tipo-ident').addEventListener('change', updateValidationMessage);
     document.getElementById('conductor-nui').addEventListener('input', updateValidationMessage);
     document.getElementById('conductor-telefono').addEventListener('input', updatePhoneValidationMessage);
@@ -959,7 +1013,16 @@ async function loadLicencias() {
                     </div>
 
                     <div class="licencia-card-footer">
-                        <button class="btn-delete btn-sm" onclick="deleteLicencia(${l.id})">🗑️ Eliminar</button>
+                        <button class="btn-delete btn-sm" onclick="deleteLicencia(${l.id})" title="Eliminar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;">
+                                <path d="M6 7h12" />
+                                <path d="M10 11v6" />
+                                <path d="M14 11v6" />
+                                <path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
+                                <path d="M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12" />
+                            </svg>
+                            Eliminar
+                        </button>
                     </div>
                 </div>
             `;
@@ -992,34 +1055,135 @@ window.deleteLicencia = async function(id) {
 // 4. GESTIÓN DE VEHÍCULOS
 // ==========================
 async function loadVehiculos() {
-    const response = await apiGet('/vehiculos');
+    const response = await apiGet('/vehiculos?include=tipo,propietario.documento');
     const vehiculos = normalizeList(response);
 
     if (vehiculos.length === 0) {
-        document.getElementById('vehiculos-table').innerHTML = '';
+        document.getElementById('vehiculos-table').innerHTML = `
+            <div style="text-align: center; padding: 3rem; color: #6b7280;">
+                <svg style="width: 64px; height: 64px; margin: 0 auto 1rem; opacity: 0.5;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                </svg>
+                <p style="font-size: 1.1rem; font-weight: 500;">No hay vehículos registrados</p>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">Comienza agregando tu primer vehículo a la flota</p>
+            </div>
+        `;
         return;
     }
 
-    let html = '<table class="data-table"><thead><tr>';
-    html += '<th>Placa</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Color</th><th>Propietario</th><th>Acciones</th>';
-    html += '</tr></thead><tbody>';
-    vehiculos.forEach(v => {
-        const propietario = v.propietario?.persona || {};
-        html += `<tr>
-            <td>${v.placa || 'N/A'}</td>
-            <td>${v.tipo?.descripcion || 'N/A'}</td>
-            <td>${v.marca || 'N/A'}</td>
-            <td>${v.modelo || 'N/A'}</td>
-            <td>${v.color || 'N/A'}</td>
-            <td>${propietario.name || ''} ${propietario.last_name || ''}</td>
-            <td>
-                <button class="btn-edit" onclick="editVehiculo(${v.id})">Editar</button>
-                <button class="btn-delete" onclick="deleteVehiculo(${v.id})">Eliminar</button>
-            </td>
-        </tr>`;
+    let html = '<div class="vehiculos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1rem;">';
+
+    vehiculos.forEach((v) => {
+        const tipo = v.tipo?.descripcion || 'Sin tipo';
+
+        // Extraer nombre del propietario
+        let nombrePropietario = 'Sin propietario';
+        if (v.propietario && v.propietario.documento && v.propietario.documento.observaciones) {
+            const obs = v.propietario.documento.observaciones;
+            const match = obs.match(/Propietario:\s*([^-]+)/);
+            if (match && match[1]) {
+                nombrePropietario = match[1].trim();
+            } else {
+                nombrePropietario = `Propietario #${v.propietario_id}`;
+            }
+        } else if (v.propietario_id) {
+            nombrePropietario = `Propietario #${v.propietario_id}`;
+        }
+
+        const enServicio = v.servicio ? 'Sí' : 'No';
+        const estadoColor = v.servicio ? '#10b981' : '#6b7280';
+        const estadoIcon = v.servicio ? '✓' : '✕';
+
+        // Icono según el tipo de vehículo
+        let vehiculoIcon = '🚗';
+        if (tipo.toLowerCase().includes('bus')) vehiculoIcon = '🚌';
+        else if (tipo.toLowerCase().includes('micro')) vehiculoIcon = '🚐';
+        else if (tipo.toLowerCase().includes('taxi')) vehiculoIcon = '🚕';
+        else if (tipo.toLowerCase().includes('moto')) vehiculoIcon = '🏍️';
+        else if (tipo.toLowerCase().includes('camion')) vehiculoIcon = '🚚';
+
+        html += `
+            <div class="vehiculo-card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; transition: all 0.2s;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="font-size: 2.5rem; line-height: 1;">${vehiculoIcon}</div>
+                        <div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #1f2937; letter-spacing: 0.5px;">${v.placa || 'N/A'}</div>
+                            <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">${tipo}</div>
+                        </div>
+                    </div>
+                    <div style="background: ${estadoColor}; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.25rem;">
+                        <span>${estadoIcon}</span>
+                        <span>${enServicio}</span>
+                    </div>
+                </div>
+
+                <div style="display: grid; gap: 0.75rem; margin-bottom: 1.25rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #6b7280; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            Marca
+                        </span>
+                        <span style="color: #1f2937; font-weight: 600; font-size: 0.875rem;">${v.marca || 'N/A'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #6b7280; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Modelo
+                        </span>
+                        <span style="color: #1f2937; font-weight: 600; font-size: 0.875rem;">${v.modelo || 'N/A'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #6b7280; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                            </svg>
+                            Color
+                        </span>
+                        <span style="color: #1f2937; font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: ${v.color || '#ccc'}; border: 2px solid #e5e7eb;"></span>
+                            ${v.color || 'N/A'}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #6b7280; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Propietario
+                        </span>
+                        <span style="color: #1f2937; font-weight: 600; font-size: 0.875rem;">${nombrePropietario}</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="editVehiculo(${v.id})" class="btn-edit btn-sm" style="flex:1;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="width:18px; height:18px;">
+                            <path d="M4 20h4l10.142-10.142a1.5 1.5 0 000-2.121L15.263 4.857a1.5 1.5 0 00-2.121 0L3 15.999V20Z" />
+                            <path d="M13.5 6.5l4 4" />
+                        </svg>
+                        Editar
+                    </button>
+                    <button onclick="deleteVehiculo(${v.id})" class="btn-delete btn-sm" style="flex:1;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;">
+                            <path d="M6 7h12" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                            <path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
+                            <path d="M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12" />
+                        </svg>
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        `;
     });
 
-    html += '</tbody></table>';
+    html += '</div>';
     document.getElementById('vehiculos-table').innerHTML = html;
 }
 
@@ -1057,15 +1221,30 @@ window.editVehiculo = async function(id) {
         selectTipo.innerHTML += `<option value="${t.id}">${t.descripcion}</option>`;
     });
 
-    const propietarios = await apiGet('/propietarios?include=persona');
+    const propietarios = await apiGet('/propietarios?include=documento');
     const selectProp = document.getElementById('vehiculo-propietario');
     selectProp.innerHTML = '<option value="">Seleccione</option>';
 
     const propietariosData = normalizeList(propietarios);
-    propietariosData.forEach(p => {
-        const persona = p.persona || {};
-        selectProp.innerHTML += `<option value="${p.id}">${persona.name} ${persona.last_name}</option>`;
-    });
+
+    if (propietariosData.length === 0) {
+        selectProp.innerHTML += `<option value="" disabled>No hay propietarios registrados</option>`;
+    } else {
+        propietariosData.forEach(p => {
+            // Extraer nombre del propietario de las observaciones del documento
+            let nombrePropietario = `Propietario #${p.id}`;
+
+            if (p.documento && p.documento.observaciones) {
+                const obs = p.documento.observaciones;
+                const match = obs.match(/Propietario:\s*([^-]+)/);
+                if (match && match[1]) {
+                    nombrePropietario = match[1].trim();
+                }
+            }
+
+            selectProp.innerHTML += `<option value="${p.id}">${nombrePropietario}</option>`;
+        });
+    }
 
     // Rellenar formulario
     document.getElementById('vehiculo-placa').value = vehiculo.placa || '';
@@ -1085,29 +1264,138 @@ window.editVehiculo = async function(id) {
 async function loadRutas() {
     const response = await apiGet('/rutas');
     const rutas = normalizeList(response);
+    const container = document.getElementById('rutas-table');
+    if (!container) return;
 
     if (rutas.length === 0) {
-        document.getElementById('rutas-table').innerHTML = '';
+        container.innerHTML = '<p style="margin-top:1rem;color:#6b7280;">No hay rutas registradas todavía.</p>';
         return;
     }
 
-    let html = '<table class="data-table"><thead><tr>';
-    html += '<th>Código</th><th>Nombre</th><th>Descripción</th><th>Empresa</th><th>Acciones</th>';
-    html += '</tr></thead><tbody>';
+    let html = '<div class="rutas-grid">';
     rutas.forEach(r => {
-        html += `<tr>
-            <td>${r.codigo || 'N/A'}</td>
-            <td>${r.nombre || 'N/A'}</td>
-            <td>${r.descripcion || 'N/A'}</td>
-            <td>${r.empresa?.nombre || 'N/A'}</td>
-            <td>
-                <button class="btn-delete" onclick="deleteRuta(${r.id})">Eliminar</button>
-            </td>
-        </tr>`;
-    });
+        const codigo = r.codigo || r.code || '';
+        const nombre = r.nombre || r.name || '';
+        const descripcion = r.descripcion || r.description || '';
+        const empresa = (r.empresa && (r.empresa.nombre || r.empresa.name)) || r.empresa_nombre || r.empresa_id || '';
+        const fileName = r.file_name || r.fileName || '';
+        const extension = fileName ? fileName.split('.').pop().toUpperCase() : '';
+        const created = r.created_at ? new Date(r.created_at).toLocaleDateString() : '';
 
-    html += '</tbody></table>';
-    document.getElementById('rutas-table').innerHTML = html;
+        html += `<div class="ruta-card">
+            <div class="ruta-card-header">
+                <span class="ruta-code ${codigo ? '' : 'ruta-code-empty'}">${codigo || 'Sin Código'}</span>
+                <span class="ruta-ext ${extension ? '' : 'ruta-ext-empty'}">${extension || 'FILE'}</span>
+            </div>
+            <h4 class="ruta-name">${nombre || 'Sin Nombre'}</h4>
+            <p class="ruta-desc">${descripcion || 'Sin descripción'}</p>
+            <div class="ruta-meta">
+                <span><strong>Empresa:</strong> ${empresa || 'No asociada'}</span>
+                <span><strong>Creada:</strong> ${created || '—'}</span>
+            </div>
+            <div class="ruta-actions">
+                <div class="ruta-actions-row">
+                    <button class="ruta-btn ruta-btn--edit" aria-label="Editar ruta" data-id="${r.id}" data-action="edit" title="Editar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 20h4l10.142-10.142a1.5 1.5 0 000-2.121L15.263 4.857a1.5 1.5 0 00-2.121 0L3 15.999V20Z" />
+                            <path d="M13.5 6.5l4 4" />
+                        </svg>
+                        Editar
+                    </button>
+                    <button class="ruta-btn ruta-btn--delete" aria-label="Eliminar ruta" data-id="${r.id}" data-action="delete" title="Eliminar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 7h12" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                            <path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
+                            <path d="M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12" />
+                        </svg>
+                        Eliminar
+                    </button>
+                </div>
+                ${fileName ? `<button class="ruta-btn ruta-btn--download" aria-label="Descargar ruta" data-id="${r.id}" data-action="download" title="Descargar archivo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 17.5C4 16.672 4.672 16 5.5 16h13c.828 0 1.5.672 1.5 1.5V18a2 2 0 01-2 2H6a2 2 0 01-2-2v-.5Z" />
+                        <path d="M12 3v11" />
+                        <path d="M8 10.5l4 3.5 4-3.5" />
+                    </svg>
+                    Descargar
+                </button>` : ''}
+            </div>
+        </div>`;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+
+    // Delegar acciones de descarga/eliminación
+    container.querySelectorAll('.ruta-actions button').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.currentTarget.getAttribute('data-id');
+            const action = e.currentTarget.getAttribute('data-action');
+            if (action === 'delete') {
+                deleteRuta(parseInt(id,10));
+            } else if (action === 'download') {
+                downloadRuta(id);
+            } else if (action === 'edit') {
+                openEditRuta(id);
+            }
+        });
+    });
+}
+
+// Descargar archivo de ruta usando fetch con Authorization
+async function downloadRuta(id){
+    try {
+        const token = localStorage.getItem('auth_token');
+        const resp = await fetch(`/api/rutas/${id}/file`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!resp.ok) {
+            showNotification('error', 'Descarga falló', 'Servidor retornó error');
+            return;
+        }
+        const blob = await resp.blob();
+        // Intentar obtener nombre del header Content-Disposition
+        let fileName = 'ruta';
+        const cd = resp.headers.get('Content-Disposition');
+        if (cd) {
+            const match = cd.match(/filename="?([^";]+)"?/);
+            if (match) fileName = match[1];
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        showNotification('error', 'Descarga falló', 'No se pudo descargar el archivo');
+    }
+}
+
+// Abrir modal en modo edición
+async function openEditRuta(id){
+    try {
+        const dataResp = await apiGet(`/rutas/${id}`);
+        const ruta = dataResp?.data || dataResp; // según formato de apiGet
+        if (!ruta) {
+            showNotification('error', 'No encontrada', 'No se pudo cargar la ruta');
+            return;
+        }
+        openModalRuta(); // inicializa
+        document.getElementById('ruta-edit-id').value = id;
+        document.getElementById('ruta-nombre').value = ruta.name || ruta.nombre || '';
+        document.getElementById('ruta-modal-title').textContent = 'Editar Ruta';
+        document.getElementById('ruta-submit-btn').textContent = 'Actualizar';
+        const currentFileEl = document.getElementById('ruta-current-file');
+        currentFileEl.style.display = 'block';
+        currentFileEl.textContent = `Archivo actual: ${(ruta.file_name || '').split('/').pop()}`;
+        document.getElementById('ruta-file-help').textContent = 'Seleccione el nuevo archivo (obligatorio para actualizar).';
+    } catch (err) {
+        showNotification('error', 'Error', 'No se pudo abrir la edición');
+    }
 }
 
 // Eliminar ruta
@@ -1188,6 +1476,24 @@ if (document.readyState === 'loading') {
 function initDashboard() {
     console.log('=== INIT DASHBOARD EMPRESA ===');
     console.log('DOM Ready:', document.readyState);
+
+    // Intentar precargar empresa_id si no existe
+    (async () => {
+        if (!localStorage.getItem('empresa_id')) {
+            try {
+                const empresasResp = await apiGet('/empresas');
+                const empresasData = normalizeList(empresasResp);
+                if (empresasData.length > 0) {
+                    localStorage.setItem('empresa_id', empresasData[0].id);
+                    console.log('empresa_id precargado:', empresasData[0].id);
+                } else {
+                    console.warn('No se encontró empresa para precargar empresa_id');
+                }
+            } catch (err) {
+                console.error('Error precargando empresa_id:', err);
+            }
+        }
+    })();
 
     buildEmpresaMenu();
     setupEventListeners(); // Configurar todos los event listeners
@@ -1368,7 +1674,7 @@ async function openModalVehiculo() {
     document.querySelector('#modal-vehiculo .modal-title').textContent = 'Agregar Vehículo';
 
     // Cargar tipos de vehículo
-    const tiposVeh = await apiGet('/tipo_vehiculo');
+    const tiposVeh = await apiGet('/tipo-vehiculo');
     const selectTipo = document.getElementById('vehiculo-tipo');
     selectTipo.innerHTML = '<option value="">Seleccione</option>';
 
@@ -1378,15 +1684,35 @@ async function openModalVehiculo() {
     });
 
     // Cargar propietarios
-    const propietarios = await apiGet('/propietarios?include=persona');
+    const propietarios = await apiGet('/propietarios?include=documento');
     const selectProp = document.getElementById('vehiculo-propietario');
     selectProp.innerHTML = '<option value="">Seleccione</option>';
 
     const propietariosData = normalizeList(propietarios);
-    propietariosData.forEach(p => {
-        const persona = p.persona || {};
-        selectProp.innerHTML += `<option value="${p.id}">${persona.name} ${persona.last_name}</option>`;
-    });
+    console.log('Propietarios cargados:', propietariosData);
+
+    if (propietariosData.length === 0) {
+        selectProp.innerHTML += `<option value="" disabled>No hay propietarios registrados</option>`;
+    } else {
+        propietariosData.forEach(p => {
+            // Extraer nombre del propietario de las observaciones del documento
+            let nombrePropietario = `Propietario #${p.id}`;
+
+            if (p.documento && p.documento.observaciones) {
+                const obs = p.documento.observaciones;
+                // Buscar el patrón "Propietario: [Nombre]"
+                const match = obs.match(/Propietario:\s*([^-]+)/);
+                if (match && match[1]) {
+                    nombrePropietario = match[1].trim();
+                }
+            }
+
+            selectProp.innerHTML += `<option value="${p.id}">${nombrePropietario}</option>`;
+        });
+    }
+
+    // Agregar event listener para validación de placa en tiempo real
+    document.getElementById('vehiculo-placa').addEventListener('input', updatePlacaValidationMessage);
 
     document.getElementById('modal-vehiculo').style.display = 'flex';
 }
@@ -1394,8 +1720,17 @@ async function openModalVehiculo() {
 async function saveVehiculo(e) {
     e.preventDefault();
 
+    const placa = document.getElementById('vehiculo-placa').value.toUpperCase().trim();
+
+    // Validar formato de placa antes de enviar
+    const placaError = validatePlaca(placa);
+    if (placaError) {
+        showNotification('error', 'Placa inválida', placaError);
+        return;
+    }
+
     const vehiculoData = {
-        placa: document.getElementById('vehiculo-placa').value,
+        placa: placa,
         tipo_veh_id: document.getElementById('vehiculo-tipo').value,
         propietario_id: document.getElementById('vehiculo-propietario').value,
         modelo: document.getElementById('vehiculo-modelo').value,
@@ -1420,29 +1755,70 @@ async function saveVehiculo(e) {
 
 // --- RUTAS ---
 function openModalRuta() {
-    document.getElementById('form-ruta').reset();
+    const form = document.getElementById('form-ruta');
+    form.reset();
+    // Prellenar empresa id oculto
+    const empresaId = localStorage.getItem('empresa_id');
+    if (empresaId) {
+        const hiddenEmpresa = document.getElementById('ruta-empresa-id');
+        if (hiddenEmpresa) hiddenEmpresa.value = empresaId;
+    }
+    document.getElementById('ruta-edit-id').value = '';
+    document.getElementById('ruta-modal-title').textContent = 'Agregar Ruta';
+    document.getElementById('ruta-submit-btn').textContent = 'Guardar';
+    document.getElementById('ruta-current-file').style.display = 'none';
+    document.getElementById('ruta-file-help').textContent = 'Formato requerido. El backend exige este archivo.';
     document.getElementById('modal-ruta').style.display = 'flex';
 }
 
 async function saveRuta(e) {
     e.preventDefault();
 
+    const nombre = document.getElementById('ruta-nombre').value.trim();
+    const fileInput = document.getElementById('ruta-file');
+    let empresaId = document.getElementById('ruta-empresa-id').value || localStorage.getItem('empresa_id');
+    const editId = document.getElementById('ruta-edit-id').value;
+
+    if (!nombre) {
+        showNotification('warning', 'Nombre requerido', 'Debe ingresar el nombre de la ruta.');
+        return;
+    }
+    if (!fileInput || fileInput.files.length === 0) {
+        showNotification('warning', 'Archivo requerido', 'Debe adjuntar el archivo de la ruta.');
+        return;
+    }
+    if (!empresaId) {
+        showNotification('error', 'Sin empresa', 'No se pudo determinar la empresa asociada.');
+        return;
+    }
+
     const formData = new FormData();
-    formData.append('codigo', document.getElementById('ruta-codigo').value);
-    formData.append('nombre', document.getElementById('ruta-nombre').value);
-    formData.append('descripcion', document.getElementById('ruta-descripcion').value);
+    // Campos requeridos según backend
+    formData.append('name', nombre); // backend espera 'name'
+    formData.append('empresa_id', empresaId);
+    formData.append('file', fileInput.files[0]); // backend espera 'file'
 
-    const archivoInput = document.getElementById('ruta-archivo');
-    if (archivoInput.files.length > 0) {
-        formData.append('archivo', archivoInput.files[0]);
+    let result;
+    if (editId) {
+        result = await apiPostFile(`/rutas/${editId}`, formData);
+    } else {
+        result = await apiPostFile('/rutas', formData);
     }
 
-    const result = await apiPostFile('/rutas', formData);
-    if (result) {
-        showNotification('success', '¡Éxito!', 'Ruta creada exitosamente');
+    if (result && result.status !== false) {
+        showNotification('success', '¡Éxito!', editId ? 'Ruta actualizada' : 'Ruta creada exitosamente');
         document.getElementById('modal-ruta').style.display = 'none';
-        loadRutas();
+        loadRutas && loadRutas();
+        return;
     }
+
+    if (result && result.errors) {
+        const messages = Object.values(result.errors).flat().join('\n');
+        showNotification('error', 'Error de validación', messages);
+        return;
+    }
+
+    showNotification('error', 'Error', 'No se pudo crear la ruta.');
 }
 
 // --- ASIGNACIONES ---
@@ -1507,67 +1883,248 @@ async function saveAsignacion(e) {
 }
 
 // --- INFORMES ---
-async function loadInformeConductores() {
-    const conductores = await apiGet('/conductores');
-    const licencias = await apiGet('/conductores-licencias');
+let informeConductoresCache = { conductores: [], licencias: [] };
+let informeVehiculosRutaCache = { asignaciones: [] };
 
-    let html = '<h3 class="font-semibold mb-3">Informe: Conductores y Licencias</h3>';
-    html += '<table class="data-table"><thead><tr>';
+function exportCSV(filename, rows) {
+    if (!rows || !rows.length) return;
+    const csvContent = rows.map(r => r.map(v => '"' + (v ?? '') + '"').join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+}
+
+function buildResumenConductores() {
+    const { conductores, licencias } = informeConductoresCache;
+    const totalConductores = conductores.length;
+    const licenciasPorConductor = new Map();
+    licencias.forEach(l => {
+        const arr = licenciasPorConductor.get(l.conductor_id) || []; arr.push(l); licenciasPorConductor.set(l.conductor_id, arr);
+    });
+    let conLicencia = 0, sinLicencia = 0, vigentes = 0, vencidas = 0;
+    const hoy = new Date();
+    conductores.forEach(c => {
+        const lista = licenciasPorConductor.get(c.id) || [];
+        if (lista.length === 0) { sinLicencia++; } else {
+            conLicencia++;
+            lista.forEach(l => {
+                const lic = l.licencia || {}; const fecha = lic.fecha_vencimiento ? new Date(lic.fecha_vencimiento) : null;
+                if (fecha && fecha < hoy) vencidas++; else if (fecha) vigentes++;
+            });
+        }
+    });
+    return { totalConductores, conLicencia, sinLicencia, vigentes, vencidas };
+}
+
+function renderTablaConductores(filtroEstado = 'todos', filtroCategoria = 'todas') {
+    const { conductores, licencias } = informeConductoresCache;
+    let html = '<table class="data-table"><thead><tr>';
     html += '<th>Conductor</th><th>Identificación</th><th>Licencia Nº</th><th>Categoría</th><th>Vencimiento</th><th>Estado</th>';
     html += '</tr></thead><tbody>';
-
-    const conductoresData = conductores?.data || [];
-    const licenciasData = licencias?.data || [];
-
-    conductoresData.forEach(c => {
-        const persona = c.persona || {};
-        const licenciasCond = licenciasData.filter(l => l.conductor_id === c.id);
-
-        if (licenciasCond.length === 0) {
-            html += `<tr>
-                <td>${persona.name} ${persona.last_name}</td>
-                <td>${persona.nui}</td>
-                <td colspan="4" style="text-align:center; color: #dc2626;">Sin licencia asignada</td>
-            </tr>`;
+    let added = 0;
+    const hoy = new Date();
+    conductores.forEach(c => {
+        const persona = c.persona || {}; const licCond = licencias.filter(l => l.conductor_id === c.id);
+        if (licCond.length === 0) {
+            if (filtroEstado === 'sin' || filtroEstado === 'todos') {
+                html += `<tr class="row-sin">
+                    <td>${persona.name} ${persona.last_name}</td>
+                    <td>${persona.nui}</td>
+                    <td colspan="4" class="text-center"><span class="badge badge-error">Sin licencia</span></td>
+                </tr>`;
+                added++;
+            }
         } else {
-            licenciasCond.forEach(l => {
-                const lic = l.licencia || {};
-                const vencimiento = new Date(lic.fecha_vencimiento);
-                const hoy = new Date();
-                const estado = vencimiento < hoy ? 'Vencida' : 'Vigente';
-                const colorEstado = estado === 'Vigente' ? '#16a34a' : '#dc2626';
-
+            licCond.forEach(l => {
+                const lic = l.licencia || {}; const fecha = lic.fecha_vencimiento ? new Date(lic.fecha_vencimiento) : null;
+                const estado = fecha && fecha < hoy ? 'vencida' : 'vigente';
+                if (filtroEstado !== 'todos' && filtroEstado !== estado) return;
+                const categoria = lic.categoria_licencia?.nombre || 'N/A';
+                if (filtroCategoria !== 'todas' && filtroCategoria !== categoria) return;
                 html += `<tr>
                     <td>${persona.name} ${persona.last_name}</td>
                     <td>${persona.nui}</td>
                     <td>${lic.numero || 'N/A'}</td>
-                    <td>${lic.categoria_licencia?.nombre || 'N/A'}</td>
+                    <td>${categoria}</td>
                     <td>${lic.fecha_vencimiento || 'N/A'}</td>
-                    <td style="color: ${colorEstado}; font-weight: 600;">${estado}</td>
+                    <td><span class="badge ${estado === 'vigente' ? 'badge-success' : 'badge-error'}">${estado}</span></td>
                 </tr>`;
+                added++;
             });
         }
     });
-
+    if (added === 0) {
+        html += `<tr><td colspan="6" class="text-center" style="font-weight:600; color:#64748b;">No hay registros (verifica filtros o que existan conductores)</td></tr>`;
+    }
     html += '</tbody></table>';
-    document.getElementById('informe-result').innerHTML = html;
+    return html;
 }
 
-async function loadInformeVehiculosRuta() {
-    const asignaciones = await apiGet('/seguim-estado-veh');
-    const asignacionesData = asignaciones?.data || [];
+async function loadInformeConductores() {
+    const conductoresResp = await apiGet('/conductores');
+    const licenciasResp = await apiGet('/conductores-licencias');
 
-    let html = '<h3 class="font-semibold mb-3">Informe: Vehículos por Ruta</h3>';
-    html += '<table class="data-table"><thead><tr>';
+    // Normalización flexible para distintos formatos de respuesta
+    const normalizeList = (resp) => {
+        if (!resp) return [];
+        if (Array.isArray(resp)) return resp;
+        if (Array.isArray(resp.data)) return resp.data; // Laravel Resource
+        if (resp.data && Array.isArray(resp.data.data)) return resp.data.data; // Paginación
+        // Buscar primera propiedad que sea array
+        for (const k of Object.keys(resp)) {
+            if (Array.isArray(resp[k])) return resp[k];
+        }
+        return [];
+    };
+
+    const conductoresList = normalizeList(conductoresResp);
+    const licenciasList = normalizeList(licenciasResp);
+
+    informeConductoresCache.conductores = conductoresList;
+    informeConductoresCache.licencias = licenciasList;
+
+    console.log('[DEBUG informe conductores] rawConductores:', conductoresResp);
+    console.log('[DEBUG informe conductores] rawLicencias:', licenciasResp);
+    console.log('[DEBUG informe conductores] normalized lengths:', {
+        conductores: conductoresList.length,
+        licencias: licenciasList.length
+    });
+
+    // Si ambas respuestas son null probablemente 401 (ver consola). Mostrar mensaje amigable.
+    if (!conductoresResp && !licenciasResp) {
+        document.getElementById('informe-result').innerHTML = `
+            <div class="informe-error auth-error" style="padding:1rem 1.25rem; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; color:#991b1b; font-size:.85rem; font-weight:500;">
+                No se pudieron cargar los datos (401 Unauthorized). Inicia sesión nuevamente o verifica que el token esté en localStorage bajo <code>auth_token</code>.
+            </div>
+        `;
+        return; // abortar resto
+    }
+
+    const resumen = buildResumenConductores();
+    // Obtener lista de categorías únicas
+    const categoriasSet = new Set();
+    informeConductoresCache.licencias.forEach((l, idx) => {
+        // Tomar distintos caminos posibles según estructura real
+        const lic = l.licencia || l; // a veces podría venir plano
+        const nombre = lic?.categoria_licencia?.nombre || lic?.categoria?.nombre || lic?.categoria_licencia || lic?.categoria;
+        if (nombre && typeof nombre === 'string') categoriasSet.add(nombre.trim());
+        if (idx < 3) {
+            console.log('[DEBUG categoria licencia] registro', idx, {
+                original: l,
+                extraido: nombre
+            });
+        }
+    });
+    if (categoriasSet.size === 0) {
+        console.warn('No se detectaron categorías de licencia. Revisa estructura de /conductores-licencias');
+    }
+    const categorias = Array.from(categoriasSet).sort();
+
+    let controls = `<div class="informe-controls">
+        <div class="resumen-grid resumen-grid-enhanced">
+            <div class="resumen-item resumen-item--total">
+                <div class="resumen-icon">
+                    <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M23 21v-2a4 4 0 00-3-3.85'/><path d='M16 3.13a4 4 0 010 7.75'/></svg>
+                </div><div class="resumen-text"><span>Total Conductores</span><strong>${resumen.totalConductores}</strong></div>
+            </div>
+            <div class="resumen-item resumen-item--lic">
+                <div class="resumen-icon">
+                    <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M3 4h18v4H3z'/><path d='M8 4v4'/><path d='M3 8l2 12h14l2-12'/><path d='M10 12h4'/></svg>
+                </div><div class="resumen-text"><span>Con Licencia</span><strong>${resumen.conLicencia}</strong></div>
+            </div>
+            <div class="resumen-item resumen-item--sin">
+                <div class="resumen-icon">
+                    <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><circle cx='12' cy='12' r='10'/><path d='M8 12h8'/></svg>
+                </div><div class="resumen-text"><span>Sin Licencia</span><strong>${resumen.sinLicencia}</strong></div>
+            </div>
+            <div class="resumen-item resumen-item--vig">
+                <div class="resumen-icon">
+                    <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/><path d='M9.5 11.5l2 2 3-3'/></svg>
+                </div><div class="resumen-text"><span>Licencias Vigentes</span><strong>${resumen.vigentes}</strong></div>
+            </div>
+            <div class="resumen-item resumen-item--ven">
+                <div class="resumen-icon">
+                    <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><circle cx='12' cy='12' r='10'/><path d='M12 6v6l4 2'/></svg>
+                </div><div class="resumen-text"><span>Licencias Vencidas</span><strong>${resumen.vencidas}</strong></div>
+            </div>
+        </div>
+        <div class="filtros-grid filtros-grid-enhanced">
+            <div class="filtro-group">
+                <label for='filtro-estado-lic' class='filtro-label'>Estado</label>
+                <select id="filtro-estado-lic" class="filtro-select filtro-select--wide">
+                    <option value="todos">Todos</option>
+                    <option value="vigente">Vigente</option>
+                    <option value="vencida">Vencida</option>
+                    <option value="sin">Sin licencia</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label for='filtro-categoria-lic' class='filtro-label'>Categoría</label>
+                <select id="filtro-categoria-lic" class="filtro-select filtro-select--wide">
+                    <option value="todas">Todas</option>
+                    ${categorias.map(c => `<option value="${c}">${c}</option>`).join('')}
+                </select>
+            </div>
+            <div class="export-buttons">
+                <button id="btn-export-conductores" class="btn-export btn-export--primary"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M4 17.5C4 16.672 4.672 16 5.5 16h13c.828 0 1.5.672 1.5 1.5V18a2 2 0 01-2 2H6a2 2 0 01-2-2v-.5Z'/><path d='M12 3v11'/><path d='M8 10.5l4 3.5 4-3.5'/></svg> Exportar CSV</button>
+            </div>
+        </div>
+    </div>`;
+
+    const tabla = `<div class="tabla-wrapper">${renderTablaConductores()}</div>`;
+    const html = '<h3 class="informe-title">Informe: Conductores y Licencias</h3>' + controls + tabla;
+    const cont = document.getElementById('informe-result');
+    cont.innerHTML = html;
+
+    document.getElementById('filtro-estado-lic').addEventListener('change', () => {
+        const estado = document.getElementById('filtro-estado-lic').value;
+        const categoria = document.getElementById('filtro-categoria-lic').value;
+        cont.querySelector('table').outerHTML = renderTablaConductores(estado, categoria);
+    });
+    document.getElementById('filtro-categoria-lic').addEventListener('change', () => {
+        const estado = document.getElementById('filtro-estado-lic').value;
+        const categoria = document.getElementById('filtro-categoria-lic').value;
+        cont.querySelector('table').outerHTML = renderTablaConductores(estado, categoria);
+    });
+    document.getElementById('btn-export-conductores').addEventListener('click', () => {
+        // Re-render filtered table to rows
+        const estado = document.getElementById('filtro-estado-lic').value;
+        const categoria = document.getElementById('filtro-categoria-lic').value;
+        // Build rows
+        const hoy = new Date();
+        const rows = [['Conductor','Identificación','Licencia Nº','Categoría','Vencimiento','Estado']];
+        informeConductoresCache.conductores.forEach(c => {
+            const persona = c.persona || {}; const licCond = informeConductoresCache.licencias.filter(l => l.conductor_id === c.id);
+            if (licCond.length === 0) {
+                if (estado === 'sin' || estado === 'todos') rows.push([`${persona.name} ${persona.last_name}`, persona.nui, '','', '', 'Sin licencia']);
+            } else {
+                licCond.forEach(l => {
+                    const lic = l.licencia || {}; const fecha = lic.fecha_vencimiento ? new Date(lic.fecha_vencimiento) : null;
+                    const est = fecha && fecha < hoy ? 'Vencida' : 'Vigente';
+                    const estKey = est.toLowerCase();
+                    const categoriaLic = lic.categoria_licencia?.nombre || 'N/A';
+                    if ((estado === 'todos' || estado === estKey) && (categoria === 'todas' || categoria === categoriaLic)) {
+                        rows.push([`${persona.name} ${persona.last_name}`, persona.nui, lic.numero || 'N/A', categoriaLic, lic.fecha_vencimiento || 'N/A', est]);
+                    }
+                });
+            }
+        });
+        exportCSV('informe_conductores.csv', rows);
+    });
+}
+
+function renderTablaVehiculosRutaDetalle() {
+    const asignaciones = informeVehiculosRutaCache.asignaciones;
+    let html = '<table class="data-table"><thead><tr>';
     html += '<th>Ruta</th><th>Vehículo (Placa)</th><th>Tipo</th><th>Kilometraje</th><th>Fecha/Hora</th>';
     html += '</tr></thead><tbody>';
-
-    if (asignacionesData.length === 0) {
-        html += '<tr><td colspan="5" style="text-align:center;">No hay asignaciones registradas</td></tr>';
+    if (asignaciones.length === 0) {
+        html += '<tr><td colspan="5" class="text-center">No hay asignaciones registradas</td></n></tr>';
     } else {
-        asignacionesData.forEach(a => {
-            const vehiculo = a.vehiculo || {};
-            const ruta = a.ruta || {};
+        asignaciones.forEach(a => {
+            const vehiculo = a.vehiculo || {}; const ruta = a.ruta || {};
             html += `<tr>
                 <td>${ruta.nombre || 'N/A'}</td>
                 <td>${vehiculo.placa || 'N/A'}</td>
@@ -1577,9 +2134,38 @@ async function loadInformeVehiculosRuta() {
             </tr>`;
         });
     }
-
     html += '</tbody></table>';
-    document.getElementById('informe-result').innerHTML = html;
+    return html;
+}
+
+async function loadInformeVehiculosRuta() {
+    const asignacionesResp = await apiGet('/seguim-estado-veh');
+    informeVehiculosRutaCache.asignaciones = asignacionesResp?.data || [];
+    // Agregado por ruta
+    const conteoPorRuta = new Map();
+    informeVehiculosRutaCache.asignaciones.forEach(a => {
+        const nombreRuta = a.ruta?.nombre || 'Sin nombre';
+        conteoPorRuta.set(nombreRuta, (conteoPorRuta.get(nombreRuta) || 0) + 1);
+    });
+    const resumenRows = Array.from(conteoPorRuta.entries()).sort((a,b)=>b[1]-a[1]);
+    let resumenHtml = '<table class="data-table"><thead><tr><th>Ruta</th><th>Vehículos Asignados</th></tr></thead><tbody>';
+    if (resumenRows.length === 0) resumenHtml += '<tr><td colspan="2" class="text-center">Sin asignaciones</td></tr>';
+    else resumenRows.forEach(([ruta, count]) => { resumenHtml += `<tr><td>${ruta}</td><td><span class="badge badge-info">${count}</span></td></tr>`; });
+    resumenHtml += '</tbody></table>';
+
+    const detalleHtml = renderTablaVehiculosRutaDetalle();
+    const cont = document.getElementById('informe-result');
+    cont.innerHTML = '<h3 class="font-semibold mb-3">Informe: Vehículos por Ruta</h3>'+
+        '<div class="informe-controls"><div class="export-buttons"><button id="btn-export-vehiculos-ruta" class="btn-export">Exportar CSV</button></div></div>' +
+        '<h4 class="mb-2 font-semibold">Resumen</h4>' + resumenHtml + '<h4 class="mt-6 mb-2 font-semibold">Detalle</h4>' + detalleHtml;
+
+    document.getElementById('btn-export-vehiculos-ruta').addEventListener('click', () => {
+        const rows = [['Ruta','Placa','Tipo','Kilometraje','Fecha/Hora']];
+        informeVehiculosRutaCache.asignaciones.forEach(a => {
+            rows.push([a.ruta?.nombre || 'N/A', a.vehiculo?.placa || 'N/A', a.vehiculo?.tipo?.nombre || 'N/A', a.kilometraje || '', a.fecha_hora || '']);
+        });
+        exportCSV('informe_vehiculos_ruta.csv', rows);
+    });
 }
 
 // ==========================
