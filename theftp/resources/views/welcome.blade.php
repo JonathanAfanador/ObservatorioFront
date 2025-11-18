@@ -11,7 +11,6 @@
         <x-landing.hero />
         <x-landing.carousel />
         <x-landing.services />
-        {{-- <x-landing.map /> --}} {{-- Mapa deshabilitado --}}
         <x-landing.features />
     </main>
 

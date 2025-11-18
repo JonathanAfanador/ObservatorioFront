@@ -76,106 +76,129 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 const token = localStorage.getItem('auth_token');
+
 // Elementos de Botones (Login/Logout)
-    const guestDesktop = document.getElementById('auth-guest-desktop');
-    const userDesktop = document.getElementById('auth-user-desktop');
-    const guestMobile = document.getElementById('auth-guest-mobile');
-    const userMobile = document.getElementById('auth-user-mobile');
+const guestDesktop = document.getElementById('auth-guest-desktop');
+const userDesktop = document.getElementById('auth-user-desktop');
+const guestMobile = document.getElementById('auth-guest-mobile');
+const userMobile = document.getElementById('auth-user-mobile');
 
-    // Elementos de Navegación (Links)
-    const publicNav = document.getElementById('nav-public-links');
-    const adminNav = document.getElementById('nav-admin-links');
-    const guestProfileNav = document.getElementById('nav-guest-profile');
-    
-    // Links del Menú Móvil (para ocultar/mostrar)
-    const publicNavMobile = document.getElementById('nav-public-links-mobile');
-    const adminNavMobile = document.getElementById('nav-admin-links-mobile');
-    const guestProfileMobile = document.getElementById('nav-guest-profile-mobile');
+// Elementos de Navegación (Links)
+const publicNav = document.getElementById('nav-public-links');
+const adminNav = document.getElementById('nav-admin-links');
+const guestProfileNav = document.getElementById('nav-guest-profile');
 
+// Links del Menú Móvil
+const publicNavMobile = document.getElementById('nav-public-links-mobile');
+const adminNavMobile = document.getElementById('nav-admin-links-mobile');
+const guestProfileMobile = document.getElementById('nav-guest-profile-mobile');
 
-    if (token) {
-        // --- 1. MOSTRAR BOTÓN DE LOGOUT ---
-        guestDesktop?.classList.add('hidden');
-        guestMobile?.classList.add('hidden');
-        userDesktop?.classList.remove('hidden');
-        userMobile?.classList.remove('hidden');
+if (token) {
+    // 1. MOSTRAR UI DE USUARIO LOGUEADO
+    guestDesktop?.classList.add('hidden');
+    guestMobile?.classList.add('hidden');
+    userDesktop?.classList.remove('hidden');
+    userMobile?.classList.remove('hidden');
 
-        // --- 2. OCULTAR LINKS PÚBLICOS ---
-        publicNav?.classList.add('hidden');
-        publicNavMobile?.classList.add('hidden');
+    // 2. OCULTAR LINKS PÚBLICOS
+    publicNav?.classList.add('hidden');
+    publicNavMobile?.classList.add('hidden');
 
-        // --- 3. MOSTRAR NAVBAR DE USUARIO (Panel o Perfil) ---
-        const roleId = parseInt(localStorage.getItem('user_role_id'), 10);
-        const userName = localStorage.getItem('user_name') || 'Usuario';
-        const userRole = localStorage.getItem('user_role_desc') || 'Invitado';
+    // 3. DETERMINAR QUÉ MOSTRAR SEGÚN EL ROL
+    const roleId = parseInt(localStorage.getItem('user_role_id'), 10);
+    const userName = localStorage.getItem('user_name') || 'Usuario';
+    const userRole = localStorage.getItem('user_role_desc') || 'Rol';
+
+    // Rol 5 = Invitado (según tu lógica anterior)
+    if (roleId === 5) {
+        // --- MOSTRAR PERFIL INVITADO ---
+        guestProfileNav?.classList.remove('hidden');
+        guestProfileMobile?.classList.remove('hidden');
         
+        // Llenar datos desktop
+        const btnName = document.getElementById('profile-btn-name');
+        const infoName = document.getElementById('profile-info-name');
+        const infoRole = document.getElementById('profile-info-role');
+        if(btnName) btnName.textContent = userName;
+        if(infoName) infoName.textContent = userName;
+        if(infoRole) infoRole.textContent = userRole;
 
-        if (roleId === 5) {
-            // --- Es INVITADO ---
-            guestProfileNav?.classList.remove('hidden');
-            guestProfileMobile?.classList.remove('hidden');
-            
-            // Poblar el dropdown de perfil (Desktop)
-            document.getElementById('profile-btn-name').textContent = userName;
-            document.getElementById('profile-info-name').textContent = userName;
-            document.getElementById('profile-info-role').textContent = userRole;
+        // Llenar datos móvil
+        const mobileName = document.getElementById('profile-info-name-mobile');
+        const mobileRole = document.getElementById('profile-info-role-mobile');
+        if(mobileName) mobileName.textContent = userName;
+        if(mobileRole) mobileRole.textContent = userRole;
 
-            // Poblar el perfil (Móvil)
-            document.getElementById('profile-info-name-mobile').textContent = userName;
-            document.getElementById('profile-info-role-mobile').textContent = userRole;
-
-            // Lógica para abrir/cerrar el dropdown
-            const profileBtn = document.getElementById('profile-toggle-btn');
-            const profileDropdown = profileBtn?.closest('.profile-dropdown');
-            
-            if(profileBtn && profileDropdown) {
-                profileBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Evita que el clic se propague al documento
-                    profileDropdown.classList.toggle('is-active');
-                });
-            }
-
-            // Opcional: Cerrar si se hace clic fuera
-            document.addEventListener('click', (e) => {
-                if (profileDropdown && !profileDropdown.contains(e.target)) {
-                    profileDropdown.classList.remove('is-active');
-                }
+        // Lógica Dropdown Desktop
+        const profileBtn = document.getElementById('profile-toggle-btn');
+        const profileDropdown = profileBtn?.closest('.profile-dropdown');
+        if(profileBtn && profileDropdown) {
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('is-active');
             });
+            document.addEventListener('click', (e) => {
+                if (!profileDropdown.contains(e.target)) profileDropdown.classList.remove('is-active');
+            });
+        }
 
-        } else {
-            // --- Es un ROL CON PANEL (Admin, Secre, etc.) ---
-            const dashboardPath = localStorage.getItem('user_dashboard_path');
+    } else {
+        // --- MOSTRAR BOTÓN "IR A MI PANEL" (Cualquier otro rol) ---
+        
+        // Intentamos obtener la ruta del storage, si no está, la deducimos
+        let dashboardPath = localStorage.getItem('user_dashboard_path');
+        
+        if (!dashboardPath || dashboardPath === '/') {
+            // Lógica de respaldo por si se borró el localStorage
+            switch (roleId) {
+                case 1: dashboardPath = '/dashboard/admin'; break;
+                case 2: dashboardPath = '/dashboard/secretaria'; break;
+                case 3: dashboardPath = '/dashboard/empresa'; break;
+                case 4: dashboardPath = '/dashboard/upc'; break;
+                case 6: dashboardPath = '/dashboard/admin'; break; // Admin secundario
+                default: dashboardPath = '/'; 
+            }
+        }
 
-            if (dashboardPath && dashboardPath !== '/') {
-                // Poner el link correcto (Desktop)
-                const adminDashLink = document.getElementById('admin-dashboard-link');
-                adminDashLink?.setAttribute('href', dashboardPath);
-                adminNav?.classList.remove('hidden');
-                
-                // Poner el link correcto (Móvil)
-                const adminDashLinkMobile = document.getElementById('admin-dashboard-link-mobile');
-                adminDashLinkMobile?.setAttribute('href', dashboardPath);
+        // Solo mostramos el botón si hay una ruta válida distinta de home
+        if (dashboardPath && dashboardPath !== '/') {
+            const adminDashLink = document.getElementById('admin-dashboard-link');
+            const adminDashLinkMobile = document.getElementById('admin-dashboard-link-mobile');
+
+            // Desktop
+            if (adminDashLink) {
+                adminDashLink.setAttribute('href', dashboardPath);
+                adminNav?.classList.remove('hidden'); // <--- ESTO HACE QUE APAREZCA
+            }
+            
+            // Móvil
+            if (adminDashLinkMobile) {
+                adminDashLinkMobile.setAttribute('href', dashboardPath);
                 adminNavMobile?.classList.remove('hidden');
             }
         }
-                startInactivityTracker();
-    } else {
-        // --- 4. NO HAY TOKEN (Visitante normal) ---
-        guestDesktop?.classList.remove('hidden');
-        guestMobile?.classList.remove('hidden');
-        userDesktop?.classList.add('hidden');
-        userMobile?.classList.add('hidden');
-        
-        // Mostrar links públicos
-        publicNav?.classList.remove('hidden');
-        publicNavMobile?.classList.remove('hidden');
-        
-        // Ocultar links de admin/invitado
-        adminNav?.classList.add('hidden');
-        guestProfileNav?.classList.add('hidden');
-        adminNavMobile?.classList.add('hidden');
-        guestProfileMobile?.classList.add('hidden');
-    }
+    }
+
+    // Iniciar tracker de inactividad
+    if (typeof startInactivityTracker === 'function') {
+        startInactivityTracker();
+    }
+
+} else {
+    // --- MODO VISITANTE (NO LOGUEADO) ---
+    guestDesktop?.classList.remove('hidden');
+    guestMobile?.classList.remove('hidden');
+    userDesktop?.classList.add('hidden');
+    userMobile?.classList.add('hidden');
+    
+    publicNav?.classList.remove('hidden');
+    publicNavMobile?.classList.remove('hidden');
+    
+    adminNav?.classList.add('hidden');
+    guestProfileNav?.classList.add('hidden');
+    adminNavMobile?.classList.add('hidden');
+    guestProfileMobile?.classList.add('hidden');
+}
 });
 /* |--------------------------------------------------------------------------
 | Lógica de Autenticación por API
