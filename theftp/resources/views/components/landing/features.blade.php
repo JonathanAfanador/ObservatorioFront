@@ -1,3 +1,4 @@
+// --- SECCIÓN DE FUNCIONALIDADES EN LA PÁGINA DE INICIO ---
 <section id="funcionalidades" class="section" style="background-color: var(--primary-3);">
   <div class="container">
     <header class="section-head">

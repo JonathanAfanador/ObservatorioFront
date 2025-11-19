@@ -1,3 +1,4 @@
+// --- SECCIÓN
 <footer id="contacto" class="site-footer">
   <div class="container footer-content">
     <div class="footer-header-top">
@@ -15,7 +16,7 @@
         <img src="{{ asset('images/logo-unipiloto.png') }}" alt="Unipiloto" class="girardot-logo" />
       </div>
     </div>
-
+// --- INFORMACIÓN DE CONTACTO Y RELOJ ---
     <div class="contact-info">
       <div class="info-group">
         <p>Horario: Lun-Vie 8:00 a.m. a 12:00 m. y 2:00 p.m. a 6:00 p.m.</p>
@@ -35,7 +36,7 @@
         <span id="current-time" class="clock-time">--:--:--</span>
       </div>
     </div>
-
+// --- SECCIÓN DE POLÍTICAS Y REDES SOCIALES ---
     <div class="policies-section">
       <h4 class="section-title">Políticas</h4>
       <ul class="policies-list">
@@ -45,7 +46,7 @@
         <li><a href="#">Política de Derechos de Autor</a></li>
       </ul>
     </div>
-
+// --- SECCIÓN DE REDES SOCIALES ---
     <div class="social-links-section">
       <a href="#" class="social-link" aria-label="Facebook">
         <svg fill="currentColor" viewBox="0 0 24 24" width="24" height="24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"></path></svg>
@@ -61,7 +62,7 @@
       </a>
     </div>
   </div>
-
+// --- INFORMACIÓN DE DESARROLLADORES Y LOGOS INSTITUCIONALES ---
   <div class="footer-bottom-info">
     <small> Desarrollado por: </small>
     <img src="{{ asset('images/logo-enredate.jfif') }}" alt="Logo Semillero Enrédate" class="logo-semillero" />

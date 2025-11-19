@@ -1,30 +1,32 @@
-/*
- * Estilos para la alerta de notificación en auth.
- * (Se usa en login.blade.php para confirmar logout)
+/**
+ * Componente: Alerta de Autenticación (Auth Alert).
+ * Descripción: Define la estructura visual para notificaciones en flujos de acceso.
+ * Contexto: Vistas de autenticación (login/logout).
  */
 
 .auth-alert {
-  /* Oculto por defecto */
+  /* Estado inicial del componente (oculto hasta activación) */
   display: none; 
   align-items: flex-start;
   padding: 16px;
   border-radius: var(--radius);
   background-color: var(--gray-100);
   
-  /* Usamos el verde institucional de tu _base.css */
+  /* Definición de borde mediante variable global de acento */
   border: 1px solid var(--accent-green); 
   
   box-shadow: var(--shadow-soft);
-  margin-bottom: 24px; /* 1.5rem */
-  max-width: 448px; /* max-w-md, como el auth-card */
+  margin-bottom: 24px; /* Equivalencia: 1.5rem */
+  max-width: 448px; /* Ancho máximo coincidente con tarjeta de auth */
   width: 100%;
 }
 
-/* Clase que JS añadirá para mostrar la alerta */
+/* Modificador de estado para control de visibilidad mediante JavaScript */
 .auth-alert.is-visible {
   display: flex;
 }
 
+/* Contenedor del icono principal: evita deformación y establece color */
 .auth-alert-icon {
   flex-shrink: 0;
   width: 24px;
@@ -34,22 +36,26 @@
   margin-top: 2px;
 }
 
+/* Contenedor flexible para el cuerpo de texto (título y mensaje) */
 .auth-alert-content {
   flex-grow: 1;
 }
 
+/* Estilos de tipografía para el título de la alerta */
 .auth-alert-title {
-  font-weight: 600; /* semibold */
+  font-weight: 600; /* Peso: semibold */
   color: var(--text);
-  font-size: 16px; /* text-base */
+  font-size: 16px; /* Tamaño: text-base */
 }
 
+/* Estilos de tipografía para el mensaje descriptivo */
 .auth-alert-message {
-  font-size: 14px; /* text-sm */
+  font-size: 14px; /* Tamaño: text-sm */
   color: var(--gray-800);
   margin-top: 4px;
 }
 
+/* Botón de acción para cerrar la alerta */
 .auth-alert-close {
   flex-shrink: 0;
   margin-left: 16px;
@@ -62,10 +68,12 @@
   transition: opacity var(--transition-fast);
 }
 
+/* Estado interactivo (hover) del botón de cierre */
 .auth-alert-close:hover {
   opacity: 1;
 }
 
+/* Dimensiones del elemento gráfico (SVG) dentro del botón de cierre */
 .auth-alert-close svg {
   width: 20px;
   height: 20px;

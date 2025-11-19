@@ -55,7 +55,7 @@
     // Almacén para las instancias de los gráficos
     let graficosActivos = {};
 
-    // --- buildUpcMenu() (Sin cambios) ---
+    // --- buildUpcMenu() 
     function buildUpcMenu() {
         const sidebarNav = document.querySelector('.sidebar-nav');
         if (!sidebarNav) return;
@@ -92,7 +92,7 @@
         `;
     }
 
-    // --- apiGet() (CORREGIDO) ---
+    // --- apiGet() 
     async function apiGet(path) {
         const token = localStorage.getItem('auth_token');
         const headers = { 'Accept': 'application/json' };
@@ -125,7 +125,7 @@
         }
     }
 
-    // --- createTableFromArray() (CORREGIDO) ---
+    // --- createTableFromArray() 
     function createTableFromArray(items, keys, noResultsMessage = "No hay datos disponibles") {
         if (!Array.isArray(items) || items.length === 0) {
             return `<div class="empty-state"><p class="text-gray-500 text-center py-8">${noResultsMessage}</p></div>`;
@@ -173,7 +173,7 @@
         return html;
     }
 
-    // --- loadOverview() (CORREGIDO) ---
+    // --- loadOverview() 
     async function loadOverview() {
         const cardsEl = document.getElementById('upc-cards');
         try {
@@ -284,7 +284,7 @@
         el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando empresas...</p></div>';
         try {
             const response = await apiGet('/api/empresas?include=tipo_empresa&limit=100');
-            dashboardDataStore.empresas = response.data.data; // ¡GUARDA EN STORE!
+            dashboardDataStore.empresas = response.data.data; 
             renderEmpresasTable(); // Llama al renderizador inicial
         } catch (error) {
             el.innerHTML = `<div class="error-state"><p class='text-red-600 text-center py-8'>Error al cargar empresas: ${error.message}</p></div>`;
@@ -460,7 +460,7 @@
         }
     }
 
-    // --- loadTiposDocs() (CORREGIDO) ---
+    // --- loadTiposDocs() 
     async function loadTiposDocs() {
         const sel = document.getElementById('select-tipo-docs');
         sel.innerHTML = '<option value="">Cargando tipos...</option>';
@@ -471,7 +471,7 @@
         } catch (error) { sel.innerHTML = '<option value="">Error al cargar</option>'; }
     }
 
-    // --- loadEmpresasSelect() (CORREGIDO) ---
+    // --- loadEmpresasSelect() 
     async function loadEmpresasSelect() {
         const sel = document.getElementById('select-empresa-rutas');
         sel.innerHTML = '<option value="">Cargando empresas...</option>';
@@ -482,7 +482,7 @@
         } catch (error) { sel.innerHTML = '<option value="">Error al cargar</option>'; }
     }
 
-    // --- setupUpcListeners() (MODIFICADO) ---
+    // --- setupUpcListeners() 
     function setupUpcListeners() {
         // --- FILTROS DE TEXTO (keyup) ---
         document.getElementById('filter-empresas').addEventListener('keyup', renderEmpresasTable);
@@ -610,7 +610,7 @@
             });
         });
 
-        // --- ¡NUEVO LISTENER PARA EL RESUMEN! ---
+        // --- BOTÓN DE EXPORTAR RESUMEN ---
         const summaryButton = document.getElementById('btn-export-summary');
         if (summaryButton) {
             summaryButton.addEventListener('click', handleExportSummary);
@@ -795,7 +795,7 @@
     }
 
     // --- DOMContentLoaded (MODIFICADO) ---
-    document.addEventListener('DOMContentLoaded', async () => { // <-- 1. AÑADIR ASYNC
+    document.addEventListener('DOMContentLoaded', async () => { 
         buildUpcMenu();
 
         const navLinks = document.querySelectorAll('.nav-link');
@@ -822,7 +822,7 @@
         });
 
         // --- 2. AÑADIR AWAIT PROMISE.ALLSETTLED ---
-        // Esto fuerza al código a esperar que TODAS estas funciones terminen
+        // fuerza al código a esperar que TODAS estas funciones terminen
         await Promise.allSettled([
             loadOverview(),
             loadEmpresas(),
@@ -835,7 +835,7 @@
         ]);
 
         // --- 3. MOVER ESTO AL FINAL ---
-        // Ahora, los listeners solo se activan DESPUÉS de que los datos existen
+        //  los listeners solo se activan DESPUÉS de que los datos existen
         setupUpcListeners();
 
         // Forzar vista por defecto (sin cambios)
