@@ -1,32 +1,34 @@
 /*
- * Controla la visualización de la alerta de notificación
- * en la página de login.
+ * Controla cuándo se muestra u oculta la alerta de notificación
+ * en la pantalla de inicio de sesión.
  */
 document.addEventListener('DOMContentLoaded', () => {
-  
-  // 1. Busca el contenedor de la alerta en la página
+
+  // Busca el elemento donde debería aparecer la alerta
   const alertBox = document.getElementById('auth-alert-box');
   if (!alertBox) {
-    // Si no hay alerta en esta página, no hacer nada.
+    // Si en esta vista no existe la alerta, no hay nada que manejar
     return;
   }
 
+  // Ubica el botón encargado de cerrar la alerta
   const closeButton = alertBox.querySelector('.auth-alert-close');
-  
-  // 2. Lógica para CERRAR la alerta
+
+  // Maneja el cierre de la alerta cuando el usuario hace clic
   if (closeButton) {
     closeButton.addEventListener('click', () => {
-      // Oculta la alerta al hacer clic en la 'X'
+      // Al presionar la “X”, simplemente se oculta el mensaje
       alertBox.classList.remove('is-visible');
     });
   }
 
-  // 3. Lógica para MOSTRAR la alerta
+  // Revisa los parámetros de la URL para saber si debe mostrarse la alerta
   const urlParams = new URLSearchParams(window.location.search);
-  
+
+  // Si llega el parámetro ?status=logged-out, significa que cerró sesión
   if (urlParams.get('status') === 'logged-out') {
-    // Si el parámetro ?status=logged-out existe...
-    alertBox.classList.add('is-visible'); // ¡Muéstralo!
+    // En ese caso, se activa la visibilidad de la alerta
+    alertBox.classList.add('is-visible');
   }
 
 });
