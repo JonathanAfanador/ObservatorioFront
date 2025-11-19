@@ -2,27 +2,31 @@
 // ========================================================================
 
 // --- Configuración Global ---
+// Estado en memoria para no estar pidiendo los mismos datos a la API todo el tiempo
 let adminStore = {
     users: [],
     roles: [],
     personas: []
 };
 
+// IDs de elemento que se está editando en los modales
 let editingUserId = null;
 let editingRoleId = null;
 
 // --- Utilidades API ---
+// Devuelve el token de autenticación almacenado en el navegador
 function getToken() {
     return localStorage.getItem('auth_token');
 }
 
+// Muestra una notificación flotante en la parte superior/derecha de la pantalla
 function showNotification(type, title, message) {
     const container = document.getElementById('notification-container');
     if (!container) return;
-    
+
     const div = document.createElement('div');
     div.className = `notification ${type}`;
-    
+
     let icon = '';
     if(type === 'success') icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
     if(type === 'error') icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -36,16 +40,20 @@ function showNotification(type, title, message) {
         </div>
         <button class="notification-close">×</button>
     `;
-    
+
+    // Permite cerrar manualmente la notificación
     div.querySelector('.notification-close').addEventListener('click', () => div.remove());
     container.appendChild(div);
+
+    // Se cierra sola después de unos segundos
     setTimeout(() => div.remove(), 5000);
 }
 
+// Función genérica para llamar a la API del backend
 async function apiCall(endpoint, method = 'GET', body = null) {
     const token = getToken();
     const headers = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json', 'Content-Type': 'application/json' };
-    
+
     try {
         const res = await fetch(`/api${endpoint}`, {
             method,
@@ -55,6 +63,7 @@ async function apiCall(endpoint, method = 'GET', body = null) {
 
         const json = await res.json();
 
+        // Manejo de errores HTTP, incluyendo validación (422)
         if (!res.ok) {
             if (res.status === 422 && json.errors) {
                 const errorMsg = Object.entries(json.errors).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('\n');
@@ -71,10 +80,11 @@ async function apiCall(endpoint, method = 'GET', body = null) {
 }
 
 // --- 1. Menú Lateral ---
+// Construye el menú lateral del dashboard y configura el cambio entre vistas
 function buildAdminMenu() {
     const sidebarNav = document.querySelector('.sidebar-nav');
     if (!sidebarNav) return;
-    
+
     sidebarNav.innerHTML = `
         <p class="nav-section-title">Administración</p>
         <a href="#overview" class="nav-link active" data-view="overview">
@@ -90,27 +100,34 @@ function buildAdminMenu() {
             <span>Roles y Permisos</span>
         </a>
     `;
-    
+
+    // Maneja el cambio visual entre las diferentes vistas del dashboard
     const links = document.querySelectorAll('.sidebar-nav .nav-link');
     links.forEach(link => {
         link.addEventListener('click', (e) => {
             const view = link.getAttribute('data-view');
             if(view) {
                 e.preventDefault();
+                // Oculta todas las vistas
                 document.querySelectorAll('.dashboard-view').forEach(v => v.style.display = 'none');
+                // Muestra la vista seleccionada
                 const target = document.getElementById(`view-${view}`);
                 if(target) target.style.display = 'block';
+                // Actualiza el estado activo en el menú
                 links.forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
-                
+
+                // Cambia el título de la cabecera
                 const headerTitle = document.getElementById('header-title');
                 if(headerTitle) headerTitle.textContent = 'Administración - ' + view.charAt(0).toUpperCase() + view.slice(1);
+                // Carga los datos asociados a esa vista
                 loadViewData(view);
             }
         });
     });
 }
 
+// Decide qué datos cargar según la vista activa
 async function loadViewData(view) {
     switch(view) {
         case 'overview': loadStats(); break;
@@ -120,6 +137,7 @@ async function loadViewData(view) {
 }
 
 // --- 2. Resumen y Estadísticas ---
+// Carga contadores básicos (usuarios, roles, auditorías) y los pinta en tarjetas
 async function loadStats() {
     try {
         const [users, roles, audits] = await Promise.all([
@@ -170,6 +188,7 @@ async function loadStats() {
 }
 
 // --- 3. Renderizado Genérico de Tablas ---
+// Función reutilizable para armar tablas HTML dado un arreglo de datos
 function renderTable(data, columns, containerId) {
     const container = document.getElementById(containerId);
     if (!data || data.length === 0) {
@@ -182,7 +201,7 @@ function renderTable(data, columns, containerId) {
     html += `</tr></thead><tbody class="divide-y divide-gray-200">`;
 
     data.forEach(row => {
-        // Si deleted_at existe, la fila es roja clara
+        // Si deleted_at existe, marcamos la fila en rojo claro para indicar baja lógica
         const rowClass = row.deleted_at ? 'bg-red-50 hover:bg-red-100 transition-colors' : 'hover:bg-gray-50 transition-colors';
         html += `<tr class="${rowClass}">`;
         columns.forEach(col => {
@@ -198,24 +217,21 @@ function renderTable(data, columns, containerId) {
 // ===============================
 // 4. GESTIÓN DE USUARIOS
 // ===============================
+// Obtiene el listado de usuarios desde la API y actualiza la tabla
 async function loadUsers() {
     const container = document.getElementById('users-table');
     container.innerHTML = '<div class="loading-state py-8 text-center text-gray-500">Cargando usuarios...</div>';
 
     // Leer estado del checkbox "Ver Eliminados"
     const showDeleted = document.getElementById('toggle-deleted-users').checked;
-    
-    // Construcción de parámetros:
-    // Si showDeleted es true -> pedimos SOLO eliminados (onlySoftDeleted=true)
-    // Si es false -> pedimos activos (comportamiento default)
-    // include=rol,persona trae los datos relacionados
-    // limit=3000 nos asegura traer todos para filtrado en cliente si es necesario, o simplemente muchos
-    const params = showDeleted 
-        ? '?include=rol,persona&limit=3000&onlySoftDeleted=true' 
+
+    // Construcción de parámetros según si se quieren ver eliminados o no
+    const params = showDeleted
+        ? '?include=rol,persona&limit=3000&onlySoftDeleted=true'
         : '?include=rol,persona&limit=3000';
 
     const res = await apiCall(`/users${params}`);
-    
+
     if (res && res.data) {
         // Manejo de paginación o respuesta plana
         adminStore.users = res.data.data || res.data;
@@ -227,26 +243,27 @@ async function loadUsers() {
     }
 }
 
+// Renderiza la tabla de usuarios con columnas personalizadas
 function renderUsers(data) {
     renderTable(data, [
         { header: 'ID', key: 'id' },
         { header: 'Nombre', key: 'name' },
         { header: 'Email', key: 'email' },
         { header: 'Rol', render: (r) => r.rol ? `<span class="px-2 py-1 text-xs font-bold rounded bg-blue-100 text-blue-800">${r.rol.descripcion}</span>` : '<span class="text-gray-400 italic">Sin Rol</span>' },
-        { header: 'Estado', render: (r) => r.deleted_at 
-            ? `<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 flex items-center w-fit gap-1"><div class="w-2 h-2 rounded-full bg-red-600"></div>Eliminado</span>` 
-            : `<span class="px-2 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800 flex items-center w-fit gap-1"><div class="w-2 h-2 rounded-full bg-green-600"></div>Activo</span>` 
+        { header: 'Estado', render: (r) => r.deleted_at
+            ? `<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 flex items-center w-fit gap-1"><div class="w-2 h-2 rounded-full bg-red-600"></div>Eliminado</span>`
+            : `<span class="px-2 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800 flex items-center w-fit gap-1"><div class="w-2 h-2 rounded-full bg-green-600"></div>Activo</span>`
         },
         { header: 'Acciones', render: (r) => {
+            // Si el usuario está eliminado, solo mostramos opción de restaurar
             if (r.deleted_at) {
-                // Botón REHABILITAR
                 return `
                 <button onclick="restoreUser(${r.id})" class="text-green-600 hover:text-green-900 font-medium flex items-center gap-1 transition-colors" title="Restaurar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     Restaurar
                 </button>`;
             } else {
-                // Botones Normales
+                // Para usuarios activos, mostramos editar y eliminar
                 return `
                 <div class="flex gap-3">
                     <button onclick="openModalUser(${r.id})" class="text-yellow-600 hover:text-yellow-900 transition-colors" title="Editar">
@@ -262,12 +279,13 @@ function renderUsers(data) {
 }
 
 // --- LÓGICA DE RESTAURACIÓN ---
+// Restaura un usuario que estaba eliminado (soft delete)
 window.restoreUser = async function(id) {
     if(!confirm('¿Estás seguro de restaurar este usuario?')) return;
-    
-    // Endpoint: POST /api/users/{id}/rehabilitate
+
+    // Endpoint que re-habilita el usuario
     const res = await apiCall(`/users/${id}/rehabilitate`, 'POST');
-    
+
     if(res && res.status) {
         showNotification('success', 'Usuario Restaurado', 'El usuario ha sido habilitado exitosamente.');
         loadUsers(); // Recargamos la tabla para reflejar el cambio
@@ -275,17 +293,18 @@ window.restoreUser = async function(id) {
 };
 
 // --- Lógica del Modal de Usuario ---
+// Abre el modal para crear o editar usuarios, y precarga roles/personas
 window.openModalUser = async function(id = null) {
     editingUserId = id;
     const modal = document.getElementById('modal-user');
     const form = document.getElementById('form-user');
     const title = document.getElementById('modal-user-title');
-    
+
     form.reset();
     modal.style.display = 'flex';
     title.textContent = id ? 'Editar Usuario' : 'Crear Usuario';
 
-    // 1. Cargar Roles (Si está vacío)
+    // 1. Cargar Roles (Si está vacío el select)
     const roleSelect = document.getElementById('user-role');
     if(roleSelect.options.length <= 1) {
         const roles = await apiCall('/rol');
@@ -298,19 +317,18 @@ window.openModalUser = async function(id = null) {
         }
     }
 
-    // 2. Cargar Personas (CORREGIDO: Carga masiva con límite alto)
+    // 2. Cargar Personas (petición masiva)
     const personaSelect = document.getElementById('user-persona');
     if(personaSelect.options.length <= 1) {
         personaSelect.innerHTML = '<option>Cargando lista completa...</option>';
-        
-        // Solicitud con límite alto para traer todas las personas
-        const personas = await apiCall('/personas?limit=3000'); 
-        
+
+        const personas = await apiCall('/personas?limit=3000');
+
         personaSelect.innerHTML = '<option value="">Seleccione Persona...</option>';
         if(personas && personas.data) {
             const list = personas.data.data || personas.data;
-            
-            // Ordenar alfabéticamente para facilitar búsqueda visual
+
+            // Ordena el listado para facilitar la búsqueda visual
             list.sort((a, b) => (a.name + a.last_name).localeCompare(b.name + b.last_name));
 
             list.forEach(p => {
@@ -319,7 +337,7 @@ window.openModalUser = async function(id = null) {
         }
     }
 
-    // 3. Si es edición, llenar datos
+    // 3. Si estamos editando, rellenar el formulario con datos actuales
     if(id) {
         const user = adminStore.users.find(u => u.id === id);
         if(user) {
@@ -331,19 +349,21 @@ window.openModalUser = async function(id = null) {
     }
 };
 
+// Guarda el usuario (nuevo o editado) cuando se envía el formulario
 async function saveUser(e) {
     e.preventDefault();
-    
+
     const payload = {
         name: document.getElementById('user-name').value,
         email: document.getElementById('user-email').value,
         rol_id: document.getElementById('user-role').value,
         persona_id: document.getElementById('user-persona').value,
     };
-    
+
     const password = document.getElementById('user-password').value;
     if (password) payload.password = password;
-    
+
+    // Si es creación y no hay contraseña, avisamos
     if (!editingUserId && !password) {
         return showNotification('warning', 'Falta Contraseña', 'Para usuarios nuevos la contraseña es obligatoria.');
     }
@@ -362,6 +382,7 @@ async function saveUser(e) {
     }
 }
 
+// Elimina (soft delete) un usuario tras confirmación
 window.deleteUser = async function(id) {
     if(!confirm('¿Estás seguro de eliminar este usuario?')) return;
     const res = await apiCall(`/users/${id}`, 'DELETE');
@@ -370,35 +391,36 @@ window.deleteUser = async function(id) {
         loadUsers();
     }
 };
-// Función auxiliar para llenar el Select
+
+// Función auxiliar para llenar el Select de personas desde una lista ya filtrada
 function renderPersonasSelect(list, selectedId = null) {
     const select = document.getElementById('user-persona');
     select.innerHTML = '<option value="">Seleccione una persona...</option>';
-    
+
     if (list.length === 0) {
         select.innerHTML += '<option value="" disabled>No se encontraron coincidencias</option>';
         return;
     }
 
-    // Limitamos a mostrar 100 resultados si no hay filtro para no congelar el navegador
-    // pero si hay un selectedId, aseguramos que aparezca
+    // Limitamos el renderizado para no congelar la interfaz
     const limit = 100;
     let count = 0;
 
     for (const p of list) {
-        if (count >= limit && p.id !== selectedId) continue; // Optimización de renderizado
+        if (count >= limit && p.id !== selectedId) continue;
 
         const option = document.createElement('option');
         option.value = p.id;
         option.textContent = `${p.name} ${p.last_name} - ${p.nui}`;
-        
+
         if (p.id === selectedId) {
             option.selected = true;
         }
         select.appendChild(option);
         count++;
     }
-    
+
+    // Mensaje indicando que hay más resultados ocultos
     if (list.length > limit) {
         const option = document.createElement('option');
         option.disabled = true;
@@ -407,7 +429,7 @@ function renderPersonasSelect(list, selectedId = null) {
     }
 }
 
-// Función de apertura del modal actualizada
+// Función de apertura del modal actualizada con filtro de personas
 window.openModalUser = async function(id = null) {
     editingUserId = id;
     const modal = document.getElementById('modal-user');
@@ -416,12 +438,12 @@ window.openModalUser = async function(id = null) {
     const filterInput = document.getElementById('filter-persona-input'); // NUEVO
 
     form.reset();
-    if(filterInput) filterInput.value = ''; // Limpiar filtro al abrir
-    
+    if(filterInput) filterInput.value = ''; // Limpia el filtro al abrir
+
     modal.style.display = 'flex';
     title.textContent = id ? 'Editar Usuario' : 'Crear Usuario';
 
-    // 1. Cargar Roles (Si está vacío)
+    // 1. Cargar Roles (solo la primera vez)
     const roleSelect = document.getElementById('user-role');
     if(roleSelect.options.length <= 1) {
         const roles = await apiCall('/rol');
@@ -434,29 +456,26 @@ window.openModalUser = async function(id = null) {
         }
     }
 
-    // 2. Cargar Personas (CARGA ÚNICA EN MEMORIA)
-    // Solo pedimos a la API si el array adminStore.personas está vacío
+    // 2. Cargar Personas (cacheadas en adminStore.personas)
     if (adminStore.personas.length === 0) {
         const personaSelect = document.getElementById('user-persona');
         personaSelect.innerHTML = '<option>Cargando datos...</option>';
-        
-        // Pedimos 5000 para traer todo el directorio
+
         const res = await apiCall('/personas?limit=3000');
-        
+
         if (res && res.data) {
-            // Guardamos TODO en memoria
             adminStore.personas = res.data.data || res.data;
-            
-            // Ordenamos alfabéticamente una sola vez
-            adminStore.personas.sort((a, b) => 
+
+            // Ordenamos una sola vez
+            adminStore.personas.sort((a, b) =>
                 (a.name + a.last_name).localeCompare(b.name + b.last_name)
             );
         }
     }
 
-    // 3. Si es edición, llenar datos y PRE-SELECCIONAR
+    // 3. Si es edición, obtenemos la persona asociada para preseleccionarla
     let currentPersonaId = null;
-    
+
     if(id) {
         const user = adminStore.users.find(u => u.id === id);
         if(user) {
@@ -467,20 +486,20 @@ window.openModalUser = async function(id = null) {
         }
     }
 
-    // 4. Renderizar el select con la lista completa (o filtrada inicialmente)
-    // Pasamos el ID actual para asegurar que aparezca seleccionado aunque esté abajo en la lista
+    // 4. Pintamos el select con la lista completa y la persona actual (si aplica)
     renderPersonasSelect(adminStore.personas, currentPersonaId);
 };
 
 // --- SETUP DEL FILTRO EN TIEMPO REAL ---
+// Activa el buscador de personas dentro del modal de usuario
 function setupPersonaFilter() {
     const input = document.getElementById('filter-persona-input');
     if (!input) return;
 
     input.addEventListener('keyup', (e) => {
         const term = e.target.value.toLowerCase();
-        
-        // Filtrar sobre el array en memoria
+
+        // Filtra sobre el arreglo cacheado en memoria
         const filtered = adminStore.personas.filter(p => {
             const fullName = `${p.name} ${p.last_name}`.toLowerCase();
             const nui = String(p.nui);
@@ -491,13 +510,15 @@ function setupPersonaFilter() {
         const currentSelect = document.getElementById('user-persona');
         const currentVal = currentSelect.value ? parseInt(currentSelect.value) : null;
 
-        // Volver a pintar el select
+        // Volvemos a dibujar el select con el resultado filtrado
         renderPersonasSelect(filtered, currentVal);
     });
 }
+
 // ===============================
 // 5. GESTIÓN DE ROLES
 // ===============================
+// Carga todos los roles y actualiza la tabla
 async function loadRoles() {
     const container = document.getElementById('roles-table');
     container.innerHTML = '<div class="loading-state py-8 text-center text-gray-500">Cargando roles...</div>';
@@ -510,6 +531,7 @@ async function loadRoles() {
     }
 }
 
+// Construye la tabla de roles con botones de editar y eliminar
 function renderRoles(data) {
     renderTable(data, [
         { header: 'ID', key: 'id' },
@@ -527,6 +549,7 @@ function renderRoles(data) {
     ], 'roles-table');
 }
 
+// Abre el modal de rol y precarga la descripción si es edición
 window.openModalRole = function(id = null, desc = '') {
     editingRoleId = id;
     document.getElementById('modal-role').style.display = 'flex';
@@ -535,6 +558,7 @@ window.openModalRole = function(id = null, desc = '') {
     if(id) document.getElementById('role-desc').value = desc;
 };
 
+// Guarda un rol nuevo o actualizado según el estado de editingRoleId
 async function saveRole(e) {
     e.preventDefault();
     const desc = document.getElementById('role-desc').value;
@@ -554,6 +578,7 @@ async function saveRole(e) {
     }
 }
 
+// Elimina un rol después de la confirmación del usuario
 window.deleteRole = async function(id) {
     if(!confirm('¿Eliminar este rol?')) return;
     const res = await apiCall(`/rol/${id}`, 'DELETE');
@@ -564,12 +589,15 @@ window.deleteRole = async function(id) {
 };
 
 // --- Helper de Búsqueda ---
+// Habilita un input para filtrar resultados de una tabla en tiempo real
 function setupSearch(inputId, dataList, keys, renderFn) {
     const input = document.getElementById(inputId);
     if(!input) return;
+
+    // Clonamos el input para evitar listeners duplicados si se llama más de una vez
     const newInput = input.cloneNode(true);
     input.parentNode.replaceChild(newInput, input);
-    
+
     newInput.addEventListener('keyup', (e) => {
         const term = e.target.value.toLowerCase();
         const filtered = dataList.filter(item => {
@@ -580,25 +608,30 @@ function setupSearch(inputId, dataList, keys, renderFn) {
 }
 
 // --- Inicialización ---
+// Punto de entrada del dashboard: configura menú, vistas y eventos
 document.addEventListener('DOMContentLoaded', () => {
     buildAdminMenu();
     loadStats();
+
+    // Muestra el resumen por defecto
     const defView = document.getElementById('view-overview');
     if(defView) defView.style.display = 'block';
 
-    // Botones
+    // Botones para abrir modales
     document.getElementById('btn-add-user')?.addEventListener('click', () => openModalUser());
     document.getElementById('btn-add-role')?.addEventListener('click', () => openModalRole());
-    
-    // Formularios
+
+    // Formularios para guardar usuario/rol
     document.getElementById('form-user')?.addEventListener('submit', saveUser);
     document.getElementById('form-role')?.addEventListener('submit', saveRole);
-    
-    // Cancelar Modales
+
+    // Botones de cerrar modales
     document.getElementById('btn-cancel-user')?.addEventListener('click', () => document.getElementById('modal-user').style.display = 'none');
     document.getElementById('btn-cancel-role')?.addEventListener('click', () => document.getElementById('modal-role').style.display = 'none');
-    
-    // EVENT LISTENER NUEVO: Checkbox Ver Eliminados
+
+    // Checkbox para alternar entre usuarios activos y eliminados
     document.getElementById('toggle-deleted-users')?.addEventListener('change', loadUsers);
+
+    // Activa el filtro de personas en el modal de usuarios
     setupPersonaFilter();
 });
