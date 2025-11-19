@@ -162,8 +162,8 @@ async function loadStats() {
         const totalRutas = rutas.total || 0;
         const totalResoluciones = resoluciones.total || 0;
 
-        // Inyectamos HTML 
-    
+        // Inyectamos HTML con diseño de Cards Profesional
+        // Asegúrate de que en tu blade existan un contenedor con id="stats-container" dentro de #view-resumen
         const container = document.querySelector('#view-resumen .stat-grid'); 
         if(container) {
             container.innerHTML = `

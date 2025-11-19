@@ -1,5 +1,5 @@
 @php
-// configuración de las diapositivas del carrusel
+// Tus datos de los slides (no cambian)
 $slides = [
   [
     'id' => 1,
@@ -50,19 +50,19 @@ $slides = [
           <div class="swiper-slide">
 
             {{-- 
-              todo el wrapper es un enlace 
+              CAMBIO: Ahora todo el wrapper es un enlace 
               y hemos quitado el botón de abajo.
             --}}
             <a href="{{ $slide['link'] }}" class="carousel-slide-link" aria-label="Ver {{ $slide['title'] }}">
               <div class="car-slide-wrapper">
                 
-                {{-- Clase dinámica  --}}
+                {{-- Clase dinámica (tu código original, está perfecto) --}}
                 <div class="car-image-full bg-slide-{{ $loop->index }}"></div>
                 
                 <div class="car-body-overlay">
                   <h3>{{ $slide['title'] }}</h3>
                   <p>{{ $slide['text'] }}</p>
-                  
+                  {{-- El div.car-cta con el botón ha sido eliminado --}}
                 </div>
               </div>
             </a>

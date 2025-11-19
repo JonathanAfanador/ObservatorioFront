@@ -2,6 +2,7 @@
     <div class="container">
         
         <div class="brand">
+            {{-- Asegúrate de poner estas imágenes en public/images/ --}}
             <img src="{{ asset('images/logo-alcaldia.png') }}" alt="Alcaldía de Girardot" class="logo" />
             <span class="divider" aria-hidden="true"></span>
             <img src="{{ asset('images/logo-unipiloto.png') }}" alt="Universidad Piloto - SAM" class="logo" />
@@ -16,19 +17,19 @@
             <a href="#contacto">Contacto</a>
         </nav>
 
-{{--  CONTENEDOR PARA INVITADOS  --}}
+{{-- 1. CONTENEDOR PARA INVITADOS (SIN CAMBIOS) --}}
         {{-- Tu JS ocultará este bloque --}}
         <div class="auth-desktop" id="auth-guest-desktop">
             <a href="{{ route('login') }}" class="btn btn-ghost">Iniciar sesión</a>
             <a href="{{ route('register') }}" class="btn btn-primary">Registro</a>
         </div>
         
-        {{--  CONTENEDOR PARA USUARIOS LOGUEADOS }}
-       
+        {{-- 2. CONTENEDOR PARA USUARIOS LOGUEADOS (¡AQUÍ ESTÁ EL CAMBIO!) --}}
+        {{-- Tu JS mostrará este bloque --}}
         <div class="auth-desktop user-nav-desktop hidden" id="auth-user-desktop">
 
-           
-            {{-- mostrará esto para el Admin --}}
+            {{-- ¡MOVIMOS EL PANEL AQUÍ DENTRO! --}}
+            {{-- Tu JS mostrará esto para el Admin --}}
             <nav class="nav-wrapper-desktop hidden" id="nav-admin-links">
                 <a href="#" id="admin-dashboard-link" class="btn btn-primary btn-dashboard">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
@@ -42,8 +43,8 @@
                 </a>
             </nav>
 
-           
-            {{-- JS mostrará esto para el Invitado Rol 5 --}}
+            {{-- ¡MOVIMOS EL PERFIL AQUÍ DENTRO! --}}
+            {{-- Tu JS mostrará esto para el Invitado Rol 5 --}}
             <nav class="nav-wrapper-desktop hidden" id="nav-guest-profile">
                 <div class="profile-dropdown">
                     <button class="profile-btn" id="profile-toggle-btn" aria-haspopup="true" aria-expanded="false">
@@ -63,7 +64,8 @@
                 </div>
             </nav>
             
-        
+            {{-- EL BOTÓN DE LOGOUT YA ESTABA AQUÍ --}}
+            {{-- Siempre estará visible si #auth-user-desktop lo está --}}
             <button class="btn-logout btn btn-ghost">
                 Cerrar Sesión
             </button>
@@ -88,7 +90,7 @@
 <nav class="offcanvas-nav" id="offcanvas-nav" aria-hidden="true">
     <button class="offcanvas-close" id="offcanvas-close" aria-label="Cerrar menú">✕</button>
     <ul>
-        {{-- contenedor que tu JS buscaba --}}
+        {{-- Aquí está el contenedor que tu JS buscaba --}}
         <div id="nav-public-links-mobile">
             <li><span><a href="#inicio" class="offcanvas-link">Inicio</a></span></li>
             <li><span><a href="#roles" class="offcanvas-link">Conoce el proyecto</a></span></li>
@@ -98,15 +100,16 @@
         </div>
         
         {{-- 
+          ¡CAMBIOS AQUÍ! 
           Se añadieron IDs y secciones separadas para invitados y usuarios.
         --}}
 
-{{--  Link al panel para Admin/Secre en móvil  --}}
+{{-- ¡NUEVO! Link al panel para Admin/Secre en móvil (Oculto) --}}
         <li class="offcanvas-auth hidden" id="nav-admin-links-mobile">
             <a href="#" id="admin-dashboard-link-mobile" class="btn btn-primary" style="width: 100%; justify-content: center;">Ir a mi Panel</a>
         </li>
 
-        {{--  Perfil de Invitado en móvil  --}}
+        {{-- ¡NUEVO! Perfil de Invitado en móvil (Oculto) --}}
         <li class="offcanvas-auth hidden" id="nav-guest-profile-mobile">
             <div class="profile-info" style="padding: 10px 20px; text-align: center;">
                 <p class="profile-info-name" id="profile-info-name-mobile" style="color: var(--white); font-weight: 600; text-transform: capitalize;">...</p>
