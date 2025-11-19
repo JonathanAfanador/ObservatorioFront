@@ -7,14 +7,14 @@
         .content-card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
         .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
         .stat-box { background: #f8fafc; padding: 1.5rem; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
-        .stat-number { font-size: 2rem; font-weight: bold; color: #2563eb; }
+        stat-number { font-size: 2rem; font-weight: bold; color: #2563eb; }
         .bg-gradient-to-br.from-blue-500.to-blue-700 { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
         .bg-gradient-to-br.from-purple-500.to-purple-700 { background: linear-gradient(135deg, #a855f7, #7e22ce); }
         .bg-gradient-to-br.from-emerald-500.to-emerald-700 { background: linear-gradient(135deg, #10b981, #047857); }
         .text-white { color: #fff; }
         .rounded-xl { border-radius: 0.75rem; }
         .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .p-6 { padding: 1.5rem; }
+        .p-6 { padding: 1.5rem; }   
         .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
         .font-bold { font-weight: 700; }
     </style>

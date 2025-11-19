@@ -19,7 +19,7 @@ function redirectToHome(message) {
     window.location.href = '/';
 }
 
-// --- GUARDIÁN DE SEGURIDAD (Mantenido de tu versión) ---
+// --- GUARDIÁN DE SEGURIDAD  ---
 (function() {
     console.log("Ejecutando Guardián de Seguridad del Dashboard...");
 
@@ -57,7 +57,7 @@ function redirectToHome(message) {
         return;
     }
 
-    // ¡AUTORIZADO! Muestra el layout
+    //  Muestra el layout
     console.log(`Acceso concedido para el rol: ${roleDesc}. Mostrando panel.`);
     const layoutWrapper = document.getElementById('dashboard-layout-wrapper');
     if (layoutWrapper) {
@@ -66,7 +66,7 @@ function redirectToHome(message) {
 })();
 
 
-// --- LÓGICA DE INTERACTIVIDAD DEL LAYOUT (¡NUEVO!) ---
+// --- LÓGICA DE INTERACTIVIDAD DEL LAYOUT  ---
 (function() {
 
     /**
@@ -96,7 +96,7 @@ function redirectToHome(message) {
     }
 
     /**
-     * Lógica para el menú de usuario (arriba a la derecha)
+     * Lógica para el menú de usuario 
      */
     function initUserDropdown() {
         const userMenuToggle = document.getElementById('user-menu-toggle');
@@ -144,7 +144,7 @@ function redirectToHome(message) {
     }
 
     /**
-     * Lógica de navegación por Pestañas (Mantenida de tu versión)
+     * Lógica de navegación por Pestañas 
      */
     function initTabNavigation() {
         const navLinks = document.querySelectorAll('.nav-link');
@@ -191,7 +191,7 @@ function redirectToHome(message) {
             });
         });
 
-        // Cargar vista desde el Hash (Mantenido de tu versión)
+        // Cargar vista desde el Hash 
         if (window.location.hash) {
             const hashView = window.location.hash.substring(1);
             const linkToClick = document.querySelector(`.nav-link[data-view="${hashView}"]`);
