@@ -9,74 +9,6 @@ function getToken() {
     return localStorage.getItem('auth_token');
 }
 
-// Decodifica el payload de un JWT (sin verificar firma) y devuelve el objeto JSON
-function decodeJwtPayload(token) {
-    try {
-        if (!token || typeof token !== 'string') return null;
-        const parts = token.split('.');
-        if (parts.length < 2) return null;
-        // El payload está en la segunda parte (base64url)
-        const payload = parts[1];
-        // Convertir base64url a base64 estándar
-        const b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-        const padded = b64.padEnd(b64.length + (4 - (b64.length % 4)) % 4, '=');
-        const jsonStr = atob(padded);
-        try {
-            return JSON.parse(jsonStr);
-        } catch (e) {
-            // Algunos servidores devuelven cadenas URI-encoded dentro del JWT
-            return JSON.parse(decodeURIComponent(escape(jsonStr)));
-        }
-    } catch (err) {
-        console.warn('decodeJwtPayload failed:', err);
-        return null;
-    }
-}
-
-// Intenta resolver el user id desde varias fuentes: localStorage keys, auth_user JSON, o el token JWT
-function getUserId() {
-    // Posibles claves donde se almacena el id directamente
-    const keys = ['user_id', 'id', 'usuario_id'];
-    for (const k of keys) {
-        const v = localStorage.getItem(k);
-        if (v) {
-            const n = parseInt(v, 10);
-            if (!isNaN(n)) return n;
-        }
-    }
-
-    // Algunas apps guardan el usuario completo en `auth_user` o `authUser`
-    const userJsonKeys = ['auth_user', 'authUser', 'user', 'usuario'];
-    for (const k of userJsonKeys) {
-        const raw = localStorage.getItem(k);
-        if (raw) {
-            try {
-                const obj = JSON.parse(raw);
-                if (obj) {
-                    const cand = obj.id || obj.user_id || obj.usuario_id || obj.uid || obj.sub;
-                    const n = parseInt(cand, 10);
-                    if (!isNaN(n)) return n;
-                }
-            } catch (e) {
-                // no es JSON, ignorar
-            }
-        }
-    }
-
-    // Como último recurso, intentar decodificar el token JWT y leer claims comunes
-    const token = getToken();
-    if (token) {
-        const payload = decodeJwtPayload(token);
-        if (payload) {
-            const cand = payload.sub || payload.id || payload.user_id || payload.uid || payload.usuario_id;
-            const n = parseInt(cand, 10);
-            if (!isNaN(n)) return n;
-        }
-    }
-
-    return null;
-}
-
 // Sistema de notificaciones en página
 function showNotification(type, title, message, duration = 5000) {
     const container = document.getElementById('notification-container');
@@ -938,10 +870,16 @@ async function loadLicencias() {
     console.log('Respuesta cruda:', response);
     console.log('Licencias normalizadas:', licencias);
 
-    // Cargar catálogos auxiliares
+    if (licencias.length === 0) {
+        document.getElementById('licencias-table').innerHTML = '<div style="padding: 2rem; text-align: center; color: #999;">No hay licencias registradas aún.</div>';
+        return;
+    }
+
+    // Cargar datos de categorías, restricciones y documentos (primera página)
     const categoriasResp = await apiGet('/categorias_licencia');
     const restriccionesResp = await apiGet('/restriccion_lic');
     const documentosResp = await apiGet('/documentos');
+    // Cargar conductores con persona para fallback de nombres/iniciales
     const conductoresResp = await apiGet('/conductores?include=persona');
 
     const categorias = normalizeList(categoriasResp);
@@ -949,83 +887,62 @@ async function loadLicencias() {
     const documentos = normalizeList(documentosResp);
     const conductoresLista = normalizeList(conductoresResp);
 
-    // Maps rápidos
+    const conductorPersonaMap = {};
+    conductoresLista.forEach(c => { if (c.persona) conductorPersonaMap[c.id] = c.persona; });
+
+    // Construir mapas iniciales
     const categoriasMap = {};
     const restriccionesMap = {};
     const documentosMap = {};
-    const conductorPersonaMap = {};
+    categorias.forEach(c => { categoriasMap[c.id] = c.nombre || c.descripcion || 'N/A'; });
+    restricciones.forEach(r => { restriccionesMap[r.id] = r.descripcion || 'Sin restricciones'; });
+    documentos.forEach(d => { documentosMap[d.id] = d; });
 
-    categorias.forEach(c => { if (c && (c.id || c.categoria_id)) categoriasMap[c.id || c.categoria_id] = c; });
-    restricciones.forEach(r => { if (r && (r.id || r.restriccion_lic_id)) restriccionesMap[r.id || r.restriccion_lic_id] = (r.descripcion || r.nombre || 'Sin restricciones'); });
-    documentos.forEach(d => { if (d && (d.id || d.documento_id)) documentosMap[d.id || d.documento_id] = d; });
-    conductoresLista.forEach(c => { if (c && c.persona) conductorPersonaMap[c.id] = c.persona; });
-
-    // Helper: resolve category display (prefer codigo, then nombre/descripcion)
-    function resolveCategoria(lica, wrapper) {
-        const cand = lica?.categoria || lica?.categoria_licencia || lica?.categoriaObj || null;
-        if (cand) return cand.descripcion || cand.nombre || cand.codigo || (typeof cand === 'string' ? cand : null);
-        const id = lica?.categoria_id || lica?.categoria_lic_id || lica?.categoriaLicId || wrapper?.categoria_id || wrapper?.categoria_lic_id || wrapper?.categoriaId || null;
-        if (id && categoriasMap[id]) {
-            const c = categoriasMap[id];
-            return c.codigo || c.nombre || c.descripcion || String(id);
-        }
-        // try nested licencia
-        const nestedId = (lica && lica.licencia && (lica.licencia.categoria_id || lica.licencia.categoria_lic_id)) || null;
-        if (nestedId && categoriasMap[nestedId]) {
-            const c = categoriasMap[nestedId];
-            return c.codigo || c.nombre || c.descripcion || String(nestedId);
-        }
-        return null;
-    }
-
-    // Helper: resolve documento display (prefer numeric identifier fields)
-    function resolveDocumentoText(doc) {
-        if (!doc) return null;
-        const candidates = [
-            'numero', 'nro', 'numero_documento', 'nro_documento', 'numero_registro', 'numeroDocumento', 'nroDocumento', 'nui', 'numero_identificacion', 'identificacion'
-        ];
-        for (const k of candidates) {
-            if (doc[k]) return String(doc[k]);
-        }
-        // fallback to nombre/descripcion/titulo
-        return doc.nombre || doc.descripcion || doc.titulo || null;
-    }
-
-    // Si no hay licencias, mostrar mensaje simple
-    if (!licencias || licencias.length === 0) {
-        document.getElementById('licencias-table').innerHTML = `
-            <div style="text-align:center; padding:2rem; color:#6b7280;">
-                <p style="font-size:1.1rem; font-weight:500;">No hay asignaciones de licencias</p>
-                <p style="font-size:0.9rem; margin-top:0.5rem;">Asigna licencias a conductores para verlas aquí</p>
-            </div>
-        `;
-        return;
-    }
-
-    // Detectar documentos faltantes referenciados por licencias y cargarlos individualmente
+    // Detectar documentos faltantes referenciados por licencias
     const missingDocIds = [];
-    licencias.forEach(item => {
-        const licObj = item.licencia || item;
-        const docId = licObj && (licObj.documento_id || licObj.documentoId || licObj.documento);
-        if (docId && !documentosMap[docId]) missingDocIds.push(docId);
+    licencias.forEach(l => {
+        if (l.licencia && l.licencia.documento_id && !documentosMap[l.licencia.documento_id]) {
+            missingDocIds.push(l.licencia.documento_id);
+        }
     });
     const uniqueMissing = [...new Set(missingDocIds)];
-    for (const id of uniqueMissing) {
-        try {
-            const r = await apiGet(`/documentos/${id}`);
-            if (r && r.data) documentosMap[id] = r.data;
-        } catch (e) { console.warn('Error cargando documento ID', id, e); }
+    if (uniqueMissing.length) {
+        console.log('Documentos faltantes, cargando por ID:', uniqueMissing);
+        for (const id of uniqueMissing) {
+            try {
+                const r = await apiGet(`/documentos/${id}`);
+                if (r && r.data) {
+                    documentosMap[id] = r.data;
+                } else {
+                    console.warn('Documento no encontrado (ID):', id, r);
+                }
+            } catch (e) {
+                console.warn('Error cargando documento ID', id, e);
+            }
+        }
     }
+
+    console.log('Categorías map:', categoriasMap);
+    console.log('Restricciones map:', restriccionesMap);
+    console.log('Documentos map (incluyendo faltantes):', documentosMap);
+    console.log('Total documentos en mapa:', Object.keys(documentosMap).length);
+
+    // (Mapas ya construidos arriba)
 
     let html = '<div class="licencias-grid">';
 
     licencias.forEach((l, index) => {
         try {
-            // Nombre del conductor
+            // Obtener datos del conductor
             let nombreCompleto = 'Conductor';
             let iniciales = 'NA';
+
             if (l.conductor) {
-                let persona = l.conductor.persona || conductorPersonaMap[l.conductor.id];
+                const conductor = l.conductor;
+                let persona = conductor.persona;
+                if (!persona && conductorPersonaMap[conductor.id]) {
+                    persona = conductorPersonaMap[conductor.id];
+                }
                 if (persona) {
                     const firstName = (persona.name || persona.nombres || '').trim();
                     const lastName = (persona.last_name || persona.apellidos || '').trim();
@@ -1036,56 +953,38 @@ async function loadLicencias() {
                 }
             }
 
-            // Datos de la licencia
-            const licObj = l.licencia || l;
-            const numero = licObj.numero || licObj.numero_licencia || licObj.licencia_num || licObj.id || 'N/A';
-
-            // Categoría
-            let categoria = '—';
-            const resolvedCat = resolveCategoria(licObj, l);
-            if (resolvedCat) categoria = resolvedCat;
-
-            // Debug: show what we found for category/document per licencia (print first 6)
-            if (index < 6) console.debug('DEBUG licencia sample', { index, licObj, resolvedCat, categoria });
-
-            // Restricción
+            // Obtener datos de la licencia
+            let numero = 'N/A';
+            let categoria = 'N/A';
             let restriccion = 'Sin restricciones';
-            const restrId = licObj.restriccion_lic_id || licObj.restriccion_id || l.restriccion_lic_id || l.restriccion_id;
-            if (restrId && restriccionesMap[restrId]) restriccion = restriccionesMap[restrId];
-
-            // Documento
-            let documentoText = '';
-            const rawDocRef = licObj.documento_id || licObj.documentoId || licObj.documento || l.documento_id || l.documento || null;
-            let docEntry = null;
-            if (rawDocRef && typeof rawDocRef === 'object') {
-                // licencia.documento might already be an object
-                docEntry = rawDocRef;
-            } else if (rawDocRef) {
-                // try by id or nested id
-                const possibleId = (rawDocRef && rawDocRef.id) ? rawDocRef.id : rawDocRef;
-                docEntry = documentosMap[possibleId] || documentosMap[rawDocRef] || null;
-            }
-            if (index < 6) console.debug('DEBUG documento lookup', { index, rawDocRef, docEntryFound: !!docEntry, docEntry });
-            if (docEntry) {
-                documentoText = resolveDocumentoText(docEntry) || '';
-            } else {
-                // fallback: maybe the conductor persona has `nui` (document number)
-                const personaNui = l.conductor?.persona?.nui || conductorPersonaMap[l.conductor?.id]?.nui;
-                if (personaNui) documentoText = String(personaNui);
-                else if (rawDocRef) {
-                    // show the raw reference as a fallback so the UI isn't empty
-                    const possible = (typeof rawDocRef === 'object') ? (rawDocRef.id || JSON.stringify(rawDocRef)) : String(rawDocRef);
-                    documentoText = `ID: ${possible}`;
+            if (l.licencia) {
+                const lic = l.licencia;
+                const docId = lic.documento_id;
+                if (docId && documentosMap[docId]) {
+                    const doc = documentosMap[docId];
+                    if (doc.observaciones) {
+                        const match = doc.observaciones.match(/Licencia #(\S+)/);
+                        if (match) numero = match[1];
+                    }
+                } else {
+                    console.log('Documento aún no disponible para ID:', docId);
+                }
+                if (numero === 'N/A' && lic.numero) {
+                    numero = lic.numero; // fallback (por si en el futuro se agrega en la tabla)
+                }
+                if (lic.categoria_lic_id) {
+                    categoria = categoriasMap[lic.categoria_lic_id] || 'N/A';
+                }
+                if (lic.restriccion_lic_id) {
+                    restriccion = restriccionesMap[lic.restriccion_lic_id] || 'Sin restricciones';
                 }
             }
 
-            // Fecha de expedición (si existe)
-            const fechaExp = licObj.fecha_expedicion || licObj.fecha_exped || licObj.expedicion || l.fecha_expedicion || l.fecha_exped || null;
+            console.log(`Licencia ${index}:`, {nombreCompleto, numero, categoria, restriccion});
 
-            // Estado (vencimiento simple: si existe fecha vencimiento compararla)
+            // Determinar si la licencia está vencida
             let estadoColor = '#10b981';
             let estadoTexto = 'VIGENTE';
-            // (no cambiar estado si no hay fecha de vencimiento)
 
             html += `
                 <div class="licencia-card" data-licencia-id="${l.id}">
@@ -1111,11 +1010,6 @@ async function loadLicencias() {
                             <span class="info-label">Restricción:</span>
                             <span class="info-value">${restriccion}</span>
                         </div>
-                        <div class="licencia-info-row">
-                            <span class="info-label">Documento:</span>
-                            <span class="info-value">${documentoText || '—'}</span>
-                        </div>
-                        ${fechaExp ? `<div class="licencia-info-row"><span class="info-label">Fecha Expedición:</span><span class="info-value">${fechaExp}</span></div>` : ''}
                     </div>
 
                     <div class="licencia-card-footer">
@@ -1140,6 +1034,7 @@ async function loadLicencias() {
     html += '</div>';
     document.getElementById('licencias-table').innerHTML = html;
 }
+
 
 // Eliminar asignación de licencia
 window.deleteLicencia = async function(id) {
@@ -1389,11 +1284,11 @@ async function loadRutas() {
 
         html += `<div class="ruta-card">
             <div class="ruta-card-header">
-                ${codigo ? `<span class="ruta-code">${codigo}</span>` : ''}
+                <span class="ruta-code ${codigo ? '' : 'ruta-code-empty'}">${codigo || 'Sin Código'}</span>
                 <span class="ruta-ext ${extension ? '' : 'ruta-ext-empty'}">${extension || 'FILE'}</span>
             </div>
             <h4 class="ruta-name">${nombre || 'Sin Nombre'}</h4>
-            ${descripcion ? `<p class="ruta-desc">${descripcion}</p>` : ''}
+            <p class="ruta-desc">${descripcion || 'Sin descripción'}</p>
             <div class="ruta-meta">
                 <span><strong>Empresa:</strong> ${empresa || 'No asociada'}</span>
                 <span><strong>Creada:</strong> ${created || '—'}</span>
@@ -1530,116 +1425,20 @@ async function loadAsignaciones() {
         return;
     }
 
-    // Detectar si la API devolvió objetos anidados o solo IDs
-    const needsVehiculoMap = asignaciones.some(a => !(a.vehiculo && a.vehiculo.placa));
-    const needsRutaMap = asignaciones.some(a => !(a.ruta && (a.ruta.nombre || a.ruta.name)));
-    const needsUsuarioMap = asignaciones.some(a => !(a.usuario && (a.usuario.name || a.usuario.nombre)));
-
-    // Mapas por id
-    const vehiculoMap = new Map(); // id -> placa
-    const rutaMap = new Map(); // id -> nombre
-    const usuarioMap = new Map(); // id -> nombre
-
-    // Cargar catálogos solo si es necesario
-    try {
-        if (needsVehiculoMap) {
-            const vehResp = await apiGet('/vehiculos');
-            const vehiculos = normalizeList(vehResp);
-            vehiculos.forEach(v => { if (v && v.id) vehiculoMap.set(v.id, v.placa || v.plate || v.placa); });
-        }
-    } catch (e) { console.debug('loadAsignaciones: no se pudo cargar vehiculos', e); }
-
-    try {
-        if (needsRutaMap) {
-            const rutasResp = await apiGet('/rutas');
-            const rutas = normalizeList(rutasResp);
-            rutas.forEach(r => { if (r && r.id) rutaMap.set(r.id, r.nombre || r.name || r.title || `Ruta #${r.id}`); });
-        }
-    } catch (e) { console.debug('loadAsignaciones: no se pudo cargar rutas', e); }
-
-    try {
-        if (needsUsuarioMap) {
-            // Intentar múltiples endpoints comunes para usuarios
-            const userEndpoints = ['/users', '/usuarios', '/users?per_page=999', '/usuarios?per_page=999'];
-            for (const ep of userEndpoints) {
-                try {
-                    const uresp = await apiGet(ep);
-                    if (!uresp) continue;
-                    const users = normalizeList(uresp);
-                    if (users.length > 0) {
-                        users.forEach(u => { if (u && u.id) usuarioMap.set(u.id, u.name || u.nombre || u.email || `Usuario #${u.id}`); });
-                        break;
-                    }
-                } catch (err) {
-                    // continuar intentando otros endpoints
-                }
-            }
-        }
-    } catch (e) { console.debug('loadAsignaciones: no se pudo cargar usuarios', e); }
-
-    // Si aún faltan usuarios en el mapa, intentar solicitarlos por id individualmente
-    try {
-        // obtener ids de usuario faltantes
-        const missingUserIds = new Set();
-        asignaciones.forEach(a => {
-            const uid = a.usuario_id || (a.usuario && a.usuario.id) || null;
-            if (uid && !usuarioMap.has(uid)) missingUserIds.add(uid);
-        });
-
-        if (missingUserIds.size > 0) {
-            for (const uid of missingUserIds) {
-                // intentar varias rutas por id
-                const tryPaths = [`/usuarios/${uid}`, `/users/${uid}`, `/user/${uid}`, `/users/${uid}?include=persona`];
-                let found = false;
-                for (const p of tryPaths) {
-                    try {
-                        const r = await apiGet(p);
-                        if (!r) continue;
-                        const userObj = r.data || r;
-                        if (userObj && (userObj.id || userObj.user_id)) {
-                            const name = userObj.name || userObj.nombre || userObj.email || `Usuario #${uid}`;
-                            usuarioMap.set(Number(uid), name);
-                            found = true;
-                            break;
-                        }
-                    } catch (err) {
-                        // ignore and try next
-                    }
-                }
-                if (!found) {
-                    // dejar etiqueta por defecto
-                    usuarioMap.set(Number(uid), `Usuario #${uid}`);
-                }
-            }
-        }
-    } catch (e) { console.debug('loadAsignaciones: error fetching users by id', e); }
-
     let html = '<table class="data-table"><thead><tr>';
     html += '<th>Vehículo</th><th>Ruta</th><th>Kilometraje</th><th>Fecha/Hora</th><th>Usuario</th><th>Acciones</th>';
     html += '</tr></thead><tbody>';
-
     asignaciones.forEach(a => {
-        // resolver placa
-        let placa = 'N/A';
-        if (a.vehiculo && a.vehiculo.placa) placa = a.vehiculo.placa;
-        else if (a.vehiculo && a.vehiculo.id && vehiculoMap.has(a.vehiculo.id)) placa = vehiculoMap.get(a.vehiculo.id);
-        else if (a.vehiculo_id && vehiculoMap.has(a.vehiculo_id)) placa = vehiculoMap.get(a.vehiculo_id);
-        else if (typeof a.vehiculo === 'number' && vehiculoMap.has(a.vehiculo)) placa = vehiculoMap.get(a.vehiculo);
-
-        // resolver ruta
-        let rutaNombre = 'N/A';
-        if (a.ruta && (a.ruta.nombre || a.ruta.name)) rutaNombre = a.ruta.nombre || a.ruta.name;
-        else if (a.ruta_id && rutaMap.has(a.ruta_id)) rutaNombre = rutaMap.get(a.ruta_id);
-        else if (a.ruta && a.ruta.id && rutaMap.has(a.ruta.id)) rutaNombre = rutaMap.get(a.ruta.id);
-        else if (typeof a.ruta === 'number' && rutaMap.has(a.ruta)) rutaNombre = rutaMap.get(a.ruta);
-
-        // resolver usuario
-        let usuarioNombre = 'N/A';
-        if (a.usuario && (a.usuario.name || a.usuario.nombre)) usuarioNombre = a.usuario.name || a.usuario.nombre;
-        else if (a.usuario_id && usuarioMap.has(a.usuario_id)) usuarioNombre = usuarioMap.get(a.usuario_id);
-        else if (a.usuario && a.usuario.id && usuarioMap.has(a.usuario.id)) usuarioNombre = usuarioMap.get(a.usuario.id);
-
-        html += `<tr>\n            <td>${placa || 'N/A'}</td>\n            <td>${rutaNombre || 'N/A'}</td>\n            <td>${a.kilometraje || 'N/A'}</td>\n            <td>${a.fecha_hora || 'N/A'}</td>\n            <td>${usuarioNombre || 'N/A'}</td>\n            <td>\n                <button class="btn-delete" onclick="deleteAsignacion(${a.id})">Eliminar</button>\n            </td>\n        </tr>`;
+        html += `<tr>
+            <td>${a.vehiculo?.placa || 'N/A'}</td>
+            <td>${a.ruta?.nombre || 'N/A'}</td>
+            <td>${a.kilometraje || 'N/A'}</td>
+            <td>${a.fecha_hora || 'N/A'}</td>
+            <td>${a.usuario?.name || 'N/A'}</td>
+            <td>
+                <button class="btn-delete" onclick="deleteAsignacion(${a.id})">Eliminar</button>
+            </td>
+        </tr>`;
     });
 
     html += '</tbody></table>';
@@ -1860,21 +1659,7 @@ async function saveLicencia(e) {
         // Éxito
         showNotification('success', '¡Éxito!', 'Licencia asignada exitosamente al conductor.');
         document.getElementById('modal-licencia').style.display = 'none';
-        // Si la API devolvió el objeto creado, insertarlo en caché local para mostrarlo inmediatamente
-        try {
-            const created = asignacionResult.data || asignacionResult;
-            const createdObj = (created && created.data) ? created.data : created;
-            if (createdObj && window.informeConductoresCache && Array.isArray(informeConductoresCache.licencias)) {
-                // evitar duplicados: comprobar por id
-                const newId = createdObj.id || createdObj.conductores_licencia_id || createdObj.licencia_id;
-                const exists = informeConductoresCache.licencias.some(x => (x.id || x.licencia_id) == newId);
-                if (!exists) informeConductoresCache.licencias.unshift(createdObj);
-            }
-        } catch (e) { /* ignore */ }
-
-        // Recargar listas para garantizar consistencia (licencias y el informe de conductores)
-        try { await loadLicencias(); } catch(e) { console.warn('No se pudo recargar licencias inmediatamente', e); }
-        try { await loadInformeConductores(); } catch(e) { console.warn('No se pudo recargar informe de conductores inmediatamente', e); }
+        loadLicencias();
 
     } catch (error) {
         console.error('Error en saveLicencia:', error);
@@ -2057,9 +1842,7 @@ async function openModalAsignacion() {
 
     const rutasData = normalizeList(rutas);
     rutasData.forEach(r => {
-        // Algunos endpoints/dev DB usan 'name' en lugar de 'nombre'
-        const label = (r && (r.nombre || r.name || r.nombre)) || (`Ruta #${r && r.id}`);
-        selectRuta.innerHTML += `<option value="${r.id}">${label}</option>`;
+        selectRuta.innerHTML += `<option value="${r.id}">${r.nombre}</option>`;
     });
 
     // Establecer fecha y hora actuales por defecto
@@ -2069,121 +1852,23 @@ async function openModalAsignacion() {
     document.getElementById('asignacion-fecha').value = today;
     document.getElementById('asignacion-hora').value = time;
 
-    // Mostrar info del usuario actual dentro del modal para mayor confianza
-    try {
-        const user = await resolveCurrentUser();
-        const infoEl = document.getElementById('asignacion-usuario-info');
-        if (infoEl) {
-            if (user && (user.name || user.nombre || user.email || user.id)) {
-                const displayName = user.name || user.nombre || user.email || `ID ${user.id}`;
-                infoEl.textContent = `Asignando como: ${displayName}`;
-                infoEl.style.display = 'block';
-            } else {
-                infoEl.style.display = 'none';
-            }
-        }
-    } catch (e) {
-        console.debug('openModalAsignacion: could not resolve user', e);
-    }
-
     document.getElementById('modal-asignacion').style.display = 'flex';
-}
-
-// Resolver usuario actual (intenta cache local, luego endpoints comunes)
-async function resolveCurrentUser() {
-    // Revisar si hay un objeto auth_user en localStorage
-    const possibleKeys = ['auth_user', 'authUser', 'user', 'usuario'];
-    for (const k of possibleKeys) {
-        const raw = localStorage.getItem(k);
-        if (!raw) continue;
-        try {
-            const obj = JSON.parse(raw);
-            if (obj && (obj.id || obj.name || obj.nombre)) return obj;
-        } catch (e) {
-            // no JSON, ignore
-        }
-    }
-
-    // Try token decode
-    const token = getToken();
-    if (token) {
-        const payload = decodeJwtPayload(token);
-        if (payload && (payload.sub || payload.id || payload.user_id)) {
-            // Return minimal object
-            return { id: payload.sub || payload.id || payload.user_id, name: payload.name || payload.nombre || null };
-        }
-    }
-
-    // Fallback: ask the server via common endpoints
-    const candidatePaths = ['/user', '/me', '/auth/user', '/auth/me', '/users/me'];
-    for (const p of candidatePaths) {
-        try {
-            const r = await apiGet(p);
-            if (!r) continue;
-            const userObj = r.data || r;
-            if (userObj && (userObj.id || userObj.user_id)) return userObj;
-        } catch (e) {
-            // ignore errors
-        }
-    }
-
-    return null;
 }
 
 async function saveAsignacion(e) {
     e.preventDefault();
 
-    // Intentar resolver el usuario primero desde localStorage/JWT
-    let resolvedUserId = getUserId();
-    console.debug('saveAsignacion: resolvedUserId (initial):', resolvedUserId);
-
-    // Si no se resolvió, intentar pedir al backend el usuario actual en varios endpoints comunes
-    if (!resolvedUserId) {
-        showNotification('info', 'Obteniendo usuario', 'Intentando resolver usuario desde el servidor...');
-        const candidatePaths = ['/user', '/me', '/auth/user', '/auth/me', '/users/me'];
-        for (const p of candidatePaths) {
-            try {
-                const r = await apiGet(p);
-                if (!r) continue;
-                const userObj = r.data || r;
-                if (userObj && (userObj.id || userObj.user_id || userObj.sub)) {
-                    resolvedUserId = parseInt(userObj.id || userObj.user_id || userObj.sub, 10);
-                    if (!isNaN(resolvedUserId)) {
-                        console.debug('saveAsignacion: resolvedUserId from API', p, resolvedUserId, userObj);
-                        break;
-                    }
-                }
-            } catch (err) {
-                console.debug('saveAsignacion: apiGet failed for', p, err && err.message ? err.message : err);
-            }
-        }
-    }
-
-    if (!resolvedUserId) {
-        // Registrar información útil en consola para depuración sin mostrar token en UI
-        try {
-            const lsKeys = Object.keys(localStorage || {}).slice(0, 200);
-            const snapshot = {};
-            lsKeys.forEach(k => {
-                try { snapshot[k] = localStorage.getItem(k); } catch(e) { snapshot[k] = '[error]'; }
-            });
-            console.debug('saveAsignacion: localStorage snapshot (safe):', snapshot);
-        } catch (e) { console.debug('saveAsignacion: error reading localStorage snapshot', e); }
-
-        try {
-            const token = getToken();
-            const payload = decodeJwtPayload(token);
-            console.debug('saveAsignacion: decoded JWT payload:', payload);
-        } catch (e) { console.debug('saveAsignacion: error decoding token', e); }
-
-        showNotification('error', 'Error', 'No se pudo obtener el ID del usuario. Abre la consola (F12) y pega los logs para que lo revise.');
+    // Obtener el usuario_id del localStorage
+    const userIdStr = localStorage.getItem('user_id') || localStorage.getItem('id');
+    if (!userIdStr) {
+        showNotification('error', 'Error', 'No se pudo obtener el ID del usuario');
         return;
     }
 
     const asignacionData = {
         vehiculo_id: document.getElementById('asignacion-vehiculo').value,
         ruta_id: document.getElementById('asignacion-ruta').value,
-        usuario_id: resolvedUserId,
+        usuario_id: parseInt(userIdStr),
         kilometraje: document.getElementById('asignacion-kilometraje').value || null,
         fecha_hora: document.getElementById('asignacion-fecha').value ? document.getElementById('asignacion-fecha').value + ' ' + (document.getElementById('asignacion-hora').value || '00:00:00') : null,
         observaciones: document.getElementById('asignacion-observaciones').value || null
@@ -2199,11 +1884,7 @@ async function saveAsignacion(e) {
 
 // --- INFORMES ---
 let informeConductoresCache = { conductores: [], licencias: [] };
-let licenciasDetallesMap = new Map(); // licencia_id -> detalle completo
 let informeVehiculosRutaCache = { asignaciones: [] };
-let informeAvailableFields = { numero: false, fecha: false, categoria: false };
-let informeRestriccionesMap = new Map();
-let informeDocumentosMap = new Map();
 
 function exportCSV(filename, rows) {
     if (!rows || !rows.length) return;
@@ -2220,10 +1901,7 @@ function buildResumenConductores() {
     const totalConductores = conductores.length;
     const licenciasPorConductor = new Map();
     licencias.forEach(l => {
-        const cid = (l.conductor_id ?? l.conductorId ?? l.conductor?.id);
-        const arr = licenciasPorConductor.get(cid) || [];
-        arr.push(l);
-        licenciasPorConductor.set(cid, arr);
+        const arr = licenciasPorConductor.get(l.conductor_id) || []; arr.push(l); licenciasPorConductor.set(l.conductor_id, arr);
     });
     let conLicencia = 0, sinLicencia = 0, vigentes = 0, vencidas = 0;
     const hoy = new Date();
@@ -2232,269 +1910,61 @@ function buildResumenConductores() {
         if (lista.length === 0) { sinLicencia++; } else {
             conLicencia++;
             lista.forEach(l => {
-                const lic = l.licencia || l || {};
-                const fecha = extractFechaVencimiento(lic);
-                if (!fecha) return; // sin fecha no suma a vigentes/vencidas
-                if (fecha < hoy) vencidas++; else vigentes++;
+                const lic = l.licencia || {}; const fecha = lic.fecha_vencimiento ? new Date(lic.fecha_vencimiento) : null;
+                if (fecha && fecha < hoy) vencidas++; else if (fecha) vigentes++;
             });
         }
     });
     return { totalConductores, conLicencia, sinLicencia, vigentes, vencidas };
 }
-// Extrae numero y fecha de vencimiento buscando múltiples variantes de nombres
-function extractNumeroLicencia(lic) {
-    if (!lic || typeof lic !== 'object') return '—';
-    // Buscar primero en el propio objeto
-    const direct = lic.numero || lic.num_licencia || lic.numero_licencia || lic.nro || lic.num || lic.licencia_numero;
-    if (direct) return direct;
-    // Luego intentar catálogo
-    const detalle = licenciasDetallesMap.get(lic.id || lic.licencia_id);
-    if (detalle) {
-        const detNum = detalle.numero || detalle.num_licencia || detalle.numero_licencia || detalle.nro || detalle.num || detalle.licencia_numero;
-        if (detNum) return detNum;
-    }
-    // Como fallback mostrar id para tener algo visible
-    const fallbackId = lic.licencia_id || lic.id;
-    if (fallbackId) return fallbackId;
-    // Búsqueda flexible
-    for (const k of Object.keys(lic)) {
-        const lower = k.toLowerCase();
-        if (lower.includes('lic') && (lower.includes('num') || lower.includes('nro'))) {
-            const val = lic[k]; if (val) return val;
-        }
-        if ((lower === 'numero' || lower === 'num')) {
-            const val = lic[k]; if (val) return val;
-        }
-    }
-    // Búsqueda profunda (documento, restriccion, etc.)
-    const deep = deepSearch(lic, (key, val) => {
-        if (val && typeof val === 'string') {
-            const lk = key.toLowerCase();
-            if ((lk.includes('lic') && (lk.includes('num') || lk.includes('nro'))) || lk === 'numero' || lk === 'num') return true;
-        }
-        return false;
-    });
-    if (deep) return deep;
-    return '—';
-}
 
-function extractFechaVencimiento(lic) {
-    if (!lic || typeof lic !== 'object') return null;
-    const raw = lic.fecha_vencimiento || lic.vencimiento || lic.fecha_venc || lic.fec_venc || lic.expira || lic.expiracion;
-    if (raw) {
-        const d = new Date(raw);
-        return isNaN(d.getTime()) ? null : d;
-    }
-    // Intentar catálogo
-    const detalle = licenciasDetallesMap.get(lic.id || lic.licencia_id);
-    if (detalle) {
-        const rawDet = detalle.fecha_vencimiento || detalle.vencimiento || detalle.fecha_venc || detalle.fec_venc || detalle.expira || detalle.expiracion;
-        if (rawDet) {
-            const d = new Date(rawDet);
-            if (!isNaN(d.getTime())) return d;
-        }
-    }
-    for (const k of Object.keys(lic)) {
-        const lower = k.toLowerCase();
-        if (lower.includes('venc') || lower.includes('expir')) {
-            const val = lic[k];
-            const d = new Date(val);
-            if (!isNaN(d.getTime())) return d;
-        }
-    }
-    // Búsqueda profunda
-    const deepDateStr = deepSearch(lic, (key, val) => {
-        if (!val) return false;
-        if (typeof val !== 'string') return false;
-        const lk = key.toLowerCase();
-        if (lk.includes('venc') || lk.includes('expir')) {
-            const d = new Date(val);
-            if (!isNaN(d.getTime())) return true;
-        }
-        return false;
-    });
-    if (deepDateStr) {
-        const d = new Date(deepDateStr);
-        return isNaN(d.getTime()) ? null : d;
-    }
-    return null;
-}
-// Búsqueda recursiva limitada para encontrar valores que cumplen un predicado
-function deepSearch(obj, predicate, depth = 0, maxDepth = 4) {
-    if (!obj || typeof obj !== 'object' || depth > maxDepth) return null;
-    for (const [k,v] of Object.entries(obj)) {
-        try {
-            if (predicate(k,v)) return v;
-        } catch (e) { /* ignorar */ }
-        if (v && typeof v === 'object') {
-            const found = deepSearch(v, predicate, depth+1, maxDepth);
-            if (found) return found;
-        }
-    }
-    return null;
-}
-
-function extractFechaVencimientoStr(lic) {
-    const d = extractFechaVencimiento(lic);
-    if (!d) return '—';
-    // Formato AAAA-MM-DD
-    return d.toISOString().slice(0,10);
-}
-
-// Extrae fecha de expedición (si existe) buscando variantes comunes
-function extractFechaExpedicion(lic) {
-    if (!lic || typeof lic !== 'object') return null;
-    const raw = lic.fecha_expedicion || lic.fecha_exped || lic.expedicion || lic.fecha_expe || lic.fecha_expedicion;
-    if (raw) {
-        const d = new Date(raw);
-        return isNaN(d.getTime()) ? null : d;
-    }
-    // Intentar catálogo
-    const detalle = licenciasDetallesMap.get(lic.id || lic.licencia_id);
-    if (detalle) {
-        const rawDet = detalle.fecha_expedicion || detalle.fecha_exped || detalle.expedicion || detalle.fecha_expe;
-        if (rawDet) {
-            const d = new Date(rawDet);
-            if (!isNaN(d.getTime())) return d;
-        }
-    }
-    // Búsqueda por claves que contengan 'exped'
-    for (const k of Object.keys(lic)) {
-        const lower = k.toLowerCase();
-        if (lower.includes('exped')) {
-            const val = lic[k];
-            const d = new Date(val);
-            if (!isNaN(d.getTime())) return d;
-        }
-    }
-    const deepDateStr = deepSearch(lic, (key, val) => {
-        if (!val) return false;
-        if (typeof val !== 'string') return false;
-        const lk = key.toLowerCase();
-        if (lk.includes('exped')) {
-            const d = new Date(val);
-            if (!isNaN(d.getTime())) return true;
-        }
-        return false;
-    });
-    if (deepDateStr) {
-        const d = new Date(deepDateStr);
-        return isNaN(d.getTime()) ? null : d;
-    }
-    return null;
-}
-
-function extractFechaExpedicionStr(lic) {
-    const d = extractFechaExpedicion(lic);
-    if (!d) return '—';
-    return d.toISOString().slice(0,10);
-}
-
-// Resolver detalle (restricción, documento, fecha) disponible globalmente
-function resolveDetalleInfo(maybeLicObj, wrapperObj) {
-    const result = { restrText: '', docText: '', fechaExp: '—' };
-    if (!maybeLicObj && !wrapperObj) return result;
-
-    let detKey = (maybeLicObj && (maybeLicObj.id || maybeLicObj.licencia_id)) || (wrapperObj && (wrapperObj.licencia_id || wrapperObj.id));
-    let det = null;
-    if (detKey !== undefined && detKey !== null) {
-        det = licenciasDetallesMap.get(detKey) || licenciasDetallesMap.get(String(detKey)) || licenciasDetallesMap.get(Number(detKey));
-    }
-    if (!det && maybeLicObj && maybeLicObj.licencia) det = maybeLicObj.licencia;
-    if (!det) det = maybeLicObj || wrapperObj || {};
-
-    // Restricción
-    const restrId = det.restriccion_lic_id || det.restriccion_id || (det.restriccion && (det.restriccion.id || det.restriccion.restriccion_lic_id)) || maybeLicObj?.restriccion_lic_id || wrapperObj?.restriccion_lic_id;
-    if (restrId !== undefined && restrId !== null) {
-        const restrObj = informeRestriccionesMap.get(restrId) || informeRestriccionesMap.get(String(restrId)) || informeRestriccionesMap.get(Number(restrId));
-        if (restrObj) result.restrText = (typeof restrObj === 'string') ? restrObj : (restrObj.descripcion || restrObj.nombre || restrObj.descripcion_corta || String(restrObj.id));
-        else result.restrText = String(restrId);
-    }
-
-    // Documento
-    const docId = det.documento_id || det.documentoId || det.documento || maybeLicObj?.documento_id || wrapperObj?.documento_id;
-    if (docId !== undefined && docId !== null) {
-        let docObj = informeDocumentosMap.get(docId) || informeDocumentosMap.get(String(docId)) || informeDocumentosMap.get(Number(docId));
-        if (!docObj && typeof docId === 'object') docObj = docId;
-        if (docObj) result.docText = (docObj.nombre || docObj.descripcion || docObj.titulo || (docObj.numero || docObj.nro || docObj.numero_documento) || String(docObj.id));
-        else result.docText = String(docId);
-    }
-
-    // Fecha expedición
-    result.fechaExp = extractFechaExpedicionStr(det);
-    if (result.fechaExp === '—') result.fechaExp = extractFechaExpedicionStr(maybeLicObj);
-    if (result.fechaExp === '—' && wrapperObj) result.fechaExp = extractFechaExpedicionStr(wrapperObj);
-
-    return result;
-}
-
-function renderTablaConductores(filtroCategoria = 'todas') {
+function renderTablaConductores(filtroEstado = 'todos', filtroCategoria = 'todas') {
     const { conductores, licencias } = informeConductoresCache;
-    const cols = ['Conductor', 'Identificación'];
-    const colKeys = ['conductor', 'identificacion'];
-    // Decidir columna de licencia: mostrar número si existe, sino mostrar ID
-    if (informeAvailableFields.numero) {
-        cols.push('Licencia Nº'); colKeys.push('numero');
-    } else if (informeAvailableFields.restriccion) {
-        cols.push('Restricción'); colKeys.push('restriccion');
-    } else if (informeAvailableFields.documento) {
-        cols.push('Documento'); colKeys.push('documento');
-    } else {
-        cols.push('Licencia ID'); colKeys.push('licencia_id');
-    }
-    if (informeAvailableFields.categoria) { cols.push('Categoría'); colKeys.push('categoria'); }
-    if (informeAvailableFields.expedicion) { cols.push('Fecha Expedición'); colKeys.push('fecha_expedicion'); }
-    // Construir header
-    let html = '<table class="data-table"><thead><tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+    let html = '<table class="data-table"><thead><tr>';
+    html += '<th>Conductor</th><th>Identificación</th><th>Licencia Nº</th><th>Categoría</th><th>Vencimiento</th><th>Estado</th>';
+    html += '</tr></thead><tbody>';
     let added = 0;
+    const hoy = new Date();
     conductores.forEach(c => {
-        const persona = c.persona || {};
-        const firstName = (persona.name || persona.nombres || persona.nombre || '').trim();
-        const lastName = (persona.last_name || persona.apellidos || persona.apellido || '').trim();
-        const fullName = `${firstName || '—'} ${lastName || ''}`.trim();
-        const idDisplay = persona.nui || persona.identificacion || persona.documento || persona.cc || persona.cedula || '—';
-        const licCond = licencias.filter(l => (l.conductor_id ?? l.conductorId ?? l.conductor?.id) == c.id);
+        const persona = c.persona || {}; const licCond = licencias.filter(l => l.conductor_id === c.id);
         if (licCond.length === 0) {
-            html += `<tr class="row-sin"><td>${fullName}</td><td>${idDisplay}</td><td colspan="${cols.length-2}" class="text-center"><span class="badge badge-error">Sin licencia</span></td></tr>`;
-            added++;
+            if (filtroEstado === 'sin' || filtroEstado === 'todos') {
+                html += `<tr class="row-sin">
+                    <td>${persona.name} ${persona.last_name}</td>
+                    <td>${persona.nui}</td>
+                    <td colspan="4" class="text-center"><span class="badge badge-error">Sin licencia</span></td>
+                </tr>`;
+                added++;
+            }
         } else {
             licCond.forEach(l => {
-                const lic = l.licencia || l || {};
-                const numeroLic = extractNumeroLicencia(lic);
-                const categoriaObj = lic.categoria || lic.categoria_licencia;
-                const categoria = (categoriaObj?.descripcion || categoriaObj?.nombre || categoriaObj?.codigo || lic.categoria || lic.categoria_licencia) || '—';
-
-                // Resolver restricción, documento y fecha de expedición desde el catálogo si está disponible
-                    const info = resolveDetalleInfo(lic, l);
-                    const restriccionText = info.restrText;
-                    const documentoText = info.docText;
-                    const fechaExpStr = info.fechaExp;
-
-                if (filtroCategoria !== 'todas' && informeAvailableFields.categoria && filtroCategoria !== categoria) return;
-                // Construir fila según columnas detectadas
-                let row = `<td>${fullName}</td><td>${idDisplay}</td>`;
-                if (informeAvailableFields.numero) row += `<td>${numeroLic}</td>`;
-                else if (informeAvailableFields.restriccion) row += `<td>${restriccionText || '—'}</td>`;
-                else if (informeAvailableFields.documento) row += `<td>${documentoText || '—'}</td>`;
-                else row += `<td>${lic.licencia_id || lic.id || '—'}</td>`;
-                if (informeAvailableFields.categoria) row += `<td>${categoria}</td>`;
-                if (informeAvailableFields.expedicion) row += `<td>${fechaExpStr}</td>`;
-                html += `<tr>${row}</tr>`;
+                const lic = l.licencia || {}; const fecha = lic.fecha_vencimiento ? new Date(lic.fecha_vencimiento) : null;
+                const estado = fecha && fecha < hoy ? 'vencida' : 'vigente';
+                if (filtroEstado !== 'todos' && filtroEstado !== estado) return;
+                const categoria = lic.categoria_licencia?.nombre || 'N/A';
+                if (filtroCategoria !== 'todas' && filtroCategoria !== categoria) return;
+                html += `<tr>
+                    <td>${persona.name} ${persona.last_name}</td>
+                    <td>${persona.nui}</td>
+                    <td>${lic.numero || 'N/A'}</td>
+                    <td>${categoria}</td>
+                    <td>${lic.fecha_vencimiento || 'N/A'}</td>
+                    <td><span class="badge ${estado === 'vigente' ? 'badge-success' : 'badge-error'}">${estado}</span></td>
+                </tr>`;
                 added++;
             });
         }
     });
-    if (added === 0) html += `<tr><td colspan="${cols.length}" class="text-center" style="font-weight:600; color:#64748b;">No hay registros (verifica filtros o que existan conductores)</td></tr>`;
+    if (added === 0) {
+        html += `<tr><td colspan="6" class="text-center" style="font-weight:600; color:#64748b;">No hay registros (verifica filtros o que existan conductores)</td></tr>`;
+    }
     html += '</tbody></table>';
     return html;
 }
 
 async function loadInformeConductores() {
-    // Incluir persona para nombres/documentos; intentar incluir categoría en licencias si la API lo soporta
-    const conductoresResp = await apiGet('/conductores?include=persona');
-    const licenciasResp = await apiGet('/conductores-licencias?include=licencia.categoria');
-    // Nuevo: traer catálogo de licencias completo para intentar extraer numero y fecha reales
-    const licenciasCatalogResp = await apiGet('/licencias?include=categoria,restriccion,documento');
+    const conductoresResp = await apiGet('/conductores');
+    const licenciasResp = await apiGet('/conductores-licencias');
 
     // Normalización flexible para distintos formatos de respuesta
     const normalizeList = (resp) => {
@@ -2511,78 +1981,16 @@ async function loadInformeConductores() {
 
     const conductoresList = normalizeList(conductoresResp);
     const licenciasList = normalizeList(licenciasResp);
-    const licenciasCatalogList = normalizeList(licenciasCatalogResp);
-
-    // Cargar restricciones y documentos para mostrar información más relevante en el informe
-    let restriccionesResp = null, documentosResp = null;
-    try { restriccionesResp = await apiGet('/restriccion_lic'); } catch(e) { /* ignore */ }
-    try { documentosResp = await apiGet('/documentos'); } catch(e) { /* ignore */ }
-    const restriccionesList = normalizeList(restriccionesResp);
-    const documentosList = normalizeList(documentosResp);
-    // Rellenar mapas globales para que los helpers globales puedan acceder a ellos
-    informeRestriccionesMap.clear();
-    informeDocumentosMap.clear();
-    restriccionesList.forEach(r => { if (r && (r.id || r.restriccion_lic_id)) informeRestriccionesMap.set(r.id || r.restriccion_lic_id, r); });
-    documentosList.forEach(d => { if (d && (d.id || d.documento_id)) informeDocumentosMap.set(d.id || d.documento_id, d); });
-
-    // Intentar obtener catálogo de categorías directamente desde el API
-    let categoriasResp = null;
-    try {
-        categoriasResp = await apiGet('/categorias_licencia');
-    } catch (e) { /* no fatal */ }
-    const categoriasListFromApi = normalizeList(categoriasResp);
 
     informeConductoresCache.conductores = conductoresList;
     informeConductoresCache.licencias = licenciasList;
-    licenciasDetallesMap.clear();
-    licenciasCatalogList.forEach(det => {
-        if (det && (det.id || det.licencia_id)) {
-            const key = det.id || det.licencia_id;
-            licenciasDetallesMap.set(key, det);
-        }
-    });
-
-    // Detectar qué campos están realmente presentes en la API
-    (function detectAvailable() {
-        let hasNum = false, hasDate = false, hasCat = false;
-        let hasRestr = false, hasDoc = false, hasExped = false;
-        const scan = (o) => {
-            if (!o || typeof o !== 'object') return;
-            const keys = Object.keys(o).map(k => k.toLowerCase());
-            if (keys.some(k => k.includes('num') || k.includes('numero') || k.includes('nro'))) hasNum = true;
-            if (keys.some(k => k.includes('venc') || k.includes('expir') || k.includes('fecha'))) hasDate = true;
-            if (keys.some(k => k.includes('categoria') || k.includes('cat') || k === 'codigo' || k === 'descripcion')) hasCat = true;
-            if (o.categoria || o.categoria_licencia) hasCat = true;
-            if (keys.some(k => k.includes('restric') || k.includes('restriccion'))) hasRestr = true;
-            if (keys.some(k => k.includes('document') || k.includes('documento') || k.includes('doc'))) hasDoc = true;
-            if (keys.some(k => k.includes('exped') || k.includes('fecha_exped') || k.includes('fecha_expedicion'))) hasExped = true;
-        };
-        for (const it of licenciasCatalogList) { scan(it); if (hasNum && hasDate && hasCat) break; }
-        if (!(hasNum && hasDate && hasCat)) for (const it of licenciasList) { scan(it); if (hasNum && hasDate && hasCat) break; }
-        informeAvailableFields.numero = hasNum;
-        informeAvailableFields.fecha = hasDate;
-        informeAvailableFields.categoria = hasCat;
-        informeAvailableFields.restriccion = hasRestr || (restriccionesList && restriccionesList.length>0);
-        informeAvailableFields.documento = hasDoc || (documentosList && documentosList.length>0);
-        informeAvailableFields.expedicion = hasExped;
-        console.log('[DEBUG informe conductores] availableFields:', informeAvailableFields);
-    })();
 
     console.log('[DEBUG informe conductores] rawConductores:', conductoresResp);
     console.log('[DEBUG informe conductores] rawLicencias:', licenciasResp);
-    console.log('[DEBUG informe conductores] rawLicenciasCatalog:', licenciasCatalogResp);
     console.log('[DEBUG informe conductores] normalized lengths:', {
         conductores: conductoresList.length,
-        licencias: licenciasList.length,
-        licenciasCatalog: licenciasCatalogList.length
+        licencias: licenciasList.length
     });
-
-    // LOGGING TEMPORAL: Mostrar primeras entradas para depuración de categorías
-    try {
-        console.log('[DEBUG informe conductores] sample licenciasCatalogList (first 6):', (Array.isArray(licenciasCatalogList) ? licenciasCatalogList.slice(0,6) : licenciasCatalogList));
-        console.log('[DEBUG informe conductores] sample licenciasList (first 6):', (Array.isArray(licenciasList) ? licenciasList.slice(0,6) : licenciasList));
-        console.log('[DEBUG informe conductores] sample informeConductoresCache.licencias (first 6):', (Array.isArray(informeConductoresCache.licencias) ? informeConductoresCache.licencias.slice(0,6) : informeConductoresCache.licencias));
-    } catch(e) { console.warn('[DEBUG informe conductores] error printing samples', e); }
 
     // Si ambas respuestas son null probablemente 401 (ver consola). Mostrar mensaje amigable.
     if (!conductoresResp && !licenciasResp) {
@@ -2595,129 +2003,54 @@ async function loadInformeConductores() {
     }
 
     const resumen = buildResumenConductores();
-    // Obtener lista de categorías únicas (fuente preferida: /categorias_licencia)
+    // Obtener lista de categorías únicas
     const categoriasSet = new Set();
-
-    // Si la API devuelve el catálogo de categorías, usarlo primero (más fiable)
-    if (Array.isArray(categoriasListFromApi) && categoriasListFromApi.length) {
-        // Preferir mostrar la descripción/nombre de la categoría en lugar del código
-        categoriasListFromApi.forEach(c => {
-            if (!c) return;
-            const label = (c.descripcion || c.nombre || c.codigo || c.name);
-            if (label && typeof label === 'string' && label.trim()) { categoriasSet.add(label.trim()); return; }
-        });
-
-        // Si no se detecta descripción, como fallback intentar extraer código o nombre
-        if (categoriasSet.size === 0) {
-            categoriasListFromApi.forEach(c => {
-                const name = (c && (c.nombre || c.descripcion || c.codigo || c.name));
-                if (name && typeof name === 'string' && name.trim()) categoriasSet.add(name.trim());
-            });
-            console.warn('[DEBUG categoria licencia] catálogo sin descripción, usando el primer campo disponible', categoriasListFromApi.slice(0,6));
-        }
-    }
-
-    // Helper: intenta extraer nombre de categoría desde distintos formatos
-    const pushCategoriaFrom = (item, idx, sourceLabel) => {
-        if (!item) return;
-        // Normalizar a posible objeto 'licencia'
-        const lic = item.licencia || item;
-
-        // 1) buscar objetos categoría directos
-        const candidates = [];
-        if (lic.categoria) candidates.push(lic.categoria);
-        if (lic.categoria_licencia) candidates.push(lic.categoria_licencia);
-
-        // 2) propiedades directas que pueden contener el nombre
-        ['nombre','codigo','descripcion','categoria','categoria_nombre','categoriaCodigo','categoria_codigo','categoria_descripcion','name'].forEach(k => {
-            if (typeof lic[k] === 'string' && lic[k].trim()) candidates.push(lic[k].trim());
-        });
-
-        // 3) si existe un objeto 'categoria' dentro de objetos anidados
-        if (lic.licencia && lic.licencia.categoria) candidates.push(lic.licencia.categoria);
-
-        // Evaluar candidatos
-        for (const c of candidates) {
-            if (!c) continue;
-            let name = '';
-            if (typeof c === 'string') name = c;
-            else if (typeof c === 'object') name = c.nombre || c.codigo || c.descripcion || c.name || c?.codigo || '';
-            if (typeof name === 'string' && name.trim()) { categoriasSet.add(name.trim()); return; }
-        }
-
-        // 4) fallback: búsqueda profunda en el objeto para encontrar cualquier string cuyo key incluya 'categoria'/'cat'/'codigo'/'descripcion'/'nombre'
-        const found = deepSearch(lic, (k, v) => {
-            if (!v) return false;
-            if (typeof v !== 'string') return false;
-            const lk = k.toLowerCase();
-            if (lk.includes('categoria') || lk.includes('cat') || lk.includes('codigo') || lk.includes('descripcion') || lk === 'nombre' || lk === 'name') {
-                return v.trim().length > 0;
-            }
-            return false;
-        });
-        if (found && typeof found === 'string' && found.trim()) categoriasSet.add(found.trim());
-
-        // Debug para primeros registros
+    informeConductoresCache.licencias.forEach((l, idx) => {
+        // Tomar distintos caminos posibles según estructura real
+        const lic = l.licencia || l; // a veces podría venir plano
+        const nombre = lic?.categoria_licencia?.nombre || lic?.categoria?.nombre || lic?.categoria_licencia || lic?.categoria;
+        if (nombre && typeof nombre === 'string') categoriasSet.add(nombre.trim());
         if (idx < 3) {
-            console.log('[DEBUG categoria licencia] source:', sourceLabel, 'registro', idx, { original: item, extracted: Array.from(categoriasSet).slice(-3) });
+            console.log('[DEBUG categoria licencia] registro', idx, {
+                original: l,
+                extraido: nombre
+            });
         }
-    };
-
-    // Revisar en varios lugares: licencias relacionadas, catálogo de licencias y la respuesta original de licencias
-    try {
-        if (Array.isArray(licenciasCatalogList)) licenciasCatalogList.forEach((it, i) => pushCategoriaFrom(it, i, 'catalog'));
-    } catch (e) { /* ignore */ }
-    try {
-        if (Array.isArray(licenciasList)) licenciasList.forEach((it, i) => pushCategoriaFrom(it, i, 'licenciasResp'));
-    } catch (e) { /* ignore */ }
-    try {
-        if (Array.isArray(informeConductoresCache.licencias)) informeConductoresCache.licencias.forEach((it, i) => pushCategoriaFrom(it, i, 'conductores_lic'));
-    } catch (e) { /* ignore */ }
-
+    });
     if (categoriasSet.size === 0) {
         console.warn('No se detectaron categorías de licencia. Revisa estructura de /conductores-licencias');
     }
     const categorias = Array.from(categoriasSet).sort();
 
-    // Si detectamos menos categorías de las esperadas, intentar heurística: buscar strings que parezcan códigos de categoría (A, B, C, AB)
-    if (categorias.length < 3) {
-        const potentialSet = new Set();
-        const collectPotentialCats = (obj) => {
-            if (!obj) return;
-            if (typeof obj === 'string') {
-                const s = obj.trim();
-                if (/^[A-Za-z]{1,3}$/.test(s)) potentialSet.add(s.toUpperCase());
-                return;
-            }
-            if (Array.isArray(obj)) return obj.forEach(collectPotentialCats);
-            if (typeof obj === 'object') {
-                for (const [k,v] of Object.entries(obj)) {
-                    try { collectPotentialCats(v); } catch(e){}
-                }
-            }
-        };
-        try { if (Array.isArray(licenciasCatalogList)) licenciasCatalogList.forEach(collectPotentialCats); } catch(e){}
-        try { if (Array.isArray(licenciasList)) licenciasList.forEach(collectPotentialCats); } catch(e){}
-        try { if (Array.isArray(informeConductoresCache.licencias)) informeConductoresCache.licencias.forEach(collectPotentialCats); } catch(e){}
-        // añadir a set principal
-        potentialSet.forEach(s => categoriasSet.add(s));
-    }
-    // recomponer array final ordenado
-    const categoriasFinal = Array.from(categoriasSet).sort();
-    // Filtrar códigos de una sola letra (A, B, C, etc.) para no mostrarlos en el select
-    const categoriasFinalFiltered = categoriasFinal.filter(c => !/^[A-Za-z]$/.test(c));
-
-    // Construir dinámicamente el HTML de controles según campos disponibles
-    const resumenItems = [];
-    resumenItems.push(`<div class="resumen-item resumen-item--total"><div class="resumen-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="resumen-text"><span>Total Conductores</span><strong>${resumen.totalConductores}</strong></div></div>`);
-    resumenItems.push(`<div class="resumen-item resumen-item--lic"><div class="resumen-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19l12-12L19.6 5.6z"/></svg></div><div class="resumen-text"><span>Con Licencia</span><strong>${resumen.conLicencia}</strong></div></div>`);
-    resumenItems.push(`<div class="resumen-item resumen-item--sin"><div class="resumen-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg></div><div class="resumen-text"><span>Sin Licencia</span><strong>${resumen.sinLicencia}</strong></div></div>`);
-    if (informeAvailableFields.fecha) {
-        resumenItems.push(`<div class="resumen-item resumen-item--vig"><div class="resumen-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 1a11 11 0 1 0 11 11A11.013 11.013 0 0 0 12 1zm1 12.59V6h-2v7l6.25 3.75 1-1.66L13 13.59z"/></svg></div><div class="resumen-text"><span>Licencias Vigentes</span><strong>${resumen.vigentes}</strong></div></div>`);
-        resumenItems.push(`<div class="resumen-item resumen-item--ven"><div class="resumen-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div><div class="resumen-text"><span>Licencias Vencidas</span><strong>${resumen.vencidas}</strong></div></div>`);
-    }
-
-    const filtroEstadoHtml = informeAvailableFields.fecha ? `
+    let controls = `<div class="informe-controls">
+        <div class="resumen-grid resumen-grid-enhanced">
+            <div class="resumen-item resumen-item--total">
+                <div class="resumen-icon">
+                    <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M23 21v-2a4 4 0 00-3-3.85'/><path d='M16 3.13a4 4 0 010 7.75'/></svg>
+                </div><div class="resumen-text"><span>Total Conductores</span><strong>${resumen.totalConductores}</strong></div>
+            </div>
+            <div class="resumen-item resumen-item--lic">
+                <div class="resumen-icon">
+                    <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M3 4h18v4H3z'/><path d='M8 4v4'/><path d='M3 8l2 12h14l2-12'/><path d='M10 12h4'/></svg>
+                </div><div class="resumen-text"><span>Con Licencia</span><strong>${resumen.conLicencia}</strong></div>
+            </div>
+            <div class="resumen-item resumen-item--sin">
+                <div class="resumen-icon">
+                    <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><circle cx='12' cy='12' r='10'/><path d='M8 12h8'/></svg>
+                </div><div class="resumen-text"><span>Sin Licencia</span><strong>${resumen.sinLicencia}</strong></div>
+            </div>
+            <div class="resumen-item resumen-item--vig">
+                <div class="resumen-icon">
+                    <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/><path d='M9.5 11.5l2 2 3-3'/></svg>
+                </div><div class="resumen-text"><span>Licencias Vigentes</span><strong>${resumen.vigentes}</strong></div>
+            </div>
+            <div class="resumen-item resumen-item--ven">
+                <div class="resumen-icon">
+                    <svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><circle cx='12' cy='12' r='10'/><path d='M12 6v6l4 2'/></svg>
+                </div><div class="resumen-text"><span>Licencias Vencidas</span><strong>${resumen.vencidas}</strong></div>
+            </div>
+        </div>
+        <div class="filtros-grid filtros-grid-enhanced">
             <div class="filtro-group">
                 <label for='filtro-estado-lic' class='filtro-label'>Estado</label>
                 <select id="filtro-estado-lic" class="filtro-select filtro-select--wide">
@@ -2727,19 +2060,11 @@ async function loadInformeConductores() {
                     <option value="sin">Sin licencia</option>
                 </select>
             </div>
-    ` : '';
-
-    let controls = `<div class="informe-controls">
-        <div class="resumen-grid resumen-grid-enhanced">
-            ${resumenItems.join('\n')}
-        </div>
-        <div class="filtros-grid filtros-grid-enhanced">
-            ${filtroEstadoHtml}
             <div class="filtro-group">
                 <label for='filtro-categoria-lic' class='filtro-label'>Categoría</label>
                 <select id="filtro-categoria-lic" class="filtro-select filtro-select--wide">
                     <option value="todas">Todas</option>
-                    ${categoriasFinalFiltered.map(c => `<option value="${c}">${c}</option>`).join('')}
+                    ${categorias.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
             </div>
             <div class="export-buttons">
@@ -2753,75 +2078,35 @@ async function loadInformeConductores() {
     const cont = document.getElementById('informe-result');
     cont.innerHTML = html;
 
-    // Solo filtrar por categoría si existe
-    document.getElementById('filtro-categoria-lic').addEventListener('change', () => {
+    document.getElementById('filtro-estado-lic').addEventListener('change', () => {
+        const estado = document.getElementById('filtro-estado-lic').value;
         const categoria = document.getElementById('filtro-categoria-lic').value;
-        cont.querySelector('table').outerHTML = renderTablaConductores(categoria);
+        cont.querySelector('table').outerHTML = renderTablaConductores(estado, categoria);
+    });
+    document.getElementById('filtro-categoria-lic').addEventListener('change', () => {
+        const estado = document.getElementById('filtro-estado-lic').value;
+        const categoria = document.getElementById('filtro-categoria-lic').value;
+        cont.querySelector('table').outerHTML = renderTablaConductores(estado, categoria);
     });
     document.getElementById('btn-export-conductores').addEventListener('click', () => {
+        // Re-render filtered table to rows
+        const estado = document.getElementById('filtro-estado-lic').value;
         const categoria = document.getElementById('filtro-categoria-lic').value;
-        const rows = [];
-        // Armar encabezado dinámico (preferir número, luego restricción, luego documento, luego id)
-        const headers = ['Conductor','Identificación'];
-        if (informeAvailableFields.numero) headers.push('Licencia Nº');
-        else if (informeAvailableFields.restriccion) headers.push('Restricción');
-        else if (informeAvailableFields.documento) headers.push('Documento');
-        else headers.push('Licencia ID');
-        if (informeAvailableFields.categoria) headers.push('Categoría');
-        rows.push(headers);
-
+        // Build rows
+        const hoy = new Date();
+        const rows = [['Conductor','Identificación','Licencia Nº','Categoría','Vencimiento','Estado']];
         informeConductoresCache.conductores.forEach(c => {
-            const persona = c.persona || {};
-            const firstName = (persona.name || persona.nombres || persona.nombre || '').trim();
-            const lastName = (persona.last_name || persona.apellidos || persona.apellido || '').trim();
-            const fullName = `${firstName || '—'} ${lastName || ''}`.trim();
-            const idDisplay = persona.nui || persona.identificacion || persona.documento || persona.cc || persona.cedula || '—';
-            const licCond = informeConductoresCache.licencias.filter(l => (l.conductor_id ?? l.conductorId ?? l.conductor?.id) == c.id);
+            const persona = c.persona || {}; const licCond = informeConductoresCache.licencias.filter(l => l.conductor_id === c.id);
             if (licCond.length === 0) {
-                const emptyRow = [fullName, idDisplay];
-                while (emptyRow.length < headers.length) emptyRow.push('');
-                rows.push(emptyRow);
+                if (estado === 'sin' || estado === 'todos') rows.push([`${persona.name} ${persona.last_name}`, persona.nui, '','', '', 'Sin licencia']);
             } else {
                 licCond.forEach(l => {
-                    const lic = l.licencia || {};
-                    const numeroLic = extractNumeroLicencia(lic);
-                    const categoriaObj = lic.categoria || lic.categoria_licencia;
-                    const categoriaLic = (categoriaObj?.descripcion || categoriaObj?.nombre || categoriaObj?.codigo) || '';
-
-                    // obtener restricción/documento y fecha de expedición desde el catálogo si existe
-                    let restriccionText = '';
-                    let documentoText = '';
-                    let fechaExpStr = '';
-                    try {
-                        const detKey = lic.id || lic.licencia_id || l.licencia_id || l.id;
-                        const det = licenciasDetallesMap.get(detKey) || lic;
-                        if (det) {
-                            const restrId = det.restriccion_lic_id || det.restriccion_id;
-                            const restrObj = restriccionesMap.get(restrId);
-                            if (restrObj) {
-                                restriccionText = (typeof restrObj === 'string') ? restrObj : (restrObj.descripcion || restrObj.nombre || restrObj.descripcion_corta || String(restrObj.id));
-                            } else if (restrId) restriccionText = String(restrId);
-
-                            const docId = det.documento_id || det.documentoId || det.documento;
-                            if (docId) {
-                                const doc = documentosMap.get(docId);
-                                documentoText = doc ? (doc.nombre || doc.descripcion || doc.titulo || String(doc.id)) : String(docId);
-                            }
-
-                            fechaExpStr = extractFechaExpedicionStr(det);
-                            if (fechaExpStr === '—') fechaExpStr = extractFechaExpedicionStr(lic);
-                        }
-                    } catch (e) { /* ignore */ }
-
-                    if ((categoria === 'todas' || !informeAvailableFields.categoria) || categoria === categoriaLic) {
-                        const row = [fullName, idDisplay];
-                        if (informeAvailableFields.numero) row.push(numeroLic === '—' ? '' : numeroLic);
-                        else if (informeAvailableFields.restriccion) row.push(restriccionText || '');
-                        else if (informeAvailableFields.documento) row.push(documentoText || '');
-                        else row.push(lic.licencia_id || lic.id || '');
-                        if (informeAvailableFields.categoria) row.push(categoriaLic);
-                        if (informeAvailableFields.expedicion) row.push(fechaExpStr || '—');
-                        rows.push(row);
+                    const lic = l.licencia || {}; const fecha = lic.fecha_vencimiento ? new Date(lic.fecha_vencimiento) : null;
+                    const est = fecha && fecha < hoy ? 'Vencida' : 'Vigente';
+                    const estKey = est.toLowerCase();
+                    const categoriaLic = lic.categoria_licencia?.nombre || 'N/A';
+                    if ((estado === 'todos' || estado === estKey) && (categoria === 'todas' || categoria === categoriaLic)) {
+                        rows.push([`${persona.name} ${persona.last_name}`, persona.nui, lic.numero || 'N/A', categoriaLic, lic.fecha_vencimiento || 'N/A', est]);
                     }
                 });
             }
@@ -2830,16 +2115,15 @@ async function loadInformeConductores() {
     });
 }
 
-function renderTablaVehiculosRutaDetalle(routeId = null) {
-    const asignaciones = informeVehiculosRutaCache.asignaciones || [];
+function renderTablaVehiculosRutaDetalle() {
+    const asignaciones = informeVehiculosRutaCache.asignaciones;
     let html = '<table class="data-table"><thead><tr>';
     html += '<th>Ruta</th><th>Vehículo (Placa)</th><th>Tipo</th><th>Kilometraje</th><th>Fecha/Hora</th>';
     html += '</tr></thead><tbody>';
-    const filtered = routeId ? asignaciones.filter(a => (a.ruta && (a.ruta.id == routeId || a.ruta.id === Number(routeId)))) : asignaciones;
-    if (filtered.length === 0) {
+    if (asignaciones.length === 0) {
         html += '<tr><td colspan="5" class="text-center">No hay asignaciones registradas</td></n></tr>';
     } else {
-        filtered.forEach(a => {
+        asignaciones.forEach(a => {
             const vehiculo = a.vehiculo || {}; const ruta = a.ruta || {};
             html += `<tr>
                 <td>${ruta.nombre || 'N/A'}</td>
@@ -2855,160 +2139,29 @@ function renderTablaVehiculosRutaDetalle(routeId = null) {
 }
 
 async function loadInformeVehiculosRuta() {
-    // Cargar asignaciones y recursos necesarios
     const asignacionesResp = await apiGet('/seguim-estado-veh');
-    const rutasResp = await apiGet('/rutas');
-    const vehiculosResp = await apiGet('/vehiculos');
-
-    const asignacionesList = normalizeList(asignacionesResp);
-    const rutasList = normalizeList(rutasResp);
-    const vehiculosList = normalizeList(vehiculosResp);
-
-    // Mapear objetos de vehículo/ruta a las asignaciones cuando la API devuelve solo IDs
-    // Construir mapas rápidos por id (usar llave string para evitar mismatch entre "1" y 1)
-    const vehiculoMap = new Map();
-    if (Array.isArray(vehiculosList)) vehiculosList.forEach(v => { if (v && (v.id !== undefined && v.id !== null)) vehiculoMap.set(String(v.id), v); });
-    const rutaMap = new Map();
-    if (Array.isArray(rutasList)) rutasList.forEach(r => { if (r && (r.id !== undefined && r.id !== null)) rutaMap.set(String(r.id), r); });
-
-    // Intentar cargar tipos de vehículo para mapear tipo_veh_id -> descripcion
-    let tiposVehList = [];
-    try {
-        const tiposResp = await apiGet('/tipo-vehiculo');
-        tiposVehList = normalizeList(tiposResp) || [];
-    } catch (e) {
-        console.debug('No se pudo cargar /tipo-vehiculo:', e);
-    }
-    const tipoMap = new Map();
-    if (Array.isArray(tiposVehList)) tiposVehList.forEach(t => { if (t && (t.id !== undefined && t.id !== null)) tipoMap.set(String(t.id), t); });
-
-    // Normalizar asignaciones: adjuntar `vehiculo` y `ruta` cuando falten y exista el id
-    if (Array.isArray(asignacionesList)) {
-        asignacionesList.forEach(a => {
-            try {
-                // Vehículo: soporte varios nombres de campo (vehiculo_id, vehiculoId, vehiculo)
-                if ((!a.vehiculo || Object.keys(a.vehiculo).length === 0) && (a.vehiculo_id || a.vehiculoId)) {
-                    const vid = String(a.vehiculo_id || a.vehiculoId);
-                    if (vehiculoMap.has(vid)) a.vehiculo = Object.assign({}, vehiculoMap.get(vid));
-                } else if (a.vehiculo && a.vehiculo.id) {
-                    const vid = String(a.vehiculo.id);
-                    if (vehiculoMap.has(vid)) a.vehiculo = Object.assign({}, vehiculoMap.get(vid), a.vehiculo);
-                }
-
-                // Si existe tipo id en el vehículo, mapear a objeto tipo con campo legible
-                if (a.vehiculo) {
-                    // Normalizar nombre de placa
-                    if (!a.vehiculo.placa && (a.placa || a.vehiculo_placa)) {
-                        a.vehiculo.placa = a.placa || a.vehiculo_placa;
-                    }
-
-                    const tipoId = a.vehiculo.tipo_veh_id || a.vehiculo.tipoVehId || a.vehiculo.tipo_id || (a.vehiculo.tipo && a.vehiculo.tipo.id);
-                    if (!a.vehiculo.tipo && tipoId && tipoMap.has(String(tipoId))) {
-                        const tipoObj = tipoMap.get(String(tipoId));
-                        a.vehiculo.tipo = { nombre: tipoObj.descripcion || tipoObj.nombre || tipoObj.descripcion_corta || String(tipoObj.id) };
-                    }
-
-                    // Aceptar si el API devolvió 'tipo_vehiculo' anidado
-                    if (!a.vehiculo.tipo && a.vehiculo.tipo_vehiculo) {
-                        a.vehiculo.tipo = { nombre: a.vehiculo.tipo_vehiculo.descripcion || a.vehiculo.tipo_vehiculo.nombre };
-                    }
-                }
-
-                // Ruta: soporte ruta_id, rutaId, y objeto ruta
-                if ((!a.ruta || Object.keys(a.ruta).length === 0) && (a.ruta_id || a.rutaId)) {
-                    const rid = String(a.ruta_id || a.rutaId);
-                    if (rutaMap.has(rid)) a.ruta = Object.assign({}, rutaMap.get(rid));
-                } else if (a.ruta && a.ruta.id) {
-                    const rid = String(a.ruta.id);
-                    if (rutaMap.has(rid)) a.ruta = Object.assign({}, rutaMap.get(rid), a.ruta);
-                }
-
-                // Normalizar nombre de ruta (nombre vs name)
-                if (a.ruta) {
-                    if (!a.ruta.nombre && a.ruta.name) a.ruta.nombre = a.ruta.name;
-                }
-            } catch (e) {
-                // No bloquear si hay estructura inesperada
-                console.debug('Normalizar asignación falló para item', a, e);
-            }
-        });
-    }
-
-    informeVehiculosRutaCache.asignaciones = asignacionesList;
-
-    // Resumen: total vehículos (catalog), asignados (únicos en asignaciones) y sin asignar
-    const totalVehiculos = vehiculosList.length;
-    const vehiculosAsignadosSet = new Set();
-    asignacionesList.forEach(a => { if (a.vehiculo && a.vehiculo.id) vehiculosAsignadosSet.add(a.vehiculo.id); });
-    const assignedCount = vehiculosAsignadosSet.size;
-    const unassignedCount = Math.max(0, totalVehiculos - assignedCount);
-
-    // Conteo por ruta
+    informeVehiculosRutaCache.asignaciones = asignacionesResp?.data || [];
+    // Agregado por ruta
     const conteoPorRuta = new Map();
-    asignacionesList.forEach(a => {
+    informeVehiculosRutaCache.asignaciones.forEach(a => {
         const nombreRuta = a.ruta?.nombre || 'Sin nombre';
         conteoPorRuta.set(nombreRuta, (conteoPorRuta.get(nombreRuta) || 0) + 1);
     });
     const resumenRows = Array.from(conteoPorRuta.entries()).sort((a,b)=>b[1]-a[1]);
+    let resumenHtml = '<table class="data-table"><thead><tr><th>Ruta</th><th>Vehículos Asignados</th></tr></thead><tbody>';
+    if (resumenRows.length === 0) resumenHtml += '<tr><td colspan="2" class="text-center">Sin asignaciones</td></tr>';
+    else resumenRows.forEach(([ruta, count]) => { resumenHtml += `<tr><td>${ruta}</td><td><span class="badge badge-info">${count}</span></td></tr>`; });
+    resumenHtml += '</tbody></table>';
 
-    // Construir controles y resumen con el mismo estilo visual que Informe Conductores
-    const resumenItems = [];
-    resumenItems.push(`<div class="resumen-item resumen-item--total"><div class="resumen-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M3 13h2v-2H3v2zm4 0h2v-2H7v2zm4 0h2v-2h-2v2zm4 0h2v-2h-2v2zm4 0h2v-2h-2v2z"/></svg></div><div class="resumen-text"><span>Total Vehículos</span><strong>${totalVehiculos}</strong></div></div>`);
-    resumenItems.push(`<div class="resumen-item resumen-item--lic"><div class="resumen-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19l12-12L19.6 5.6z"/></svg></div><div class="resumen-text"><span>Vehículos Asignados</span><strong>${assignedCount}</strong></div></div>`);
-    resumenItems.push(`<div class="resumen-item resumen-item--sin"><div class="resumen-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg></div><div class="resumen-text"><span>Sin Asignar</span><strong>${unassignedCount}</strong></div></div>`);
-
-    // Filtro de rutas
-    const rutasOptions = ['<option value="todas">Todas</option>'];
-    // Preferir catálogo /rutas si está disponible
-    if (Array.isArray(rutasList) && rutasList.length) {
-        rutasList.forEach(r => { if (r && r.id) rutasOptions.push(`<option value="${r.id}">${r.nombre || r.name || 'Ruta #' + r.id}</option>`); });
-    } else {
-        // Fallback: usar nombres detectados en asignaciones
-        const seen = new Set();
-        resumenRows.forEach(([nombre, count], idx) => { if (!seen.has(nombre)) { rutasOptions.push(`<option value="${nombre}">${nombre}</option>`); seen.add(nombre); } });
-    }
-
-    const filtroEstadoHtml = '';
-    const controls = `<div class="informe-controls">
-        <div class="resumen-grid resumen-grid-enhanced">
-            ${resumenItems.join('\n')}
-        </div>
-        <div class="filtros-grid filtros-grid-enhanced" style="align-items:center;">
-            ${filtroEstadoHtml}
-            <div class="filtro-group">
-                <label for='filtro-ruta-veh' class='filtro-label'>Ruta</label>
-                <select id="filtro-ruta-veh" class="filtro-select filtro-select--wide">
-                    ${rutasOptions.join('\n')}
-                </select>
-            </div>
-            <div class="export-buttons">
-                <button id="btn-export-vehiculos-ruta" class="btn-export btn-export--primary"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M4 17.5C4 16.672 4.672 16 5.5 16h13c.828 0 1.5.672 1.5 1.5V18a2 2 0 01-2 2H6a2 2 0 01-2-2v-.5Z'/><path d='M12 3v11'/><path d='M8 10.5l4 3.5 4-3.5'/></svg> Exportar CSV</button>
-            </div>
-        </div>
-    </div>`;
-
-    const tabla = `<div class="tabla-wrapper">${renderTablaVehiculosRutaDetalle()}</div>`;
-    const html = '<h3 class="informe-title">Informe: Vehículos por Ruta</h3>' + controls + tabla;
+    const detalleHtml = renderTablaVehiculosRutaDetalle();
     const cont = document.getElementById('informe-result');
-    cont.innerHTML = html;
+    cont.innerHTML = '<h3 class="font-semibold mb-3">Informe: Vehículos por Ruta</h3>'+
+        '<div class="informe-controls"><div class="export-buttons"><button id="btn-export-vehiculos-ruta" class="btn-export">Exportar CSV</button></div></div>' +
+        '<h4 class="mb-2 font-semibold">Resumen</h4>' + resumenHtml + '<h4 class="mt-6 mb-2 font-semibold">Detalle</h4>' + detalleHtml;
 
-    // Listener para cambio de ruta
-    const filtroRutaEl = document.getElementById('filtro-ruta-veh');
-    filtroRutaEl.addEventListener('change', (e) => {
-        const val = e.target.value;
-        const tableWrap = cont.querySelector('.tabla-wrapper');
-        if (!tableWrap) return;
-        if (val === 'todas') tableWrap.innerHTML = renderTablaVehiculosRutaDetalle();
-        else tableWrap.innerHTML = renderTablaVehiculosRutaDetalle(val);
-    });
-
-    // Exportar CSV (respeta filtro)
     document.getElementById('btn-export-vehiculos-ruta').addEventListener('click', () => {
-        const rutaVal = document.getElementById('filtro-ruta-veh').value;
         const rows = [['Ruta','Placa','Tipo','Kilometraje','Fecha/Hora']];
-        const source = informeVehiculosRutaCache.asignaciones || [];
-        const filtered = (rutaVal && rutaVal !== 'todas') ? source.filter(a => (a.ruta && (a.ruta.id == rutaVal || a.ruta.nombre == rutaVal))) : source;
-        filtered.forEach(a => {
+        informeVehiculosRutaCache.asignaciones.forEach(a => {
             rows.push([a.ruta?.nombre || 'N/A', a.vehiculo?.placa || 'N/A', a.vehiculo?.tipo?.nombre || 'N/A', a.kilometraje || '', a.fecha_hora || '']);
         });
         exportCSV('informe_vehiculos_ruta.csv', rows);
