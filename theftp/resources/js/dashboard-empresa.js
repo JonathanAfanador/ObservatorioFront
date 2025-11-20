@@ -960,20 +960,20 @@ async function loadLicencias() {
     documentos.forEach(d => { if (d && (d.id || d.documento_id)) documentosMap[d.id || d.documento_id] = d; });
     conductoresLista.forEach(c => { if (c && c.persona) conductorPersonaMap[c.id] = c.persona; });
 
-    // Helper: resolve category display (prefer codigo, then nombre/descripcion)
+    // Helper: resolve category display (prefer nombre/descripcion, not codigo)
     function resolveCategoria(lica, wrapper) {
         const cand = lica?.categoria || lica?.categoria_licencia || lica?.categoriaObj || null;
-        if (cand) return cand.descripcion || cand.nombre || cand.codigo || (typeof cand === 'string' ? cand : null);
+        if (cand) return cand.nombre || cand.descripcion || cand.codigo || (typeof cand === 'string' ? cand : null);
         const id = lica?.categoria_id || lica?.categoria_lic_id || lica?.categoriaLicId || wrapper?.categoria_id || wrapper?.categoria_lic_id || wrapper?.categoriaId || null;
         if (id && categoriasMap[id]) {
             const c = categoriasMap[id];
-            return c.codigo || c.nombre || c.descripcion || String(id);
+            return c.nombre || c.descripcion || c.codigo || String(id);
         }
         // try nested licencia
         const nestedId = (lica && lica.licencia && (lica.licencia.categoria_id || lica.licencia.categoria_lic_id)) || null;
         if (nestedId && categoriasMap[nestedId]) {
             const c = categoriasMap[nestedId];
-            return c.codigo || c.nombre || c.descripcion || String(nestedId);
+            return c.nombre || c.descripcion || c.codigo || String(nestedId);
         }
         return null;
     }
@@ -1053,29 +1053,32 @@ async function loadLicencias() {
             const restrId = licObj.restriccion_lic_id || licObj.restriccion_id || l.restriccion_lic_id || l.restriccion_id;
             if (restrId && restriccionesMap[restrId]) restriccion = restriccionesMap[restrId];
 
-            // Documento
+            // Documento - Número de identificación de la persona (NUI)
             let documentoText = '';
-            const rawDocRef = licObj.documento_id || licObj.documentoId || licObj.documento || l.documento_id || l.documento || null;
-            let docEntry = null;
-            if (rawDocRef && typeof rawDocRef === 'object') {
-                // licencia.documento might already be an object
-                docEntry = rawDocRef;
-            } else if (rawDocRef) {
-                // try by id or nested id
-                const possibleId = (rawDocRef && rawDocRef.id) ? rawDocRef.id : rawDocRef;
-                docEntry = documentosMap[possibleId] || documentosMap[rawDocRef] || null;
+
+            // Primero intentamos obtener el NUI de la persona del conductor
+            if (l.conductor) {
+                let persona = l.conductor.persona || conductorPersonaMap[l.conductor.id];
+                if (persona && persona.nui) {
+                    documentoText = String(persona.nui);
+                }
             }
-            if (index < 6) console.debug('DEBUG documento lookup', { index, rawDocRef, docEntryFound: !!docEntry, docEntry });
-            if (docEntry) {
-                documentoText = resolveDocumentoText(docEntry) || '';
-            } else {
-                // fallback: maybe the conductor persona has `nui` (document number)
-                const personaNui = l.conductor?.persona?.nui || conductorPersonaMap[l.conductor?.id]?.nui;
-                if (personaNui) documentoText = String(personaNui);
-                else if (rawDocRef) {
-                    // show the raw reference as a fallback so the UI isn't empty
-                    const possible = (typeof rawDocRef === 'object') ? (rawDocRef.id || JSON.stringify(rawDocRef)) : String(rawDocRef);
-                    documentoText = `ID: ${possible}`;
+
+            // Si no encontramos el NUI, buscamos en el documento de la licencia
+            if (!documentoText) {
+                const rawDocRef = licObj.documento_id || licObj.documentoId || licObj.documento || l.documento_id || l.documento || null;
+                let docEntry = null;
+                if (rawDocRef && typeof rawDocRef === 'object') {
+                    // licencia.documento might already be an object
+                    docEntry = rawDocRef;
+                } else if (rawDocRef) {
+                    // try by id or nested id
+                    const possibleId = (rawDocRef && rawDocRef.id) ? rawDocRef.id : rawDocRef;
+                    docEntry = documentosMap[possibleId] || documentosMap[rawDocRef] || null;
+                }
+                if (index < 6) console.debug('DEBUG documento lookup', { index, rawDocRef, docEntryFound: !!docEntry, docEntry });
+                if (docEntry) {
+                    documentoText = resolveDocumentoText(docEntry) || '';
                 }
             }
 
@@ -1176,10 +1179,62 @@ async function loadVehiculos() {
         return;
     }
 
+    // Función para convertir nombres de colores en español a CSS
+    function convertirColorEspanolACSS(colorNombre) {
+        if (!colorNombre) return '#ccc';
+
+        const coloresEspañol = {
+            'rojo': '#dc2626',
+            'azul': '#2563eb',
+            'amarillo': '#eab308',
+            'verde': '#16a34a',
+            'blanco': '#ffffff',
+            'negro': '#000000',
+            'gris': '#6b7280',
+            'naranja': '#ea580c',
+            'morado': '#9333ea',
+            'rosa': '#ec4899',
+            'cafe': '#92400e',
+            'café': '#92400e',
+            'marron': '#92400e',
+            'marrón': '#92400e',
+            'plateado': '#d1d5db',
+            'dorado': '#ca8a04',
+            'celeste': '#38bdf8',
+            'turquesa': '#14b8a6',
+            'beige': '#d4c5b9',
+            'crema': '#fef3c7'
+        };
+
+        const colorLower = colorNombre.toLowerCase().trim();
+
+        // Si es un color válido en el mapa, retornarlo
+        if (coloresEspañol[colorLower]) {
+            return coloresEspañol[colorLower];
+        }
+
+        // Si ya es un código hex válido o un color CSS, retornarlo tal cual
+        if (colorLower.startsWith('#') || colorLower.startsWith('rgb')) {
+            return colorNombre;
+        }
+
+        // Colores en inglés que CSS entiende directamente
+        const coloresIngles = ['red', 'blue', 'yellow', 'green', 'white', 'black', 'gray', 'orange', 'purple', 'pink', 'brown', 'silver', 'gold'];
+        if (coloresIngles.includes(colorLower)) {
+            return colorNombre;
+        }
+
+        // Si no coincide con nada, retornar gris por defecto
+        return '#9ca3af';
+    }
+
     let html = '<div class="vehiculos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1rem;">';
 
     vehiculos.forEach((v) => {
         const tipo = v.tipo?.descripcion || 'Sin tipo';
+
+        // Convertir el color del vehículo a CSS válido
+        const colorCSS = convertirColorEspanolACSS(v.color);
 
         // Extraer nombre del propietario
         let nombrePropietario = 'Sin propietario';
@@ -1250,7 +1305,7 @@ async function loadVehiculos() {
                             Color
                         </span>
                         <span style="color: #1f2937; font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <span style="display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: ${v.color || '#ccc'}; border: 2px solid #e5e7eb;"></span>
+                            <span style="display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: ${colorCSS}; border: 2px solid #e5e7eb;"></span>
                             ${v.color || 'N/A'}
                         </span>
                     </div>
