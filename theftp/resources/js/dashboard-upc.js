@@ -328,7 +328,7 @@
         const el = document.getElementById('conductores-table');
         el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando conductores...</p></div>';
         try {
-            const response = await apiGet('/api/conductores?include=persona,persona.tipo_ident&limit=1000');
+            const response = await apiGet('/api/conductores?include=persona,persona.tipo_ident&limit=100');
             dashboardDataStore.conductores = response.data.data;
             renderConductoresTable();
         } catch (error) {
@@ -371,7 +371,7 @@
         el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando vehículos...</p></div>';
         try {
             const filtro = {"column":"servicio","operator":"=","value":true};
-            const params = `?filter=${encodeURIComponent(JSON.stringify(filtro))}&include=tipo&limit=1000`;
+            const params = `?filter=${encodeURIComponent(JSON.stringify(filtro))}&include=tipo&limit=100`;
             const response = await apiGet('/api/vehiculos' + params);
             dashboardDataStore.vehiculos = response.data.data;
             renderVehiculosTable();
@@ -443,7 +443,11 @@
             { label: '#', render: (_, i) => i + 1 },
             { key: 'observaciones', label: 'Título/Observación' },
             { key: 'url', label: 'URL' },
-            
+            { label: 'Fecha', render: (item) => {
+                if (!item.created_at) return '-';
+                const d = new Date(item.created_at);
+                return isNaN(d) ? '-' : d.toLocaleDateString('es-CO');
+            } }
         ], "No se encontraron documentos con esos filtros.");
     }
 
