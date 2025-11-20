@@ -159,7 +159,7 @@
         <div class="content-card">
 
             <!-- Encabezado -->
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
                 <div>
                     <h2 class="content-title">Documentos y Resoluciones</h2>
                     <p class="text-gray-600 mb-4">Repositorio de documentos oficiales y resoluciones administrativas.</p>

@@ -16,8 +16,7 @@
 
         {{-- Sección donde se describen los servicios principales --}}
         <x-landing.services />
-
-        {{-- Bloque con características, ventajas o información adicional --}}
+        {{-- <x-landing.map /> --}} {{-- Mapa deshabilitado --}}
         <x-landing.features />
     </main>
 
