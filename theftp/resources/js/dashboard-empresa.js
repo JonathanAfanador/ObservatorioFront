@@ -3,7 +3,7 @@
 
 let currentView = 'dashboard';
 let editingId = null; // Para edición de registros
-
+let myEmpresaId = null;
 // Función para obtener token de autorización
 function getToken() {
     return localStorage.getItem('auth_token');
@@ -1367,13 +1367,24 @@ window.editVehiculo = async function(id) {
 // 5. GESTIÓN DE RUTAS
 // ==========================
 async function loadRutas() {
-    const response = await apiGet('/rutas');
-    const rutas = normalizeList(response);
     const container = document.getElementById('rutas-table');
-    if (!container) return;
+    container.innerHTML = '<p class="text-center py-4 text-gray-500">Cargando rutas de la empresa...</p>';
+
+    let endpoint = '/rutas?include=empresa';
+    
+    // FILTRO AUTOMÁTICO: Si tengo empresa ID, solo traigo las mías
+    if (myEmpresaId) {
+        const filtro = encodeURIComponent(JSON.stringify([
+            { "column": "empresa_id", "operator": "=", "value": myEmpresaId }
+        ]));
+        endpoint += `&filter=${filtro}`;
+    }
+
+    const response = await apiGet(endpoint);
+    const rutas = normalizeList(response);
 
     if (rutas.length === 0) {
-        container.innerHTML = '<p style="margin-top:1rem;color:#6b7280;">No hay rutas registradas todavía.</p>';
+        container.innerHTML = '<div class="text-center py-8 bg-gray-50 rounded text-gray-500">No tienes rutas registradas.</div>';
         return;
     }
 
@@ -1666,38 +1677,47 @@ window.deleteAsignacion = async function(id) {
 // ==========================
 
 // Reemplazar menú inmediatamente para evitar ver el menú por defecto
-if (document.readyState === 'loading') {
-    // Si el DOM aún no está listo, esperar al DOMContentLoaded
-    document.addEventListener('DOMContentLoaded', initDashboard);
-} else {
-    // Si el DOM ya está listo, ejecutar inmediatamente
-    initDashboard();
-}
-
-function initDashboard() {
+async function initDashboard() {
     console.log('=== INIT DASHBOARD EMPRESA ===');
-    console.log('DOM Ready:', document.readyState);
 
-    // Intentar precargar empresa_id si no existe
-    (async () => {
-        if (!localStorage.getItem('empresa_id')) {
-            try {
-                const empresasResp = await apiGet('/empresas');
-                const empresasData = normalizeList(empresasResp);
-                if (empresasData.length > 0) {
-                    localStorage.setItem('empresa_id', empresasData[0].id);
-                    console.log('empresa_id precargado:', empresasData[0].id);
-                } else {
-                    console.warn('No se encontró empresa para precargar empresa_id');
-                }
-            } catch (err) {
-                console.error('Error precargando empresa_id:', err);
+    let myEmpresaId = localStorage.getItem('user_empresa_id'); 
+    const roleId = localStorage.getItem('user_role_id');
+
+    // Seguridad: si es usuario empresa (role_id = 3) pero no tiene ID
+    if (roleId === "3" && !myEmpresaId) {
+        console.warn("Usuario empresa sin 'user_empresa_id' en localStorage. Intentando recuperar del backend...");
+
+        try {
+            const me = await apiGet('/api/auth/me');
+            if (me.empresa_id) {
+                myEmpresaId = me.empresa_id;
+                localStorage.setItem('user_empresa_id', myEmpresaId);
+                localStorage.setItem('empresa_id', myEmpresaId); 
+                console.log("empresa_id recuperado correctamente:", myEmpresaId);
+            } else {
+                console.error("El usuario no tiene empresa asignada en el backend.");
+                alert("No tienes una empresa asignada. Contacta al administrador.");
+                return;
             }
+        } catch (err) {
+            console.error("Error al recuperar datos del usuario:", err);
+            alert("Error de sesión. Serás redirigido al login.");
+            window.location.href = '/login';
+            return;
         }
-    })();
+    }
+
+    if (myEmpresaId && !localStorage.getItem('empresa_id')) {
+        localStorage.setItem('empresa_id', myEmpresaId);
+    }
+
+    console.log('Empresa activa ID:', myEmpresaId);
+
+    // Dejamos disponible globalmente (muy útil para listRutas(), listConductores(), etc.)
+    window.getCurrentEmpresaId = () => myEmpresaId;
 
     buildEmpresaMenu();
-    setupEventListeners(); // Configurar todos los event listeners
+    setupEventListeners();
 
     console.log('Botones después de setupEventListeners:', {
         conductor: document.getElementById('btn-add-conductor'),
@@ -1707,13 +1727,9 @@ function initDashboard() {
         asignacion: document.getElementById('btn-add-asignacion')
     });
 
-    // Vistas válidas para este dashboard
     const validViews = ['dashboard', 'conductores', 'licencias', 'vehiculos', 'rutas', 'asignaciones', 'informes'];
 
-    // Cargar vista inicial
-    let hash = window.location.hash.substring(1);
-
-    // Si el hash no es válido, redirigir a dashboard
+    let hash = window.location.hash.substring(1) || 'dashboard';
     if (!validViews.includes(hash)) {
         hash = 'dashboard';
         window.location.hash = 'dashboard';
@@ -1721,16 +1737,12 @@ function initDashboard() {
 
     navigateTo(hash);
 
-    // Listener para cambios en hash
     window.addEventListener('hashchange', () => {
-        let view = window.location.hash.substring(1);
-
-        // Validar vista
+        let view = window.location.hash.substring(1) || 'dashboard';
         if (!validViews.includes(view)) {
             view = 'dashboard';
             window.location.hash = 'dashboard';
         }
-
         navigateTo(view);
     });
 }
@@ -1972,69 +1984,58 @@ async function saveVehiculo(e) {
 function openModalRuta() {
     const form = document.getElementById('form-ruta');
     form.reset();
-    // Prellenar empresa id oculto
-    const empresaId = localStorage.getItem('empresa_id');
-    if (empresaId) {
-        const hiddenEmpresa = document.getElementById('ruta-empresa-id');
-        if (hiddenEmpresa) hiddenEmpresa.value = empresaId;
+    
+    // INYECCIÓN AUTOMÁTICA DE EMPRESA
+    const hiddenEmpresa = document.getElementById('ruta-empresa-id');
+    if (hiddenEmpresa) {
+        if (myEmpresaId) {
+            hiddenEmpresa.value = myEmpresaId;
+        } else {
+            // Fallback: Si no hay ID (por error), dejar que el backend falle o manejarlo
+            console.error("No hay ID de empresa para asignar a la ruta.");
+        }
     }
+    
     document.getElementById('ruta-edit-id').value = '';
     document.getElementById('ruta-modal-title').textContent = 'Agregar Ruta';
     document.getElementById('ruta-submit-btn').textContent = 'Guardar';
     document.getElementById('ruta-current-file').style.display = 'none';
-    document.getElementById('ruta-file-help').textContent = 'Formato requerido. El backend exige este archivo.';
     document.getElementById('modal-ruta').style.display = 'flex';
 }
 
 async function saveRuta(e) {
     e.preventDefault();
-
     const nombre = document.getElementById('ruta-nombre').value.trim();
     const fileInput = document.getElementById('ruta-file');
-    let empresaId = document.getElementById('ruta-empresa-id').value || localStorage.getItem('empresa_id');
     const editId = document.getElementById('ruta-edit-id').value;
+    
+    // Usar la variable global
+    const empresaId = myEmpresaId || document.getElementById('ruta-empresa-id').value;
 
-    if (!nombre) {
-        showNotification('warning', 'Nombre requerido', 'Debe ingresar el nombre de la ruta.');
-        return;
-    }
-    if (!fileInput || fileInput.files.length === 0) {
-        showNotification('warning', 'Archivo requerido', 'Debe adjuntar el archivo de la ruta.');
-        return;
-    }
-    if (!empresaId) {
-        showNotification('error', 'Sin empresa', 'No se pudo determinar la empresa asociada.');
-        return;
-    }
+    if (!nombre) return showNotification('warning', 'Requerido', 'Nombre de ruta obligatorio.');
+    if (!editId && (!fileInput || fileInput.files.length === 0)) return showNotification('warning', 'Requerido', 'Archivo obligatorio.');
+    if (!empresaId) return showNotification('error', 'Error', 'No se identificó la empresa.');
 
     const formData = new FormData();
-    // Campos requeridos según backend
-    formData.append('name', nombre); // backend espera 'name'
-    formData.append('empresa_id', empresaId);
-    formData.append('file', fileInput.files[0]); // backend espera 'file'
+    formData.append('name', nombre);
+    formData.append('empresa_id', empresaId); // Automático
+    if(fileInput.files[0]) formData.append('file', fileInput.files[0]);
 
     let result;
     if (editId) {
-        result = await apiPostFile(`/rutas/${editId}`, formData);
+        result = await apiPostFile(`/rutas/${editId}`, formData); // Tu backend usa POST para update con archivos
     } else {
         result = await apiPostFile('/rutas', formData);
     }
 
     if (result && result.status !== false) {
-        showNotification('success', '¡Éxito!', editId ? 'Ruta actualizada' : 'Ruta creada exitosamente');
-        document.getElementById('modal-ruta').style.display = 'none';
-        loadRutas && loadRutas();
-        return;
+            showNotification('success', 'Éxito', 'Ruta guardada.');
+            document.getElementById('modal-ruta').style.display = 'none';
+            loadRutas();
+        } else {
+            showNotification('error', 'Error', 'No se pudo guardar.');
+        }
     }
-
-    if (result && result.errors) {
-        const messages = Object.values(result.errors).flat().join('\n');
-        showNotification('error', 'Error de validación', messages);
-        return;
-    }
-
-    showNotification('error', 'Error', 'No se pudo crear la ruta.');
-}
 
 // --- ASIGNACIONES ---
 async function openModalAsignacion() {
@@ -3133,4 +3134,10 @@ function setupEventListeners() {
     });
 
     console.log('✅ Event listeners con delegación configurados');
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDashboard);
+} else {
+    initDashboard();
 }

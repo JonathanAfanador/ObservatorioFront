@@ -636,6 +636,14 @@ if (loginFormEl) {
       localStorage.setItem('user_role_id', roleId);
       localStorage.setItem('user_role_desc', rolDescripcion);
       localStorage.setItem('user_dashboard_path', dashboardPath);
+      
+      if (user.empresa_id) {
+          localStorage.setItem('user_empresa_id', user.empresa_id);
+          console.log('Empresa vinculada ID:', user.empresa_id);
+        } else {
+            localStorage.removeItem('user_empresa_id'); // Limpiar si no tiene
+        }
+      
 
       // Después del login, se envía a la página principal
       window.location.href = '/';

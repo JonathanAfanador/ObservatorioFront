@@ -106,6 +106,14 @@
                         </select>
                     </div>
                 </div>
+                
+                <div class="form-group" id="group-user-empresa" style="display: none;">
+                    <label for="user-empresa" class="text-blue-600 font-semibold">Empresa a la que pertenece</label>
+                    <select id="user-empresa" class="border-blue-300 bg-blue-50">
+                        <option value="">Seleccione la empresa...</option>
+                    </select>
+                    <small class="text-gray-500">Este usuario gestionará los datos de esta empresa.</small>
+                </div>
 
                 {{-- Asociación con una persona del registro (persona física) --}}
                 <div class="form-group">
