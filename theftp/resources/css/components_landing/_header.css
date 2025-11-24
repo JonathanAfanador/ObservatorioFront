@@ -4,254 +4,126 @@
    Header
    ------------------------- */
 .site-header {
-  position: fixed;   /* <-- CAMBIO CLAVE: de 'sticky' a 'fixed' */
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;       /* <-- AÑADIDO: 'fixed' necesita un ancho explícito */
+  width: 100%;
   z-index: 1000;
   background-color: var(--bg);
-  padding: 16px 0;
+  /* Padding reducido en móvil para ganar espacio */
+  padding: 12px 0; 
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
+
 .site-header .container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; /* Esto empuja el logo a la izq y el menú a la der */
+  position: relative;
 }
+
+/* --- Marca / Logos --- */
 .brand {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px; /* Gap reducido para móvil */
   position: relative;
   z-index: 1003;
-  flex-shrink: 0;
+  flex-shrink: 0; /* Evita que el logo se aplaste */
 }
+
 .logo {
-  height: 60px; /* Reducido de 80px para mejor ajuste en móviles */
+  /* Tamaño para MÓVIL (más pequeño para que no rompa el diseño) */
+  height: 36px; 
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06));
 }
+
 .divider {
   width: 1px;
-  height: 40px;
+  height: 24px; /* Ajustado al tamaño del logo móvil */
   background-color: #ddd;
 }
 
+/* --- Botón Dashboard (Escritorio) --- */
 .btn-dashboard {
-  /* Pegas todos los estilos que tenías en línea */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding:  0 20px;
+  padding: 0 20px;
   font-size: 0.85rem;
-  min-height: 50px;
+  min-height: 40px;
   font-weight: 600;
   white-space: nowrap;
-  /* ¡Importante! 'btn-primary' ya le da el fondo, 
-     solo necesitas asegurar el color del texto y el ícono */
-  color: var(--white) !important; 
-  
+  color: var(--white) !important;
 }
 
 .btn-dashboard svg {
-    /* Defines el color del ícono SVG anidado */
-    stroke: var(--white);
-    width: 24px;
-    height: 22px;
-    flex-shrink: 0;
-}
-/*
- Estilos del Dropdown de Perfil (Invitado)
-*/
-
-/*. El contenedor principal
-   (Necesita ser 'relative' para anclar el menú)
-*/
-.profile-dropdown {
-    position: relative;
-    display: inline-block; /* Se asegura que se alinee en la fila */
-}
-
-/*  El botón "Mi Perfil"
-   (Lo estilizamos para que se vea como un 'btn-ghost')
-*/
-.profile-btn {
-    /* Reseteo de estilos de botón */
-    background-color: transparent;
-    cursor: pointer;
-    
-    /* Layout: texto y flecha en fila */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px; /* Espacio entre "Mi Perfil" y la flecha */
-
-    /* Estilos para que coincida con "Cerrar Sesión" */
-    border: 2px solid var(--accent-green);
-    color: var(--accent-green);
-    min-height: 48px; /* Misma altura que .btn-dashboard */
-    padding: 0 20px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    border-radius: 999px; /* Lo hace una píldora */
-    transition: all 0.2s ease;
-}
-
-/*  Efecto Hover y Focus del botón */
-.profile-btn:hover,
-.profile-btn:focus {
-    background-color: var(--accent-green);
-    color: var(--white);
-    
-    /* El 'stroke' cambia el color de la flecha SVG */
-    stroke: var(--white); 
-}
-
-/*  La flecha SVG dentro del botón */
-.profile-btn svg {
-    width: 16px;
-    height: 16px;
-    transition: transform 0.2s ease;
-    stroke: var(--accent-green); /* Color inicial de la flecha */
-}
-
-/* El contenido del dropdown (la caja que aparece)
-   (Está oculta por defecto)
-*/
-.profile-content {
-    /* Oculto por defecto con animación de opacidad y escala */
-    opacity: 0;
-    transform: translateY(-10px);
-    pointer-events: none;
-    transition: all 0.2s ease;
-
-    /* Posicionamiento (abajo a la derecha del botón) */
-    position: absolute;
-    top: calc(100% + 10px); /* 10px por debajo del botón */
-    right: 0;
-    z-index: 100;
-
-    /* Estilos de la caja */
-    background: var(--white);
-    border-radius: var(--radius); /* (ej. 16px) */
-    box-shadow: var(--shadow-strong);
-    padding: 1rem; /* 16px de padding interno */
-    min-width: 280px; /* Ancho mínimo para que no se vea apretado */
-}
-
-/*  La información dentro de la caja */
-.profile-info {
-    text-align: left; /* Alinea el texto a la izquierda */
-}
-
-.profile-info-name {
-    font-weight: 600;
-    font-size: 1rem;
-    color: var(--text);
-    text-transform: capitalize;
-    margin-bottom: 2px;
-}
-
-.profile-info-role {
-    font-size: 0.9rem;
-    color: var(--gray-800);
-    text-transform: capitalize;
-}
-
-/* 
-   Cuando .profile-dropdown tiene la clase .is-active...
-*/
-.profile-dropdown.is-active .profile-content {
-    /* ...el contenido se muestra */
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-}
-
-.profile-dropdown.is-active .profile-btn svg {
-    /* ...la flecha del botón rota 180 grados */
-    transform: rotate(180deg);
-}
-
-/* --- 2. Navegación Desktop (Oculta por defecto) --- */
-.nav-wrapper-desktop,
-.auth-desktop {
-  display: none; /* Mobile-first: oculto */
-  align-items: center;
-  gap: 24px;
-}
-.nav-wrapper-desktop a {
-  color: #33373d;
-  font-weight: 600;
-  font-size: 0.95rem;
-  opacity: 0.9;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-  position: relative;
-  padding: 4px 0;
-}
-/* Subrayado con la variable de color */
-.nav-wrapper-desktop a:hover {
-  opacity: 1;
-  color: var(--accent-green);
-}
-.auth-desktop {
-  gap: 12px;
+  stroke: var(--white);
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 
-/* --- 3. Botón Móvil --- */
+/* --- Botón Menú Móvil (CORREGIDO) --- */
 .btn-nav-toggle {
-  position: fixed;
-  top: 28px; /* Ajustado para centrar con el logo de 60px + 16px padding */
-  right: 1.25rem; /* 20px */
-  transform: translateY(-50%);
-  width: 50px;
-  height: 50px;
-  border-radius: 20px;
+  /* ELIMINADO: position: fixed; */
+  /* Ahora es relativo al contenedor flex */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   z-index: 1002;
   border: none;
   background: none;
   cursor: pointer;
+  position: relative; /* Para el background absoluto interno */
+  margin-left: auto; /* Asegura que se pegue a la derecha si algo falla */
 }
+
 .btn-nav-toggle:focus {
   outline: none;
-  border: none;
 }
+
 .btn-nav-toggle .icons {
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  z-index: 2; /* Encima del fondo */
 }
+
 .btn-nav-toggle .icons svg {
   position: absolute;
-  width: 50%;
-  height: 50%;
+  width: 20px;
+  height: 20px;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  fill: var(--white);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  fill: var(--white); /* Icono blanco */
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
+
 .btn-nav-toggle .icons .close {
   opacity: 0;
   transform: translate(-50%, -50%) rotate(90deg);
 }
+
+/* Fondo verde del botón */
 .btn-nav-toggle .btn--bg {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: var(--accent-green);
-  border-radius: 25%;
-  transition: transform var(--transition-smooth);
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+  z-index: 1;
 }
-/* Estado activo del botón */
+
+/* Estado activo del botón (cuando el menú está abierto) */
 .btn-nav-toggle.is-active .icons .line {
   opacity: 0;
   transform: translate(-50%, -50%) rotate(-90deg);
@@ -260,139 +132,247 @@
   opacity: 1;
   transform: translate(-50%, -50%) rotate(0deg);
 }
-.btn-nav-toggle.is-active .btn--bg {
-  transform: translate(-50%, -50%) scale(1.2) rotate(360deg);
+
+/* --- Navegación Desktop (Oculta en Móvil) --- */
+.nav-wrapper-desktop,
+.auth-desktop {
+  display: none; /* Oculto por defecto (Móvil first) */
 }
 
-/* --- 4. Menú Off-Canvas (Móvil) --- */
+.nav-wrapper-desktop a {
+  color: #33373d;
+  font-weight: 600;
+  font-size: 0.95rem;
+  opacity: 0.9;
+  transition: all 0.2s ease;
+  padding: 8px 12px;
+  text-decoration: none;
+}
+.nav-wrapper-desktop a:hover {
+  color: var(--accent-green);
+  opacity: 1;
+}
+
+.auth-desktop {
+  align-items: center;
+  gap: 12px;
+}
+.auth-desktop .hidden {
+    display: none !important;
+}
+
+/* --- Menú Off-Canvas (Móvil) --- */
 .offcanvas-nav {
   position: fixed;
   top: 0;
   right: 0;
-  width: 320px;
-  max-width: 90%;
+  width: 100%; /* Ocupa todo el ancho en móviles pequeños */
+  max-width: 300px;
   height: 100vh;
   background: var(--accent-green);
   z-index: 1001;
+  
+  /* Estado inicial: fuera de pantalla */
   transform: translateX(100%);
-  transition: transform var(--transition-smooth);
+  opacity: 0;
   visibility: hidden;
+  transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.3s ease, visibility 0.3s;
+  
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  box-shadow: -5px 0 15px rgba(0,0,0,0.1);
 }
+
 .offcanvas-nav.is-active {
   transform: translateX(0);
+  opacity: 1;
   visibility: visible;
 }
+
+/* Botón cerrar (X) dentro del menú */
 .offcanvas-close {
   position: absolute;
-  top: 25px;
-  right: 25px;
-  font-size: 2rem;
-  font-family: Arial, sans-serif;
-  font-weight: 300;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: 2px solid rgba(255,255,255,0.3);
   color: var(--white);
-  background: none;
-  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.2rem;
   cursor: pointer;
-  opacity: 0.8;
-  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
 }
 .offcanvas-close:hover {
-  opacity: 1;
-  transform: scale(1.1) rotate(90deg);
+  background: rgba(255,255,255,0.1);
+  border-color: var(--white);
 }
+
 .offcanvas-nav ul {
   list-style: none;
-  padding: 0 40px;
+  padding: 0;
+  text-align: center;
   width: 100%;
-  text-align: left;
 }
+
 .offcanvas-nav ul li {
-  padding: 10px 0;
-  transform: translateX(50px);
+  margin: 15px 0;
+  transform: translateY(20px);
   opacity: 0;
   transition: all 0.4s ease;
 }
-/* Animación de entrada de links */
-.offcanvas-nav.is-active ul li {
-  transform: translateX(0);
-  opacity: 1;
-}
-/* Stagger (retraso) para cada item */
-.offcanvas-nav.is-active ul li:nth-child(1) { transition-delay: 0.2s; }
-.offcanvas-nav.is-active ul li:nth-child(2) { transition-delay: 0.25s; }
-.offcanvas-nav.is-active ul li:nth-child(3) { transition-delay: 0.3s; }
-.offcanvas-nav.is-active ul li:nth-child(4) { transition-delay: 0.35s; }
-.offcanvas-nav.is-active ul li:nth-child(5) { transition-delay: 0.4s; }
-.offcanvas-nav.is-active ul li:nth-child(6) { transition-delay: 0.45s; }
 
-.offcanvas-nav ul li span {
-  font-size: 1.5rem; /* Reducido de 1.7rem */
-  font-family: "Krona One", sans-serif;
-  font-weight: bold;
-  opacity: 0.5; /* Más opaco para legibilidad */
-  transition: opacity var(--transition-fast);
-  color: var(--white);
-}
-.offcanvas-nav ul li span a {
-  color: inherit;
-  display: block;
-}
-.offcanvas-nav ul li:hover span {
+/* Animación de entrada en cascada */
+.offcanvas-nav.is-active ul li {
+  transform: translateY(0);
   opacity: 1;
 }
+.offcanvas-nav.is-active ul li:nth-child(1) { transition-delay: 0.1s; }
+.offcanvas-nav.is-active ul li:nth-child(2) { transition-delay: 0.2s; }
+.offcanvas-nav.is-active ul li:nth-child(3) { transition-delay: 0.3s; }
+.offcanvas-nav.is-active ul li:nth-child(4) { transition-delay: 0.4s; }
+.offcanvas-nav.is-active ul li:nth-child(5) { transition-delay: 0.5s; }
+
+.offcanvas-link {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--white);
+  text-decoration: none;
+  display: block;
+  padding: 5px;
+}
+
 .offcanvas-auth {
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  margin-top: 20px;
-  padding-top: 20px;
+  margin-top: 2rem;
+  width: 100%;        /* Ocupa todo el ancho disponible */
   display: flex;
   flex-direction: column;
+  align-items: center; 
   gap: 15px;
+  padding: 0;        
 }
+
+/* Estilo general para los botones del menú móvil */
+.offcanvas-auth .btn {
+  width: 100%;         
+  max-width: 250px;    
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0;
+  font-size: 1rem;
+  border-radius: 50px;
+  text-align: center;
+}
+
+/* Botón Iniciar Sesión */
 .offcanvas-auth .btn-ghost {
+  border: 2px solid var(--white);
   color: var(--white);
-  border-color: var(--white);
+  background: transparent;
 }
 .offcanvas-auth .btn-ghost:hover {
-  background: var(--white);
-  color: var(--accent-green);
+  background: rgba(255, 255, 255, 0.1);
 }
 
+/* Botón Registro */
+.offcanvas-auth .btn-primary {
+  background-color: var(--white);
+  border-color: var(--white);
+  color: var(--accent-green);
+  font-weight: 700;
+}
+.offcanvas-auth .btn-primary:hover {
+  background-color: #f0f0f0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transform: translateY(-2px);
+}
 
-/* --- 6. Media Query (Punto de quiebre para Desktop) --- */
+/* =========================================
+   MEDIA QUERIES (TABLET Y DESKTOP)
+   ========================================= */
 @media (min-width: 1024px) {
-  .logo {
-    height: 80px; /* Volvemos al tamaño original en desktop */
+  /* Restaurar tamaños Desktop */
+  .site-header {
+    padding: 16px 0;
   }
+  
+  .logo {
+    height: 60px; /* Logos más grandes */
+  }
+  
+  .divider {
+    height: 40px;
+  }
+  
+  .brand {
+    gap: 16px;
+  }
+
+  /* Mostrar menú Desktop */
   .nav-wrapper-desktop,
   .auth-desktop {
-    display: flex; /* Mostramos los menús de desktop */
+    display: flex; 
   }
+  
+  /* Ocultar menú Móvil */
   .btn-nav-toggle,
   .offcanvas-nav {
-    display: none !important; /* Ocultamos los de móvil */
+    display: none !important; 
+  }
+  
+  /* Ajustar espaciado del nav público */
+  .site-header .container #nav-public-links {
+    margin-right: auto;
+    margin-left: 2rem; 
   }
 }
-.auth-desktop {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem; /* 12px de espacio entre los botones */
-}
 
-/* * (Opcional pero recomendado) 
- * Tu JS ya añade 'hidden' a los navs internos. 
- * Esta regla se asegura de que 'hidden' signifique 'display: none;'
-*/
-.auth-desktop .hidden {
-    display: none;
+/* Perfil de usuario (Estilos compartidos) */
+.profile-dropdown { position: relative; display: inline-block; }
+.profile-btn {
+  background: transparent;
+  border: 2px solid var(--accent-green);
+  color: var(--accent-green);
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
 }
-
-/* * Esto asegura que el nav público empuje
- * a los botones de auth hacia la derecha.
-*/
-.site-header .container #nav-public-links {
-    margin-right: auto;
-    margin-left: 1.5rem; 
+.profile-btn:hover {
+  background: var(--accent-green);
+  color: white;
+  stroke: white;
 }
+.profile-content {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  padding: 1.5rem;
+  min-width: 250px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s;
+}
+.profile-dropdown.is-active .profile-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.profile-info-name { font-weight: 700; color: #333; font-size: 1.1rem; }
+.profile-info-role { color: #666; font-size: 0.9rem; margin-top: 4px; }
