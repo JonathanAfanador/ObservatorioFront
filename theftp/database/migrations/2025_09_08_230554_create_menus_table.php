@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('menus')) {
         Schema::create('menus', function (Blueprint $table) {
             $table->id();
             $table->text('name');
@@ -20,6 +21,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+    }
     }
 
     /**

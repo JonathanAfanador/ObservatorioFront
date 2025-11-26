@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('inicio_sesion')) {
         Schema::create('inicio_sesion', function (Blueprint $table) {
             $table->id();
             $table->string('direccion_ip')->nullable();
@@ -20,6 +21,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**

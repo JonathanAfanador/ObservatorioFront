@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('tipo_doc')) {
         Schema::create('tipo_doc', function (Blueprint $table) {
             $table->id();
             $table->string('descripcion');
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**

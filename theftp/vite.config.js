@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
+import eslint from 'vite-plugin-eslint'
+
 
 export default defineConfig({
     plugins: [
@@ -9,5 +11,6 @@ export default defineConfig({
             refresh: true,
         }),
         tailwindcss(),
+        
     ],
 });

@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('conductores_licencias')) {
         Schema::create('conductores_licencias', function (Blueprint $table) {
             $table->id();
             $table->foreignId('licencia_id')->constrained('licencias');
@@ -19,6 +20,7 @@ return new class extends Migration
             $table->softDeletes();
         });
     }
+    }   
 
     /**
      * Reverse the migrations.

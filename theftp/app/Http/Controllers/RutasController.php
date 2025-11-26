@@ -177,55 +177,54 @@ class RutasController extends Controller
      */
     public function edit(string $id, Request $request)
     {
-
-        // ! Validación de archivos
-        try{
-            $this->validateFileUpload( $request, "file" );
-        } catch(\Exception $e){
-            return response()->json(['status' => false, 'errors' => ['file' => [$e->getMessage()]]] , 422);
+        // 1. Validación de Archivo (AHORA OPCIONAL)
+        if ($request->hasFile('file')) { // <--- AGREGAR ESTE IF
+            try {
+                $this->validateFileUpload($request, "file");
+            } catch (\Exception $e) {
+                return response()->json(['status' => false, 'errors' => ['file' => [$e->getMessage()]]], 422);
+            }
         }
 
+        // 2. Reglas de validación de texto
         $rules = [
-            'name'          => 'required|string|max:255',
-            'empresa_id'    => 'required|integer|exists:empresas,id',
+            'name' => 'required|string|max:255',
+            'empresa_id' => 'required|integer|exists:empresas,id',
         ];
 
         $messages = [
-            'name.required'           => 'El campo nombre es obligatorio.',
-            'name.string'             => 'El campo nombre debe ser una cadena de texto.',
-            'name.max'                => 'El campo nombre no debe exceder 255 caracteres.',
-            'empresa_id.required'     => 'El campo empresa es obligatorio.',
-            'empresa_id.integer'      => 'El campo empresa debe ser un número entero.',
-            'empresa_id.exists'       => 'La empresa especificada no existe.',
+            'name.required' => 'El campo nombre es obligatorio.',
+            'name.string' => 'El campo nombre debe ser una cadena de texto.',
+            'name.max' => 'El campo nombre no debe exceder 255 caracteres.',
+            'empresa_id.required' => 'El campo empresa es obligatorio.',
+            'empresa_id.integer' => 'El campo empresa debe ser un número entero.',
+            'empresa_id.exists' => 'La empresa especificada no existe.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
+
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
 
-                // Eliminar el archivo anterior si se subió uno nuevo
+        // 3. Lógica de guardado de archivo (SOLO SI HAY ARCHIVO NUEVO)
         $file = $request->file('file');
-        if (!$file){
-            return;
+        
+        if ($file) {
+            // Buscar registro actual para borrar archivo viejo
+            $data = rutas::find($id);
+            if ($data && $data->file_name) {
+                $previousFilePath = str_replace('/storage/', '', $data->file_name);
+                Storage::disk('local')->delete($previousFilePath);
+            }
+
+            // Guardar nuevo
+            $newFilePath = Storage::disk('local')->put(self::FOLDER, $file);
+            $request->merge(['file_name' => Storage::url($newFilePath)]);
         }
-
-        $data = rutas::find($id);
-        if (!$data || !$data->file_name) {
-            return;
-        }
-
-        // Obtener la ruta del archivo anterior
-        $previousFilePath = str_replace('/storage/', '', $data->file_name);
-        Storage::disk('local')->delete($previousFilePath);
-
-        // Almacenar el nuevo archivo
-        $newFilePath = Storage::disk('local')->put(self::FOLDER, $file);
-        $request->merge(['file_name' => Storage::url($newFilePath)]);
 
         return parent::update($id, $request);
     }
-
     /**
      * @OA\Delete(
      *     path="/api/rutas/{id}",

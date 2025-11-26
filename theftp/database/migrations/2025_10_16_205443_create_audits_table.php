@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable(config('audit.drivers.database.table', 'audits'))) {
         $connection = config('audit.drivers.database.connection', config('database.default'));
         $table = config('audit.drivers.database.table', 'audits');
 
@@ -33,6 +34,7 @@ return new class extends Migration
 
             $table->index([$morphPrefix . '_id', $morphPrefix . '_type']);
         });
+    }
     }
 
     /**

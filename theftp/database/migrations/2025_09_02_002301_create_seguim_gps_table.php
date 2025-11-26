@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('seguim_gps')) {
         Schema::create('seguim_gps', function (Blueprint $table) {
             $table->id();
             // TODO: Misma pregunta https://trello.com/c/zbWGJOYp/4-indagar-por-la-tabla-rutas-si-es-solo-renderizado-o-tiene-otros-usos-relevantes-planteados
@@ -24,6 +25,7 @@ return new class extends Migration
             $table->softDeletes();
         });
         // DB::statement('CREATE INDEX idx_ubicacion ON seguim_gps USING GIST (ubicacion);');
+    }
     }
 
     /**

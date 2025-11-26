@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('conductores')) {
         Schema::create('conductores', function (Blueprint $table) {
             $table->id();
             $table->foreignId('persona_id')->constrained('personas');
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**

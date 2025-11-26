@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('restriccion_lic')) {
         Schema::create('restriccion_lic', function (Blueprint $table) {
             $table->id();
             $table->string('descripcion', 150);
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**

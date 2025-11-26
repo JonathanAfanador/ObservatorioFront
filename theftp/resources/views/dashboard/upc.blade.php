@@ -84,7 +84,19 @@
                 <!-- Exportación -->
                 <div class="export-buttons">
                     <!-- Botones CSV, Excel y PDF -->
-                    ...
+                    <button class="btn-export" data-format="csv" data-target="conductores" title="Exportar a CSV">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>CSV</span>
+                    </button>
+                    <button class="btn-export" data-format="excel" data-target="conductores" title="Exportar a Excel">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>Excel</span>
+                    </button>
+                    <button class="btn-export   
+                        " data-format="pdf" data-target="conductores" title="Exportar a PDF">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>PDF</span>
+                    </button>
                 </div>
             </div>
 
@@ -110,7 +122,20 @@
                 </div>
 
                 <!-- Botones de exportación -->
-                <div class="export-buttons">...</div>
+                <div class="export-buttons">
+                    <button class="btn-export" data-format="csv" data-target="vehiculos" title="Exportar a CSV">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>CSV</span>
+                    </button>
+                    <button class="btn-export" data-format="excel" data-target="vehiculos" title="Exportar a Excel">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>Excel</span>
+                    </button>
+                    <button class="btn-export" data-format="pdf" data-target="vehiculos" title="Exportar a PDF">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>PDF</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Buscador -->
@@ -135,7 +160,21 @@
                 </div>
 
                 <!-- Botones para exportar info -->
-                <div class="export-buttons">...</div>
+                <!-- Botones de exportación -->
+                <div class="export-buttons">
+                    <button class="btn-export" data-format="csv" data-target="rutas" title="Exportar a CSV">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>CSV</span>
+                    </button>
+                    <button class="btn-export" data-format="excel" data-target="rutas " title="Exportar a Excel">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>Excel</span>
+                    </button>
+                    <button class="btn-export" data-format="pdf" data-target="rutas" title="Exportar a PDF">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>PDF</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Filtros: nombre y empresa -->
@@ -166,7 +205,21 @@
                 </div>
 
                 <!-- Exportación -->
-                <div class="export-buttons">...</div>
+                <!-- Botones de exportación -->
+                <div class="export-buttons">
+                    <button class="btn-export" data-format="csv" data-target="documentos" title="Exportar a CSV">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>CSV</span>
+                    </button>
+                    <button class="btn-export" data-format="excel" data-target="documentos" title="Exportar a Excel">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>Excel</span>
+                    </button>
+                    <button class="btn-export" data-format="pdf" data-target="documentos" title="Exportar a PDF">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
+                        <span>PDF</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Filtros -->

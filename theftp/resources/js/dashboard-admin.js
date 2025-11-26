@@ -122,6 +122,49 @@ function buildAdminMenu() {
             <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
             <span>Roles y Permisos</span>
         </a>
+                <p class="nav-section-title mt-4">Gestión de Transporte</p>
+        <a href="#conductores" class="nav-link" data-view="conductores">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <span>Conductores</span>
+        </a>
+        <a href="#vehiculos" class="nav-link" data-view="vehiculos">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+            </svg>
+            <span>Vehículos</span>
+        </a>
+        <a href="#empresas" class="nav-link" data-view="empresas">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+            <span>Empresas</span>
+        </a>
+        <a href="#propietarios" class="nav-link" data-view="propietarios">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <span>Propietarios</span>
+        </a>
+        <a href="#rutas" class="nav-link" data-view="rutas">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span>Rutas</span>
+        </a>
+        <a href="#documentos" class="nav-link" data-view="documentos">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>Documentos</span>
+        </a>
+        <a href="#licencias" class="nav-link" data-view="licencias">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>Licencias</span>
+        </a>
     `;
     setupNavigation();
 }
@@ -147,10 +190,75 @@ function setupNavigation() {
 }
 
 async function loadViewData(view) {
+    // 1. Gestión visual (ocultar/mostrar divs)
+    document.querySelectorAll('.dashboard-view').forEach(el => el.style.display = 'none');
+    const activeView = document.getElementById(`view-${view}`);
+    if(activeView) activeView.style.display = 'block';
+
+    // 2. Título
+    const headerTitle = document.getElementById('header-title');
+    if(headerTitle) headerTitle.textContent = 'Administración - ' + view.charAt(0).toUpperCase() + view.slice(1);
+
+    // 3. Carga de Datos (Estilo Simple)
     switch(view) {
-        case 'overview': loadStats(); break;
-        case 'users': loadUsers(); break;
-        case 'roles': loadRoles(); break;
+        case 'overview':
+            if (typeof loadStats === 'function') await loadStats();
+            break;
+
+        case 'users':
+            if (typeof loadUsers === 'function') await loadUsers();
+            break;
+
+        case 'roles':
+            if (typeof loadRoles === 'function') await loadRoles();
+            break;
+
+        case 'conductores':
+            // Verificamos que el módulo exista y llamamos a sus métodos directamente
+            if (window.AdminConductores) {
+                AdminConductores.init(); // El módulo sabrá si debe ejecutarse o no
+                await AdminConductores.load();
+            }
+            break;
+
+        case 'vehiculos':
+            if (window.AdminVehiculos) {
+                AdminVehiculos.init();
+                await AdminVehiculos.load();
+            }
+            break;
+
+        case 'empresas':
+            if (window.AdminEmpresas) {
+                AdminEmpresas.init();
+                await AdminEmpresas.load();
+            }
+            break;
+        case 'propietarios':
+            if (window.AdminPropietarios) {
+                AdminPropietarios.init();
+                await AdminPropietarios.load();
+            }
+            break;
+        case 'rutas':
+            if (window.AdminRutas) {
+                AdminRutas.init();
+                await AdminRutas.load();
+            }
+            break;
+        case 'documentos':
+            if (window.AdminDocumentos) {
+                AdminDocumentos.init();
+                await AdminDocumentos.load();
+            }
+            break;
+        case 'licencias':
+            if (window.AdminLicencias) {
+                AdminLicencias.init();
+                await AdminLicencias.load();
+            }
+            break;
+        // Agrega aquí los demás casos (rutas, documentos, etc.)
     }
 }
 
@@ -184,7 +292,9 @@ async function loadStats() {
                         <div class="p-3 rounded-full bg-yellow-100 text-yellow-600"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg></div>
                         <div class="ml-4"><p class="text-sm font-medium text-gray-500">Auditoría</p><p class="text-2xl font-bold text-gray-900">${audits.total || 0}</p></div>
                     </div>
+                    
                 </div>
+                
             `;
         }
     } catch(e) { console.error(e); }

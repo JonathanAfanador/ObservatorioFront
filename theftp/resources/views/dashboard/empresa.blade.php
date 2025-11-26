@@ -325,6 +325,17 @@
         </div>
     </div>
 
+    <div id="view-resoluciones" class="dashboard-view" style="display:none;">
+        <div class="content-card">
+            <h2 class="content-title">Resoluciones y Comunicados</h2>
+            <p class="text-gray-600 mb-4">Documentos oficiales emitidos por la Secretaría para tu empresa.</p>
+
+            <div id="resoluciones-table" class="overflow-x-auto">
+                <div class="loading-state"><p>Cargando documentos...</p></div>
+            </div>
+        </div>
+    </div>
+
     {{-- Cargar JavaScript específico del dashboard Empresa --}}
     @vite(['resources/js/dashboard-empresa.js'])
 

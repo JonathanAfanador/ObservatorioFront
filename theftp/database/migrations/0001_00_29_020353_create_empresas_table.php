@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('tipo_empresa')) {
         Schema::create('empresas', function (Blueprint $table) {
             $table->id();
             $table->string('nit');
@@ -19,6 +20,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**

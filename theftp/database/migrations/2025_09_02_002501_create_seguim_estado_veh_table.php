@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('seguim_estado_veh')) {
         Schema::create('seguim_estado_veh', function (Blueprint $table) {
             $table->id();
             $table->integer('kilometraje')->nullable();
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+    }
     }
 
     /**

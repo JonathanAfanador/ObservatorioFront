@@ -14,13 +14,10 @@
         .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
         /* Caja individual de estadística con fondo gris claro y borde sutil */
         .stat-box { background: #f8fafc; padding: 1.5rem; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
-<<<<<<< HEAD
         /* Número grande de la estadística principal */
         .stat-number { font-size: 2rem; font-weight: bold; color: #2563eb; }
         /* Utilidad para fondos degradados: azul */
-=======
         .stat-number { font-size: 2rem; font-weight: bold; color: #2563eb; }
->>>>>>> parent of ce9ff7b (Actualizaciones de documentacion en diferentes archivos)
         .bg-gradient-to-br.from-blue-500.to-blue-700 { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
         /* Utilidad para fondos degradados: morado */
         .bg-gradient-to-br.from-purple-500.to-purple-700 { background: linear-gradient(135deg, #a855f7, #7e22ce); }
@@ -32,13 +29,10 @@
         .rounded-xl { border-radius: 0.75rem; }
         /* Sombra más marcada para dar relieve */
         .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-<<<<<<< HEAD
         /* Espaciado interno estándar (24px) */
         .p-6 { padding: 1.5rem; }
         /* Tamaño de fuente grande (títulos de estadísticas) */
-=======
         .p-6 { padding: 1.5rem; }
->>>>>>> parent of ce9ff7b (Actualizaciones de documentacion en diferentes archivos)
         .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
         /* Utilidad para tipografía en negrita */
         .font-bold { font-weight: 700; }
@@ -80,6 +74,13 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Detalle / Número de Resolución</label>
                     <input type="text" id="res-obs" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Ej: Resolución No. 005 - Aprobación tarifas" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Empresa Destino</label>
+                    <select id="res-empresa" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-white">
+                        <option value="">Cargando empresas...</option>
+                    </select>
+                    <small class="text-gray-500 text-xs">Seleccione la empresa a la que aplica. Deje en "General" para que sea visible para todas.</small>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Archivo PDF</label>

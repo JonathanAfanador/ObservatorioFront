@@ -236,6 +236,7 @@ class DocumentosController extends Controller{
         $rules = [
             'observaciones' => 'required|string',
             'tipo_doc_id'   => 'required|integer|exists:tipo_doc,id',
+            'empresa_id' => 'nullable|integer|exists:empresas,id',
         ];
 
         $messages = [

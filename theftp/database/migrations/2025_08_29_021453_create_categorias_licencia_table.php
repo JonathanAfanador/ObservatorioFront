@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('categorias_licencia')) {
         Schema::create('categorias_licencia', function (Blueprint $table) {
             $table->id();
             $table->string('codigo', 150);
@@ -18,6 +19,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**
