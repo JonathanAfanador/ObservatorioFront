@@ -1,48 +1,52 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Models\tipo_ident; // <-- Importa tu modelo
+/**
+ * routes/web.php — VERSIÓN ACTUALIZADA
+ *
+ * Se añaden las rutas del módulo Geovisor.
+ * El resto de rutas existentes permanece sin cambios.
+ */
 
-//  ruta de la landing page
+use Illuminate\Support\Facades\Route;
+use App\Models\tipo_ident;
+use App\Http\Controllers\GeovisorController; 
+
+// ─────────────────────────────────────────────
+//  Rutas públicas existentes 
+// ─────────────────────────────────────────────
+
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Ruta para MOSTRAR la página de login
 Route::get('/login', function () {
     return view('auth.login');
-})->name('login'); // Le ponemos nombre para usar route('login')
+})->name('login');
 
-// Ruta para MOSTRAR la página de registro
 Route::get('/register', function () {
-    
-    // Pasamos los tipos de identificación a la vista
     $tipos_ident = tipo_ident::whereNull('deleted_at')->get();
-    
-    return view('auth.register', [
-        'tipos_ident' => $tipos_ident
-    ]);
-
+    return view('auth.register', ['tipos_ident' => $tipos_ident]);
 })->name('register');
 
-/*
-|--------------------------------------------------------------------------
-| Rutas del Dashboard
-|--------------------------------------------------------------------------
-*/
+// ─────────────────────────────────────────────
+//  Rutas del Dashboard 
+// ─────────────────────────────────────────────
 
 Route::prefix('dashboard')->name('dashboard.')->group(function () {
-    
-    // Ruta para el Admin (aunque la implementemos después)
-    Route::view('/admin', 'dashboard.admin')->name('admin');
-
-    // Ruta para la Secretaría
+    Route::view('/admin',      'dashboard.admin')->name('admin');
     Route::view('/secretaria', 'dashboard.secretaria')->name('secretaria');
-
-    // Ruta para la Empresa
-    Route::view('/empresa', 'dashboard.empresa')->name('empresa');
-
-    // Ruta para UPC
-    Route::view('/upc', 'dashboard.upc')->name('upc');
-
+    Route::view('/empresa',    'dashboard.empresa')->name('empresa');
+    Route::view('/upc',        'dashboard.upc')->name('upc');
 });
+
+// ─────────────────────────────────────────────
+//  MÓDULO GEOVISOR  
+// ─────────────────────────────────────────────
+
+Route::get('/geovisor', [GeovisorController::class, 'index'])
+     ->name('geovisor_vite.blade');
+
+
+Route::get('/geovisor/kmz/{filename}', [GeovisorController::class, 'serveKmz'])
+     ->name('geovisor.kmz')
+     ->where('filename', '[a-zA-Z0-9_\-\.]+'); // Regex: evita path traversal 

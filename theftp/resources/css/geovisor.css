@@ -1,0 +1,660 @@
+/*
+ * resources/css/geovisor.css — v6
+ * Fix principal: panel de capas en móvil con position:absolute + transform,
+ * desktop con margin-left. Sin conflictos entre los dos modos.
+ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ── BASE ────────────────────────────────────────────────────────────────── */
+
+#geovisor-root {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+    background: #1e1e1e;
+    z-index: 0;
+    overflow: hidden;
+}
+
+/* ── HEADER ──────────────────────────────────────────────────────────────── */
+
+.geovisor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 20px;
+    height: 56px;
+    min-height: 56px;
+    background: #1a2e1a;
+    color: #fff;
+    z-index: 1000;
+    flex-shrink: 0;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.geovisor-header-left,
+.geovisor-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.geovisor-header-center {
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.geovisor-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+}
+.geovisor-title svg { color: #7dcb84; flex-shrink: 0; }
+
+.geovisor-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #a5c8a7;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+.geovisor-back-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+.geovisor-ctrl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #a5c8a7;
+    background: transparent;
+    border: 1px solid rgba(165,200,167,0.30);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    font-family: 'Poppins', sans-serif;
+    white-space: nowrap;
+    line-height: 1;
+}
+.geovisor-ctrl-btn:hover,
+.geovisor-ctrl-btn.is-active {
+    background: rgba(125,203,132,0.15);
+    color: #fff;
+    border-color: rgba(125,203,132,0.5);
+}
+
+.geovisor-loader {
+    display: none;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.75rem;
+    color: #a5c8a7;
+}
+.geovisor-loader-spinner {
+    width: 13px;
+    height: 13px;
+    border: 2px solid rgba(165,200,167,0.25);
+    border-top-color: #7dcb84;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── ALERTA ──────────────────────────────────────────────────────────────── */
+
+.geovisor-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 20px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    z-index: 900;
+}
+.geovisor-alert--warning {
+    background: #fff8e1;
+    border-bottom: 2px solid #ffc107;
+    color: #6d4c00;
+}
+.geovisor-alert svg { flex-shrink: 0; margin-top: 1px; color: #f59e0b; }
+.geovisor-alert code {
+    background: rgba(0,0,0,0.07);
+    padding: 0 4px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.85em;
+}
+
+/* ── WORKSPACE ───────────────────────────────────────────────────────────── */
+
+.geovisor-workspace {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ── OVERLAY (sólo móvil) ────────────────────────────────────────────────── */
+
+#geovisor-panel-overlay {
+    display: none;            /* oculto por defecto; JS lo muestra en móvil */
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.50);
+    z-index: 490;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s ease;
+}
+#geovisor-panel-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PANEL DE CAPAS — BASE (común a ambos modos)
+───────────────────────────────────────────────────────────────────────────── */
+
+.geovisor-layers-panel {
+    width: 240px;
+    min-width: 240px;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 0;
+}
+
+/* ── DESKTOP (>900px): parte del flujo flex, se colapsa con margin-left ── */
+@media (min-width: 901px) {
+    .geovisor-layers-panel {
+        position: relative;
+        z-index: 50;
+        transition: margin-left 0.28s cubic-bezier(0.4,0,0.2,1);
+    }
+    .geovisor-layers-panel--hidden {
+        margin-left: -240px;
+    }
+    #geovisor-panel-overlay { display: none !important; }
+}
+
+/* ── MÓVIL (≤900px): drawer absoluto, se anima con transform ── */
+@media (max-width: 900px) {
+    #geovisor-panel-overlay { display: block; }
+
+    .geovisor-layers-panel {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 500;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+        transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+        transform: translateX(0);   /* visible por defecto */
+        margin-left: 0 !important;  /* nunca margin en móvil */
+    }
+    .geovisor-layers-panel--hidden {
+        transform: translateX(-100%);
+    }
+}
+
+/* ── Contenido del panel ─────────────────────────────────────────────────── */
+
+.layers-section { padding: 16px 16px 10px; }
+
+.layers-section-title {
+    font-size: 0.67rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 0 0 10px;
+}
+
+.layers-section-hint {
+    font-size: 0.71rem;
+    color: #b0b7c3;
+    margin: -5px 0 10px;
+    line-height: 1.4;
+}
+
+.layers-divider {
+    height: 1px;
+    background: #f3f4f6;
+    margin: 0 16px;
+    flex-shrink: 0;
+}
+
+.layers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.layers-empty {
+    font-size: 0.75rem;
+    color: #b0b7c3;
+    padding: 6px 4px;
+    font-style: italic;
+}
+
+.layer-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+}
+.layer-row:hover  { background: #f0fdf0; }
+.layer-row:active { background: #dcfce7; }
+
+.layer-check,
+.layer-radio {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    background: #fff;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    position: relative;
+}
+.layer-radio { border-radius: 50%; }
+
+.layer-check:checked { background: #319637; border-color: #319637; }
+.layer-radio:checked { background: #319637; border-color: #319637; }
+
+.layer-check:checked::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.5 5l2.5 2.5 4.5-4.5' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") center/70% no-repeat;
+}
+.layer-radio:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.layer-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(0,0,0,0.12);
+}
+.layer-dot--base { background: #6b7280; }
+
+.layer-label {
+    font-size: 0.79rem;
+    color: #374151;
+    flex: 1;
+    line-height: 1.3;
+    font-weight: 400;
+}
+
+.layer-count {
+    font-size: 0.67rem;
+    color: #9ca3af;
+    background: #f3f4f6;
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+/* ── MAPA ────────────────────────────────────────────────────────────────── */
+
+.geovisor-main {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+}
+
+#geovisor-map {
+    width: 100%;
+    height: 100%;
+    background: #e8edf2;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PANEL DE INFORMACIÓN
+   · Desktop: parte del flujo flex, margin-right para colapsar
+   · Móvil:   bottom sheet absoluto con transform
+───────────────────────────────────────────────────────────────────────────── */
+
+.geovisor-info-panel {
+    width: 280px;
+    min-width: 280px;
+    background: #fff;
+    border-left: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+@media (min-width: 901px) {
+    .geovisor-info-panel {
+        position: relative;
+        z-index: 50;
+        transition: margin-right 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    .geovisor-info-panel--hidden {
+        margin-right: -280px;
+    }
+}
+
+@media (max-width: 900px) {
+    .geovisor-info-panel {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        min-width: unset;
+        max-height: 55vh;
+        border-left: none;
+        border-top: 1px solid #e5e7eb;
+        border-radius: 14px 14px 0 0;
+        z-index: 400;
+        margin-right: 0 !important;
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.14);
+        transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+        transform: translateY(0);
+    }
+    .geovisor-info-panel--hidden {
+        transform: translateY(110%);
+    }
+
+    /* Handle visual tipo bottom sheet */
+    .geovisor-info-header {
+        position: relative;
+        padding-top: 20px !important;
+    }
+    .geovisor-info-header::before {
+        content: '';
+        position: absolute;
+        top: 7px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 4px;
+        background: #d1d5db;
+        border-radius: 2px;
+    }
+}
+
+.geovisor-info-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 14px 14px 12px;
+    border-bottom: 2px solid #319637;
+    flex-shrink: 0;
+    background: #f8fdf8;
+}
+
+.geovisor-info-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1a2e1a;
+    margin: 0;
+    flex: 1;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.geovisor-info-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: #eff7ef;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    padding: 0;
+    margin-top: 1px;
+}
+.geovisor-info-close:hover { background: #dceede; }
+
+.geovisor-info-body { flex: 1; overflow-y: auto; padding: 14px; }
+
+.geovisor-info-placeholder {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    text-align: center;
+    margin-top: 20px;
+    line-height: 1.6;
+}
+
+.geovisor-info-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.geovisor-info-table tr { border-bottom: 1px solid #f3f4f6; }
+.geovisor-info-table tr:last-child { border-bottom: none; }
+.geovisor-info-table th {
+    text-align: left; font-weight: 600; color: #4b5563;
+    padding: 6px 8px 6px 0; vertical-align: top; white-space: nowrap; width: 42%;
+}
+.geovisor-info-table td {
+    padding: 6px 0 6px 8px; color: #6b7280; word-break: break-word;
+}
+
+.geovisor-info-source {
+    display: inline-block;
+    margin-top: 14px;
+    font-size: 0.67rem;
+    background: #f0fdf0;
+    color: #319637;
+    border: 1px solid #bbf7d0;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-weight: 500;
+}
+
+/* ── LEAFLET OVERRIDES ───────────────────────────────────────────────────── */
+
+.leaflet-control-zoom a {
+    font-family: 'Poppins', sans-serif !important;
+    color: #374151 !important;
+    border-color: #e5e7eb !important;
+}
+.leaflet-control-zoom a:hover {
+    background: #f0fdf0 !important;
+    color: #319637 !important;
+}
+.leaflet-control-scale-line {
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.67rem !important;
+    border-color: #6b7280 !important;
+    color: #4b5563 !important;
+}
+
+.geovisor-tooltip {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.71rem;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+    color: #1a2e1a;
+    background: rgba(255,255,255,0.97);
+}
+
+/* ── 600px ───────────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .geovisor-header     { padding: 0 12px; gap: 6px; }
+    .geovisor-title      { font-size: 0.78rem; }
+    .geovisor-ctrl-btn span,
+    .geovisor-back-btn span { display: none; }
+    .geovisor-ctrl-btn   { padding: 6px 8px; }
+    .geovisor-layers-panel   { width: 220px; min-width: 220px; }
+}
+
+/* ── MÓVIL: zoom al lado derecho para no chocar con el drawer ────────────── */
+
+@media (max-width: 900px) {
+    .leaflet-top.leaflet-left {
+        left: auto;
+        right: 10px;
+    }
+}
+
+/* ── MENÚ HAMBURGUESA ────────────────────────────────────────────────────── */
+
+/* Botón hamburguesa: oculto en desktop, visible en móvil */
+.geovisor-hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid rgba(165,200,167,0.30);
+    border-radius: 6px;
+    cursor: pointer;
+    color: #a5c8a7;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+}
+.geovisor-hamburger:hover,
+.geovisor-hamburger[aria-expanded="true"] {
+    background: rgba(125,203,132,0.15);
+    color: #fff;
+    border-color: rgba(125,203,132,0.5);
+}
+
+/* ── Menú desplegable móvil ─────────────────────────────────────────────── */
+
+.geovisor-mobile-menu {
+    display: flex;
+    flex-direction: column;
+    background: #1a2e1a;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    z-index: 999;
+    flex-shrink: 0;
+    overflow: hidden;
+    max-height: 300px;
+    transition: max-height 0.28s cubic-bezier(0.4,0,0.2,1),
+                opacity    0.22s ease;
+    opacity: 1;
+}
+
+.geovisor-mobile-menu--hidden {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Ítem del menú */
+.geovisor-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 20px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #c8deca;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer;
+    text-decoration: none;
+    text-align: left;
+    width: 100%;
+    transition: background 0.15s, color 0.15s;
+}
+.geovisor-menu-item:last-child { border-bottom: none; }
+.geovisor-menu-item:hover {
+    background: rgba(125,203,132,0.12);
+    color: #fff;
+}
+.geovisor-menu-item svg { flex-shrink: 0; color: #7dcb84; }
+
+/* Loader dentro del menú móvil */
+.geovisor-loader--mobile {
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.78rem;
+}
+
+/* ── Responsive: mostrar hamburguesa, ocultar header-right ───────────────── */
+
+@media (max-width: 640px) {
+    /* Ocultar botones de acción del header */
+    .geovisor-header-right {
+        display: none;
+    }
+
+    /* Mostrar botón hamburguesa */
+    .geovisor-hamburger {
+        display: flex;
+    }
+
+    /* Ocultar "Inicio" del back-btn, dejar solo la flecha */
+    .geovisor-back-btn span {
+        display: none;
+    }
+
+    /* Truncar título si es muy largo */
+    .geovisor-title {
+        font-size: 0.82rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .geovisor-title svg { display: none; }
+}
+
+/* En desktop el menú móvil nunca se ve */
+@media (min-width: 641px) {
+    .geovisor-mobile-menu {
+        display: none !important;
+    }
+    .geovisor-hamburger {
+        display: none !important;
+    }
+}
