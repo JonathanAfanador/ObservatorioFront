@@ -1,0 +1,4 @@
+node_modules/
+vendor/
+theftp/storage/
+theftp/bootstrap/cache/
