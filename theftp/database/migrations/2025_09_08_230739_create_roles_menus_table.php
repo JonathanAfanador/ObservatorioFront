@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('roles_menus')) {
         Schema::create('roles_menus', function (Blueprint $table) {
             $table->id();
             $table->foreignId('rol_id')->constrained('rol');
@@ -18,6 +19,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**

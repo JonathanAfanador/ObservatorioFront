@@ -40,8 +40,8 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
     Route::middleware('auth:sanctum')->group(function (){
         // -- Auth Routes
         Route::prefix('auth')->group(function (){
-            Route::get('/logout', [AuthController::class, 'logout']);
-            Route::get('/global-logout', [AuthController::class, 'globalLogout']);
+            Route::post('/logout', [AuthController::class, 'logout']);
+            Route::post('/global-logout', [AuthController::class, 'globalLogout']);
             Route::get('/me', [AuthController::class, 'me']);
         });
 
@@ -91,6 +91,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::put('/{id}', [TipoIdentController::class, 'edit']);
             Route::delete('/{id}', [TipoIdentController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [TipoIdentController::class, 'restore']);
+
         });
 
         // -- Tipo Ident Routes
@@ -221,6 +222,7 @@ Route::middleware(ForceJsonResponse::class)->group(function (){
             Route::get('/{id}/file', [RutasController::class, 'getFile']);
             Route::post('/', [RutasController::class, 'store']);
             Route::post('/{id}', [RutasController::class, 'edit']);
+            Route::patch('/{id}', [RutasController::class, 'patch']);
             Route::delete('/{id}', [RutasController::class, 'destroy']);
             Route::post('/{id}/rehabilitate', [RutasController::class, 'restore']);
         });

@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('rol')) {
         Schema::create('rol', function (Blueprint $table) {
             $table->id();
             $table->string('descripcion');
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**

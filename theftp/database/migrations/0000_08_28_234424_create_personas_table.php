@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('personas')) {
         Schema::create('personas', function (Blueprint $table) {
             $table->id();
             $table->string('nui');
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**

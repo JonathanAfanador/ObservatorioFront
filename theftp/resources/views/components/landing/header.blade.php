@@ -9,19 +9,70 @@
         </div>
 
         {{-- Menú Desktop --}}
-        <nav class="nav-wrapper-desktop">
+        <nav class="nav-wrapper-desktop" id="nav-public-links">
             <a href="#inicio">Inicio</a>
             <a href="#roles">Conoce el proyecto</a>
             <a href="#servicios">Servicios</a>
             <a href="#funcionalidades">Funcionalidades</a>
             <a href="#contacto">Contacto</a>
         </nav>
+        <!-- 
+        ============================================================
+        ==  ¡NUEVO! Menú Desktop para ROLES CON PANEL (Oculto)   ==
+        ============================================================
+        -->
+{{-- 1. CONTENEDOR PARA INVITADOS (SIN CAMBIOS) --}}
+        {{-- Tu JS ocultará este bloque --}}
+        <div class="auth-desktop" id="auth-guest-desktop">
+            <a href="{{ route('login') }}" class="btn btn-ghost">Iniciar sesión</a>
+            <a href="{{ route('register') }}" class="btn btn-primary">Registro</a>
+        </div>
+        
+        {{-- 2. CONTENEDOR PARA USUARIOS LOGUEADOS (¡AQUÍ ESTÁ EL CAMBIO!) --}}
+        {{-- Tu JS mostrará este bloque --}}
+        <div class="auth-desktop user-nav-desktop hidden" id="auth-user-desktop">
 
-        {{-- Botones Auth (Desktop) --}}
-        <div class="auth-desktop">
-            {{-- ... comentario ... --}}
-        <a {{-- href="{{ route('login') }}" --}} class="btn btn-ghost">Iniciar sesión</a>
-        <a {{-- href="{{ route('register') }}" --}} class="btn btn-primary">Registro</a>
+            {{-- ¡MOVIMOS EL PANEL AQUÍ DENTRO! --}}
+            {{-- Tu JS mostrará esto para el Admin --}}
+            <nav class="nav-wrapper-desktop hidden" id="nav-admin-links">
+                <a href="#" id="admin-dashboard-link" class="btn btn-primary btn-dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+                         stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" 
+                              d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" 
+                              d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                    </svg>
+                    Ir a mi Panel
+                </a>
+            </nav>
+
+            {{-- ¡MOVIMOS EL PERFIL AQUÍ DENTRO! --}}
+            {{-- Tu JS mostrará esto para el Invitado Rol 5 --}}
+            <nav class="nav-wrapper-desktop hidden" id="nav-guest-profile">
+                <div class="profile-dropdown">
+                    <button class="profile-btn" id="profile-toggle-btn" aria-haspopup="true" aria-expanded="false">
+                        <span id="profile-btn-name">Mi Perfil</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+                             stroke-width="3" stroke="currentColor" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                  d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                    <div class="profile-content">
+                        <div class="profile-info">
+                            <p class="profile-info-name" id="profile-info-name">...</p>
+                            <p class="profile-info-role" id="profile-info-role">...</p>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            
+            {{-- EL BOTÓN DE LOGOUT YA ESTABA AQUÍ --}}
+            {{-- Siempre estará visible si #auth-user-desktop lo está --}}
+            <button class="btn-logout btn btn-ghost">
+                Cerrar Sesión
+            </button>
         </div>
         
         {{-- Botón Menú Móvil --}}
@@ -43,14 +94,41 @@
 <nav class="offcanvas-nav" id="offcanvas-nav" aria-hidden="true">
     <button class="offcanvas-close" id="offcanvas-close" aria-label="Cerrar menú">✕</button>
     <ul>
-        <li><span><a href="#inicio" class="offcanvas-link">Inicio</a></span></li>
-        <li><span><a href="#roles" class="offcanvas-link">Conoce el proyecto</a></span></li>
-        <li><span><a href="#servicios" class="offcanvas-link">Servicios</a></span></li>
-        <li><span><a href="#funcionalidades" class="offcanvas-link">Funcionalidades</a></span></li>
-        <li><span><a href="#contacto" class="offcanvas-link">Contacto</a></span></li>
-        <li class="offcanvas-auth">
-            <a  class="btn btn-ghost">Iniciar sesión</a>
-            <a  class="btn btn-primary">Registro</a>
-        </li>
-    </ul>
+        {{-- Aquí está el contenedor que tu JS buscaba --}}
+        <div id="nav-public-links-mobile">
+            <li><span><a href="#inicio" class="offcanvas-link">Inicio</a></span></li>
+            <li><span><a href="#roles" class="offcanvas-link">Conoce el proyecto</a></span></li>
+            <li><span><a href="#servicios" class="offcanvas-link">Servicios</a></span></li>
+            <li><span><a href="#funcionalidades" class="offcanvas-link">Funcionalidades</a></span></li>
+            <li><span><a href="#contacto" class="offcanvas-link">Contacto</a></span></li>
+        </div>
+        
+        {{-- 
+          ¡CAMBIOS AQUÍ! 
+          Se añadieron IDs y secciones separadas para invitados y usuarios.
+        --}}
+
+{{-- ¡NUEVO! Link al panel para Admin/Secre en móvil (Oculto) --}}
+        <li class="offcanvas-auth hidden" id="nav-admin-links-mobile">
+            <a href="#" id="admin-dashboard-link-mobile" class="btn btn-primary" style="width: 100%; justify-content: center;">Ir a mi Panel</a>
+        </li>
+
+        {{-- ¡NUEVO! Perfil de Invitado en móvil (Oculto) --}}
+        <li class="offcanvas-auth hidden" id="nav-guest-profile-mobile">
+            <div class="profile-info" style="padding: 10px 20px; text-align: center;">
+                <p class="profile-info-name" id="profile-info-name-mobile" style="color: var(--white); font-weight: 600; text-transform: capitalize;">...</p>
+                <p class="profile-info-role" id="profile-info-role-mobile" style="color: var(--gray-100); font-size: 14px; text-transform: capitalize;">...</p>
+            </div>
+        </li>
+
+        <li class="offcanvas-auth" id="auth-guest-mobile">
+            <a href="{{ route('login') }}" class="btn btn-ghost">Iniciar sesión</a>
+            <a href="{{ route('register') }}" class="btn btn-primary">Registro</a>
+        </li>
+        
+        <li class="offcanvas-auth hidden" id="auth-user-mobile">
+            {{-- Usamos un 'width: 100%' para que ocupe el espacio --}}
+            <button class="btn-logout btn btn-ghost" style="width: 100%;">Cerrar Sesión</button>
+        </li>
+    </ul>
 </nav>

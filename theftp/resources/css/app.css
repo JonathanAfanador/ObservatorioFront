@@ -1,7 +1,4 @@
-/* 1. Importa la base de Tailwind (esto trae @tailwind base, components, utilities) */
 @import 'tailwindcss';
-
-/* INYECTAMOS TUS ESTILOS EN LAS CAPAS (LAYERS) DE TAILWIND */
 
 /* variables globales y estilos de base (body, container...)
  */
@@ -11,7 +8,7 @@
     @import './base/_base.css'; 
 }
 
-/* * Aquí van todos los componentes (.btn, .site-header, .hero-split...)
+/*  componentes (.btn, .site-header, .hero-split...)
  */
 @layer components {
     @import './components_landing/_buttons.css';
@@ -21,6 +18,8 @@
     @import './components_landing/_services.css';
     @import './components_landing/_features.css';
     @import './components_landing/_footer.css';
+    @import './auth_css/_auth-forms.css';
+    @import './auth_css/_auth-alert.css';
 }
 
 

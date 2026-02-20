@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('documentos')) {
         Schema::create('documentos', function (Blueprint $table) {
             $table->id();
             $table->text('url');
@@ -19,6 +20,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**

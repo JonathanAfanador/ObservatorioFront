@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('permisos')) {
         Schema::create('permisos', function (Blueprint $table) {
             $table->id();
             $table->string('tabla');
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+        }
     }
 
     /**

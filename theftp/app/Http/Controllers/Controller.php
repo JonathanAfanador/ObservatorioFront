@@ -164,7 +164,7 @@ abstract class Controller{
         // 1. Definición de Reglas de Validación
         $rules = [
             'page' => 'nullable|integer|min:1',
-            'limit' => 'nullable|integer|min:1|max:100', // Limita la paginación a 100 elementos
+            'limit' => 'nullable|integer|min:1|max:3000', // Limita la paginación a 100 elementos
             'columns' => 'nullable|string', // Se asume una lista separada por comas
             'orderBy' => 'nullable|string|max:50', // Nombre de la columna para ordenar
             'orderDirection' => 'nullable|in:asc,desc',
@@ -632,7 +632,7 @@ abstract class Controller{
 
         // -- Permisos
         try{
-            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, ACCIONES::DELETE);
+            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, Acciones::DELETE);
         } catch (Exception $e) {
             return response()->json([
                 'status' => false,
@@ -679,7 +679,7 @@ abstract class Controller{
 
         // -- PERMISOS
         try{
-            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, ACCIONES::DELETE);
+            PermisosService::verificarPermisoIndividual($this->table, Acciones::UPDATE, Acciones::DELETE);
         } catch (Exception $e) {
             return response()->json([
                 'status' => false,

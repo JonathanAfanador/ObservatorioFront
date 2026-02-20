@@ -65,7 +65,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *     nullable=true,
  *     description="Fecha de eliminación (soft delete)",
  *     example=null
- *   )
+ *   ),
+ *   @OA\Property(
+ *     property="empresa_id",
+ *     type="integer",
+ *     format="int64",
+ *     nullable=true,
+ *     description="ID de la empresa asociada al documento",
+ *     example=5
+ *   ),
  * )
  */
 class documentos extends Model implements Auditable
@@ -84,10 +92,17 @@ class documentos extends Model implements Auditable
         'url',
         'observaciones',
         'tipo_doc_id',
+        'empresa_id'
     ];
 
     // Función para definir la relación con el modelo tipos_documentos
     public function tipo_documento(){
         return $this->belongsTo(tipo_doc::class, 'tipo_doc_id'); // Relación con el modelo tipos_documentos
+    
+    }
+
+    // Función para definir la relación con el modelo empresas
+    public function empresa(){
+        return $this->belongsTo(empresas::class, 'empresa_id'); // Relación con el modelo empresas
     }
 }

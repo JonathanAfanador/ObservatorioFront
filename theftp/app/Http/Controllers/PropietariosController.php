@@ -86,22 +86,24 @@ class PropietariosController extends Controller
         return $this->getById($id, $request);
     }
 
-    /**
+  /**
      * @OA\Post(
-     *     path="/api/propietarios",
-     *     summary="Crear un nuevo propietario",
-     *     tags={"Propietarios"},
-     *     security={{"sanctum": {}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="fecha_registro", type="string", format="date-time", nullable=true, example="2025-01-15 10:30:00"),
-     *             @OA\Property(property="documento_id", type="integer", example=5)
-     *         )
-     *     ),
-     *     @OA\Response(response=201, description="Propietario creado exitosamente"),
-     *     @OA\Response(response=422, description="Error de validación"),
-     *     @OA\Response(response=500, description="Error interno del servidor")
+     * path="/api/propietarios",
+     * summary="Crear un nuevo propietario",
+     * tags={"Propietarios"},
+     * security={{"sanctum": {}}},
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\JsonContent(
+     * required={"persona_id", "documento_id"},
+     * @OA\Property(property="fecha_registro", type="string", format="date-time", nullable=true, example="2025-01-15 10:30:00"),
+     * @OA\Property(property="documento_id", type="integer", example=5),
+     * @OA\Property(property="persona_id", type="integer", example=10)
+     * )
+     * ),
+     * @OA\Response(response=201, description="Propietario creado exitosamente"),
+     * @OA\Response(response=422, description="Error de validación"),
+     * @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
     public function store(Request $request)
@@ -109,40 +111,44 @@ class PropietariosController extends Controller
         $rules = [
             'fecha_registro' => 'nullable|date',
             'documento_id'   => 'required|integer|exists:documentos,id',
+            'persona_id'     => 'required|integer|exists:personas,id' // <--- NUEVA REGLA
         ];
 
         $messages = [
-            'fecha_registro.date'    => 'La fecha de registro debe ser una fecha válida.',
-            'documento_id.required'  => 'El campo documento_id es obligatorio.',
-            'documento_id.integer'   => 'El campo documento_id debe ser un número entero.',
-            'documento_id.exists'    => 'El documento seleccionado no existe.',
+            'fecha_registro.date'   => 'La fecha de registro debe ser una fecha válida.',
+            'documento_id.required' => 'El campo documento_id es obligatorio.',
+            'documento_id.integer'  => 'El campo documento_id debe ser un número entero.',
+            'documento_id.exists'   => 'El documento seleccionado no existe.',
+            'persona_id.required'   => 'Debe asociar una persona al propietario.',
+            'persona_id.exists'     => 'La persona seleccionada no existe.'
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
+
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
 
         return parent::store($request);
     }
-
     /**
      * @OA\Put(
-     *     path="/api/propietarios/{id}",
-     *     summary="Actualizar un propietario existente",
-     *     tags={"Propietarios"},
-     *     security={{"sanctum": {}}},
-     *     @OA\Parameter(name="id", in="path", description="ID del propietario", required=true, @OA\Schema(type="integer", example=1)),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="fecha_registro", type="string", format="date-time", nullable=true, example="2025-02-01 08:00:00"),
-     *             @OA\Property(property="documento_id", type="integer", example=5)
-     *         )
-     *     ),
-     *     @OA\Response(response=200, description="Propietario actualizado exitosamente"),
-     *     @OA\Response(response=422, description="Error de validación"),
-     *     @OA\Response(response=500, description="Error interno del servidor")
+     * path="/api/propietarios/{id}",
+     * summary="Actualizar un propietario existente",
+     * tags={"Propietarios"},
+     * security={{"sanctum": {}}},
+     * @OA\Parameter(name="id", in="path", description="ID del propietario", required=true, @OA\Schema(type="integer", example=1)),
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\JsonContent(
+     * @OA\Property(property="fecha_registro", type="string", format="date-time", nullable=true),
+     * @OA\Property(property="documento_id", type="integer", example=5),
+     * @OA\Property(property="persona_id", type="integer", example=10)
+     * )
+     * ),
+     * @OA\Response(response=200, description="Propietario actualizado exitosamente"),
+     * @OA\Response(response=422, description="Error de validación"),
+     * @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
     public function edit(string $id, Request $request)
@@ -150,23 +156,25 @@ class PropietariosController extends Controller
         $rules = [
             'fecha_registro' => 'nullable|date',
             'documento_id'   => 'required|integer|exists:documentos,id',
+            'persona_id'     => 'required|integer|exists:personas,id' // <--- NUEVA REGLA
         ];
 
         $messages = [
-            'fecha_registro.date'    => 'La fecha de registro debe ser una fecha válida.',
-            'documento_id.required'  => 'El campo documento_id es obligatorio.',
-            'documento_id.integer'   => 'El campo documento_id debe ser un número entero.',
-            'documento_id.exists'    => 'El documento seleccionado no existe.',
+            'fecha_registro.date'   => 'La fecha de registro debe ser una fecha válida.',
+            'documento_id.required' => 'El campo documento_id es obligatorio.',
+            'documento_id.exists'   => 'El documento seleccionado no existe.',
+            'persona_id.required'   => 'Debe asociar una persona.',
+            'persona_id.exists'     => 'La persona seleccionada no existe.'
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
+
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
 
         return parent::update($id, $request);
     }
-
     /**
      * @OA\Delete(
      *     path="/api/propietarios/{id}",

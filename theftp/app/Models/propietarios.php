@@ -78,10 +78,14 @@ class propietarios extends Model implements Auditable
     protected $fillable = [
         'fecha_registro',
         'documento_id',
+        'persona_id',
     ];
 
     // Relación con el modelo documentos
     public function documento(){
         return $this->belongsTo(documentos::class, 'documento_id');
+    }
+    public function persona() {
+    return $this->belongsTo(personas::class, 'persona_id');
     }
 }
