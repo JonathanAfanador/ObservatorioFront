@@ -16,12 +16,11 @@
 
         <h3>Geovisor</h3>
 
-                <a href="{{ route('geovisor_vite.blade') }}"
-                   class="service-image-link"
-                   aria-label="Ir al Geovisor de rutas y paraderos">
-                    <img src="{{ asset('images/map-geo.jpg') }}"
-                         alt="Mapa interactivo de rutas y paraderos de Girardot" />
-                </a>
+        <a href="https://URL_DEL_GEOVISOR" target="_blank" rel="noopener" class="service-image-link">
+
+          <img src="{{ asset('images/map-geo.jpg') }}" alt="Mapa de rutas y paraderos" />
+
+        </a>
 
         <h4>¡Descubre el mapa de rutas y paraderos!</h4>
 
