@@ -3477,7 +3477,7 @@ function setupEventListeners() {
     }
   });
   
-  console.log('✅ Event listeners con delegación configurados');
+  console.log(' Event listeners con delegación configurados');
 }
 
 if (document.readyState === 'loading') {
