@@ -120,6 +120,13 @@ class ConductoresController extends Controller
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
 
+        // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA ---
+        $user = auth()->user();
+        if ($user && !in_array($user->rol_id, [1, 6])) {
+            $request->merge(['empresa_id' => $user->empresa_id]);
+        }
+        // --------------------------------------------------------
+
         return parent::store($request);
     }
 
@@ -157,6 +164,13 @@ class ConductoresController extends Controller
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
+
+        // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (UPDATE) ---
+        $user = auth()->user();
+        if ($user && !in_array($user->rol_id, [1, 6])) {
+            $request->merge(['empresa_id' => $user->empresa_id]);
+        }
+        // -----------------------------------------------------------------
 
         return parent::update($id, $request);
     }

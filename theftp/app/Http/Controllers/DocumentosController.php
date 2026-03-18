@@ -347,6 +347,13 @@ class DocumentosController extends Controller{
         $newFilePath = Storage::disk('local')->put(self::FOLDER, $file);
         $request->merge(['url' => Storage::url($newFilePath)]);
 
+        // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (UPDATE) ---
+        $user = auth()->user();
+        if ($user && !in_array($user->rol_id, [1, 6])) {
+            $request->merge(['empresa_id' => $user->empresa_id]);
+        }
+        // -----------------------------------------------------------------
+
         return parent::update($id, $request);
     }
 

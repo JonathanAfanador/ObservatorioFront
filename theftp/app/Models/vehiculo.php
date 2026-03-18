@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Scopes\TenantScope;
 
 /**
  * @OA\Schema(
@@ -99,6 +100,16 @@ class vehiculo extends Model implements Auditable
     use HasFactory;
     use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
+
+    /**
+     * El "booted" method of the model.
+     * Aquí inyectamos el TenantScope (Guardián de Propiedad)
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new TenantScope);
+    }
+    
     /**
     * La tabla asociada con el modelo.
     */
