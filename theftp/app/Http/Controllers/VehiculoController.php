@@ -153,6 +153,15 @@ class VehiculoController extends Controller
             $request->merge(['servicio' => false]);
         }
 
+        // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA ---
+        // Asignación forzosa de la empresa actual al registro que se va a crear.
+        // Solo un administrador (Rol 1 o 6) puede asignar manualmente el empresa_id.
+        $user = auth()->user();
+        if ($user && !in_array($user->rol_id, [1, 6])) {
+            $request->merge(['empresa_id' => $user->empresa_id]);
+        }
+        // --------------------------------------------------------
+
         return parent::store($request);
     }
 
@@ -219,6 +228,13 @@ class VehiculoController extends Controller
         if (!$request->has('servicio')) {
             $request->merge(['servicio' => false]);
         }
+
+        // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (UPDATE) ---
+        $user = auth()->user();
+        if ($user && !in_array($user->rol_id, [1, 6])) {
+            $request->merge(['empresa_id' => $user->empresa_id]);
+        }
+        // -----------------------------------------------------------------
 
         return parent::update($id, $request);
     }

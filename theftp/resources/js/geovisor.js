@@ -1,12 +1,4 @@
-/**
- * resources/js/geovisor.js — v6
- *
- * Correcciones principales:
- *  · Panel de capas en móvil: usa clase --hidden que activa transform en CSS
- *  · Overlay backdrop: se muestra/oculta con clase .visible
- *  · Buscador: marcador se elimina al limpiar, botón × funcional
- *  · Estado inicial correcto por breakpoint
- */
+
 
 import L from 'leaflet';
 import JSZip from 'jszip';

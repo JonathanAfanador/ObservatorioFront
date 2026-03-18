@@ -12,10 +12,13 @@ const AdminBase = (function() {
     const API_PREFIX = '/api';
 
     /**
-     * Obtiene el token de autenticación
+     * Lee una cookie del navegador
      */
-    function getToken() {
-        return localStorage.getItem('auth_token');
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+        return null;
     }
 
     /**
@@ -84,15 +87,17 @@ const AdminBase = (function() {
      * @param {Object|FormData} data - Datos a enviar (Body) o Parámetros (si es GET)
      */
     async function apiCall(endpoint, method = 'GET', data = null) {
-        const token = getToken();
+        const csrfToken = getCookie('XSRF-TOKEN');
         let url = `${API_PREFIX}${endpoint}`;
         
         const headers = {
-            'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
         };
+        if (csrfToken) {
+            headers['X-XSRF-TOKEN'] = csrfToken;
+        }
 
-        const config = { method, headers };
+        const config = { method, headers, credentials: 'same-origin' };
 
         // Manejo de parámetros GET (Query String)
         if (method === 'GET' && data) {
@@ -214,7 +219,7 @@ const AdminBase = (function() {
 
     // EXPORTAR API PÚBLICA
     return {
-        getToken,
+        getCookie,
         showNotification,
         apiCall,
         renderTable,

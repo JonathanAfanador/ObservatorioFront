@@ -7,26 +7,10 @@ import eslint from 'vite-plugin-eslint'
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/css/geovisor.css', 'resources/js/geovisor.js'],
+            input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
         }),
         tailwindcss(),
         
     ],
-
-    resolve: {
-        alias: {
-        },
-    },
-
-    build: {
-        // Genera sourcemaps en producción para facilitar el debug del mapa
-        sourcemap: false,
-
-        rollupOptions: {
-            output: {
-                manualChunks: undefined,
-            },
-        },
-    },
 });

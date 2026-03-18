@@ -147,6 +147,13 @@ class RutasController extends Controller
         $file = Storage::disk('local')->put(self::FOLDER, $request->file('file'));
         $request->merge(['file_name' => Storage::url($file)]);
 
+        // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA ---
+        $user = auth()->user();
+        if ($user && !in_array($user->rol_id, [1, 6])) {
+            $request->merge(['empresa_id' => $user->empresa_id]);
+        }
+        // --------------------------------------------------------
+
         return parent::store($request);
     }
 
@@ -222,6 +229,13 @@ class RutasController extends Controller
             $newFilePath = Storage::disk('local')->put(self::FOLDER, $file);
             $request->merge(['file_name' => Storage::url($newFilePath)]);
         }
+
+        // 4. INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (UPDATE)
+        $user = auth()->user();
+        if ($user && !in_array($user->rol_id, [1, 6])) {
+            $request->merge(['empresa_id' => $user->empresa_id]);
+        }
+        // -----------------------------------------------------------------
 
         return parent::update($id, $request);
     }

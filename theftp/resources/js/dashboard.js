@@ -4,10 +4,10 @@
 
 // --- Funciones de Utilidad (Mantenidas de tu versión) ---
 function clearAuthStorage() {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_role_id');
-    localStorage.removeItem('user_role_desc');
+    sessionStorage.removeItem('auth_token');
+    sessionStorage.removeItem('user_name');
+    sessionStorage.removeItem('user_role_id');
+    sessionStorage.removeItem('user_role_desc');
 }
 function forceLogout(message) {
     alert(message);
@@ -23,12 +23,13 @@ function redirectToHome(message) {
 (function() {
     console.log("Ejecutando Guardián de Seguridad del Dashboard...");
 
-    const token = localStorage.getItem('auth_token');
-    const roleIdStr = localStorage.getItem('user_role_id');
-    const roleDesc = localStorage.getItem('user_role_desc') || "Invitado";
+    // Ya no existe auth_token en LocalStorage (Sanctum HttpOnly), así que solo evaluamos el rol.
+    // La seguridad real está garantizada en las llamadas a la API (401 Expirado).
+    const roleIdStr = sessionStorage.getItem('user_role_id');
+    const roleDesc = sessionStorage.getItem('user_role_desc') || "Invitado";
     const currentPath = window.location.pathname;
 
-    if (!token || !roleIdStr) {
+    if (!roleIdStr) {
         forceLogout('Sesión no válida o expirada. Por favor, inicia sesión.');
         return;
     }
@@ -119,15 +120,15 @@ function redirectToHome(message) {
     }
 
     /**
-     * Carga los datos del usuario desde localStorage en el header
+     * Carga los datos del usuario desde sessionStorage en el header
      */
     function populateUserData() {
         const userNameEl = document.getElementById('user-name-display');
         const userAvatarEl = document.getElementById('user-avatar');
         const userRoleEl = document.getElementById('user-role-display');
 
-        const userName = localStorage.getItem('user_name') || 'Usuario';
-        const userRole = localStorage.getItem('user_role_desc') || 'Invitado';
+        const userName = sessionStorage.getItem('user_name') || 'Usuario';
+        const userRole = sessionStorage.getItem('user_role_desc') || 'Invitado';
 
         if (userNameEl) {
             userNameEl.textContent = userName;
@@ -221,7 +222,7 @@ function redirectToHome(message) {
         if (btnVolverInicio) {
             btnVolverInicio.addEventListener('click', (e) => {
                 e.preventDefault();
-                const roleId = parseInt(localStorage.getItem('user_role_id'), 10);
+                const roleId = parseInt(sessionStorage.getItem('user_role_id'), 10);
 
                 // Mapeo de roles a sus landing pages
                 const landingPages = {

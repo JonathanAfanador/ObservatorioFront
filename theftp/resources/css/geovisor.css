@@ -1,9 +1,3 @@
-/*
- * resources/css/geovisor.css — v6
- * Fix principal: panel de capas en móvil con position:absolute + transform,
- * desktop con margin-left. Sin conflictos entre los dos modos.
- */
-
 *, *::before, *::after { box-sizing: border-box; }
 
 /* ── BASE ────────────────────────────────────────────────────────────────── */

@@ -30,282 +30,264 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
 use App\Http\Middleware\ForceJsonResponse;
 
-// Registro y Login
-Route::middleware(ForceJsonResponse::class)->group(function (){
+// Registro y Login (Protegidos fuertemente contra Fuerza Bruta - 5 requests por minuto)
+Route::group(['middleware' => [ForceJsonResponse::class, 'throttle:5,1']], function (){
     Route::prefix('auth')->group(function (){
         Route::post('/register', [AuthController::class, 'registro']);
         Route::post('/login', [AuthController::class, 'login']);
     });
+});
 
-    Route::middleware('auth:sanctum')->group(function (){
-        // -- Auth Routes
-        Route::prefix('auth')->group(function (){
-            Route::post('/logout', [AuthController::class, 'logout']);
-            Route::post('/global-logout', [AuthController::class, 'globalLogout']);
-            Route::get('/me', [AuthController::class, 'me']);
-        });
+// Rutas protegidas por Sanctum y Throttle estándar (60 requests por minuto)
+Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'throttle:60,1']], function (){
+    // -- Auth Routes
+    Route::prefix('auth')->group(function (){
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/global-logout', [AuthController::class, 'globalLogout']);
+        
+        // ==============================================
+        // 1. RUTAS PÚBLICAS (Solo requieren autenticación)
+        // Usadas por todos los roles para alimentar sus dashboards
+        // ==============================================
+        Route::get('/me', [AuthController::class, 'me']);
+    });
+    
+    // Rutas de Obtención (Catálogos y Listados) - Abierto para Dashboards (Secretaría, Empresa, etc.)
+    Route::get('/municipios', [MunicipiosController::class, 'index']);
+    Route::get('/municipios/{id}', [MunicipiosController::class, 'show']);
+    
+    Route::get('/departamentos', [DepartamentosController::class, 'index']);
+    Route::get('/departamentos/{id}', [DepartamentosController::class, 'show']);
+    
+    Route::get('/barrios', [BarriosController::class, 'index']);
+    Route::get('/barrios/{id}', [BarriosController::class, 'show']);
+    
+    Route::get('/tipo_ident', [TipoIdentController::class, 'index']);
+    Route::get('/tipo_ident/{id}', [TipoIdentController::class, 'show']);
+    
+    Route::get('/tipo_doc', [TipoDocController::class, 'index']);
+    Route::get('/tipo_doc/{id}', [TipoDocController::class, 'show']);
+    
+    Route::get('/documentos', [DocumentosController::class, 'index']);
+    Route::get('/documentos/{id}', [DocumentosController::class, 'show']);
+    Route::get('/documentos/{id}/file', [DocumentosController::class, 'getFile']);
+    
+    Route::get('/categorias_licencia', [CategoriasLicenciaController::class, 'index']);
+    Route::get('/categorias_licencia/{id}', [CategoriasLicenciaController::class, 'show']);
+    
+    Route::get('/restriccion_lic', [RestriccionLicController::class, 'index']);
+    Route::get('/restriccion_lic/{id}', [RestriccionLicController::class, 'show']);
+    
+    Route::get('/licencias', [LicenciasController::class, 'index']);
+    Route::get('/licencias/{id}', [LicenciasController::class, 'show']);
+    
+    Route::get('/personas', [PersonasController::class, 'index']);
+    Route::get('/personas/{id}', [PersonasController::class, 'show']);
+    
+    Route::get('/permisos', [PermisosController::class, 'index']);
+    Route::get('/permisos/{id}', [PermisosController::class, 'show']);
+    
+    Route::get('/rol', [RolController::class, 'index']);
+    Route::get('/rol/{id}', [RolController::class, 'show']);
+    
+    Route::get('/menus', [MenusController::class, 'index']);
+    Route::get('/menus/{id}', [MenusController::class, 'show']);
+    
+    Route::get('/roles-menus', [RolesMenusController::class, 'index']);
+    Route::get('/roles-menus/{id}', [RolesMenusController::class, 'show']);
+    
+    Route::get('/tipo-empresa', [TipoEmpresaController::class, 'index']);
+    Route::get('/tipo-empresa/{id}', [TipoEmpresaController::class, 'show']);
+    
+    Route::get('/empresas', [EmpresasController::class, 'index']);
+    Route::get('/empresas/{id}', [EmpresasController::class, 'show']);
+    
+    Route::get('/rutas', [RutasController::class, 'index']);
+    Route::get('/rutas/{id}', [RutasController::class, 'show']);
+    Route::get('/rutas/{id}/file', [RutasController::class, 'getFile']);
+    
+    Route::get('/users', [UsersController::class, 'index']);
+    Route::get('/users/{id}', [UsersController::class, 'show']);
+    
+    Route::get('/conductores', [ConductoresController::class, 'index']);
+    Route::get('/conductores/{id}', [ConductoresController::class, 'show']);
+    
+    Route::get('/tipo-vehiculo', [TipoVehiculoController::class, 'index']);
+    Route::get('/tipo-vehiculo/{id}', [TipoVehiculoController::class, 'show']);
+    
+    Route::get('/propietarios', [PropietariosController::class, 'index']);
+    Route::get('/propietarios/{id}', [PropietariosController::class, 'show']);
+    
+    Route::get('/vehiculos', [VehiculoController::class, 'index']);
+    Route::get('/vehiculos/{id}', [VehiculoController::class, 'show']);
+    
+    Route::get('/conductores-licencias', [ConductoresLicenciaController::class, 'index']);
+    Route::get('/conductores-licencias/{id}', [ConductoresLicenciaController::class, 'show']);
 
-        // -- Auditoria Routes
+    // ==============================================
+    // 1.1 MÓDULO GPS (Se deja tal y como el usuario solicitó, protegido por sanctum)
+    // ==============================================
+    Route::prefix('seguim-gps')->group(function (){
+        Route::get('/', [SeguimGpsController::class, 'index']);
+        Route::get('/{id}', [SeguimGpsController::class, 'show']);
+        Route::post('/', [SeguimGpsController::class, 'store']);
+        Route::put('/{id}', [SeguimGpsController::class, 'edit']);
+        Route::delete('/{id}', [SeguimGpsController::class, 'destroy']);
+        Route::post('/{id}/rehabilitate', [SeguimGpsController::class, 'restore']);
+    });
+
+    Route::prefix('seguim-estado-veh')->group(function (){
+        Route::get('/', [SeguimEstadoVehController::class, 'index']);
+        Route::get('/{id}', [SeguimEstadoVehController::class, 'show']);
+        Route::post('/', [SeguimEstadoVehController::class, 'store']);
+        Route::put('/{id}', [SeguimEstadoVehController::class, 'edit']);
+        Route::delete('/{id}', [SeguimEstadoVehController::class, 'destroy']);
+        Route::post('/{id}/rehabilitate', [SeguimEstadoVehController::class, 'restore']);
+    });
+
+    // ==============================================
+    // 2. RUTAS PROTEGIDAS PARA GESTIÓN DE EMPRESAS (Opción B: Admin [1,6] y Empresa [3])
+    // ==============================================
+    Route::middleware('role:1,3,6')->group(function () {
+        // Vehículos (La Empresa 3 puede crear los suyos)
+        Route::post('/vehiculos', [VehiculoController::class, 'store']);
+        Route::put('/vehiculos/{id}', [VehiculoController::class, 'edit']);
+        Route::delete('/vehiculos/{id}', [VehiculoController::class, 'destroy']);
+        Route::post('/vehiculos/{id}/rehabilitate', [VehiculoController::class, 'restore']);
+
+        // Rutas de Transporte (La Empresa 3 puede proponer/crear sus rutas)
+        Route::post('/rutas', [RutasController::class, 'store']);
+        Route::post('/rutas/{id}', [RutasController::class, 'edit']);
+        Route::patch('/rutas/{id}', [RutasController::class, 'patch']);
+        Route::delete('/rutas/{id}', [RutasController::class, 'destroy']);
+        Route::post('/rutas/{id}/rehabilitate', [RutasController::class, 'restore']);
+
+        // Conductores (La Empresa 3 puede afiliar a sus conductores)
+        Route::post('/conductores', [ConductoresController::class, 'store']);
+        Route::put('/conductores/{id}', [ConductoresController::class, 'edit']);
+        Route::delete('/conductores/{id}', [ConductoresController::class, 'destroy']);
+        Route::post('/conductores/{id}/rehabilitate', [ConductoresController::class, 'restore']);
+
+        // Licencias (La Empresa y Agentes pueden cargar licencias vinculadas)
+        Route::post('/licencias', [LicenciasController::class, 'store']);
+        Route::put('/licencias/{id}', [LicenciasController::class, 'edit']);
+        Route::delete('/licencias/{id}', [LicenciasController::class, 'destroy']);
+        Route::post('/licencias/{id}/rehabilitate', [LicenciasController::class, 'restore']);
+        
+        // Personas y Propietarios (A menudo requeridos para dar de alta al conductor/vehículo)
+        Route::post('/personas', [PersonasController::class, 'store']);
+        Route::put('/personas/{id}', [PersonasController::class, 'edit']);
+        Route::delete('/personas/{id}', [PersonasController::class, 'destroy']);
+        Route::post('/personas/{id}/rehabilitate', [PersonasController::class, 'restore']);
+        
+        Route::post('/propietarios', [PropietariosController::class, 'store']);
+        Route::put('/propietarios/{id}', [PropietariosController::class, 'edit']);
+        Route::delete('/propietarios/{id}', [PropietariosController::class, 'destroy']);
+        Route::post('/propietarios/{id}/rehabilitate', [PropietariosController::class, 'restore']);
+
+        Route::post('/conductores-licencias', [ConductoresLicenciaController::class, 'store']);
+        Route::put('/conductores-licencias/{id}', [ConductoresLicenciaController::class, 'edit']);
+        Route::delete('/conductores-licencias/{id}', [ConductoresLicenciaController::class, 'destroy']);
+        Route::post('/conductores-licencias/{id}/rehabilitate', [ConductoresLicenciaController::class, 'restore']);
+        
+        // Documentos
+        Route::post('/documentos', [DocumentosController::class, 'store']);
+        Route::post('/documentos/{id}', [DocumentosController::class, 'edit']);
+        Route::delete('/documentos/{id}', [DocumentosController::class, 'destroy']);
+        Route::post('/documentos/{id}/rehabilitate', [DocumentosController::class, 'restore']);
+    });
+
+    // ==============================================
+    // 3. RUTAS ESTRICTAMENTE ADMINISTRATIVAS (Opción B: Solo Admin [1,6])
+    // Secretarías o Empresas no pueden modificar estos catálogos base.
+    // ==============================================
+    Route::middleware('role:1,6')->group(function () {
+        
+        // Auditoría (A veces delicada)
         Route::prefix('auditoria')->group(function (){
             Route::get('/', [AuditoriaController::class,'index']);
             Route::get('/{id}', [AuditoriaController::class,'show']);
             Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniqueFields']);
         });
 
-        // -- Municipios Routes
-        Route::prefix('municipios')->group(function (){
-            Route::get('/', [MunicipiosController::class, 'index']);
-            Route::get('/{id}', [MunicipiosController::class, 'show']);
-            Route::post('/', [MunicipiosController::class, 'store']);
-            Route::put('/{id}', [MunicipiosController::class, 'edit']);
-            Route::delete('/{id}', [MunicipiosController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [MunicipiosController::class, 'restore']);
-        });
+        // Catálogos Geográficos
+        Route::post('/municipios', [MunicipiosController::class, 'store']);
+        Route::put('/municipios/{id}', [MunicipiosController::class, 'edit']);
+        Route::delete('/municipios/{id}', [MunicipiosController::class, 'destroy']);
+        Route::post('/municipios/{id}/rehabilitate', [MunicipiosController::class, 'restore']);
+        
+        Route::post('/departamentos', [DepartamentosController::class, 'store']);
+        Route::put('/departamentos/{id}', [DepartamentosController::class, 'edit']);
+        Route::delete('/departamentos/{id}', [DepartamentosController::class, 'destroy']);
+        Route::post('/departamentos/{id}/rehabilitate', [DepartamentosController::class, 'restore']);
+        
+        Route::post('/barrios', [BarriosController::class, 'store']);
+        Route::put('/barrios/{id}', [BarriosController::class, 'edit']);
+        Route::delete('/barrios/{id}', [BarriosController::class, 'destroy']);
+        Route::post('/barrios/{id}/rehabilitate', [BarriosController::class, 'restore']);
 
-        // -- Departamentos Routes
-        Route::prefix('departamentos')->group(function (){
-            Route::get('/', [DepartamentosController::class, 'index']);
-            Route::get('/{id}', [DepartamentosController::class, 'show']);
-            Route::post('/', [DepartamentosController::class, 'store']);
-            Route::put('/{id}', [DepartamentosController::class, 'edit']);
-            Route::delete('/{id}', [DepartamentosController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [DepartamentosController::class, 'restore']);
-        });
+        // Catálogos Base
+        Route::post('/tipo_ident', [TipoIdentController::class, 'store']);
+        Route::put('/tipo_ident/{id}', [TipoIdentController::class, 'edit']);
+        Route::delete('/tipo_ident/{id}', [TipoIdentController::class, 'destroy']);
+        Route::post('/tipo_ident/{id}/rehabilitate', [TipoIdentController::class, 'restore']);
+        
+        Route::post('/tipo_doc', [TipoDocController::class, 'store']);
+        Route::put('/tipo_doc/{id}', [TipoDocController::class, 'edit']);
+        Route::delete('/tipo_doc/{id}', [TipoDocController::class, 'destroy']);
+        Route::post('/tipo_doc/{id}/rehabilitate', [TipoDocController::class, 'restore']);
+        
+        Route::post('/categorias_licencia', [CategoriasLicenciaController::class, 'index']);
+        Route::post('/categorias_licencia', [CategoriasLicenciaController::class, 'store']);
+        Route::put('/categorias_licencia/{id}', [CategoriasLicenciaController::class, 'edit']);
+        Route::delete('/categorias_licencia/{id}', [CategoriasLicenciaController::class, 'destroy']);
+        Route::post('/categorias_licencia/{id}/rehabilitate', [CategoriasLicenciaController::class, 'restore']);
+        
+        Route::post('/restriccion_lic', [RestriccionLicController::class, 'store']);
+        Route::put('/restriccion_lic/{id}', [RestriccionLicController::class, 'edit']);
+        Route::delete('/restriccion_lic/{id}', [RestriccionLicController::class, 'destroy']);
+        Route::post('/restriccion_lic/{id}/rehabilitate', [RestriccionLicController::class, 'restore']);
+        
+        Route::post('/tipo-empresa', [TipoEmpresaController::class, 'store']);
+        Route::put('/tipo-empresa/{id}', [TipoEmpresaController::class, 'edit']);
+        Route::delete('/tipo-empresa/{id}', [TipoEmpresaController::class, 'destroy']);
+        Route::post('/tipo-empresa/{id}/rehabilitate', [TipoEmpresaController::class, 'restore']);
+        
+        Route::post('/tipo-vehiculo', [TipoVehiculoController::class, 'store']);
+        Route::put('/tipo-vehiculo/{id}', [TipoVehiculoController::class, 'edit']);
+        Route::delete('/tipo-vehiculo/{id}', [TipoVehiculoController::class, 'destroy']);
+        Route::post('/tipo-vehiculo/{id}/rehabilitate', [TipoVehiculoController::class, 'restore']);
 
-        // -- Barrios Routes
-        Route::prefix('barrios')->group(function (){
-            // Rutas de Barrios irian aqui
-            Route::get('/', [BarriosController::class, 'index']);
-            Route::get('/{id}', [BarriosController::class, 'show']);
-            Route::post('/', [BarriosController::class, 'store']);
-            Route::put('/{id}', [BarriosController::class, 'edit']);
-            Route::delete('/{id}', [BarriosController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [BarriosController::class, 'restore']);
-        });
-
-        // -- Tipo Ident Routes
-        Route::prefix('tipo_ident')->group(function (){
-            Route::get('/', [TipoIdentController::class, 'index']);
-            Route::get('/{id}', [TipoIdentController::class, 'show']);
-            Route::post('/', [TipoIdentController::class, 'store']);
-            Route::put('/{id}', [TipoIdentController::class, 'edit']);
-            Route::delete('/{id}', [TipoIdentController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [TipoIdentController::class, 'restore']);
-
-        });
-
-        // -- Tipo Ident Routes
-        Route::prefix('tipo_doc')->group(function (){
-            Route::get('/', [TipoDocController::class, 'index']);
-            Route::get('/{id}', [TipoDocController::class, 'show']);
-            Route::post('/', [TipoDocController::class, 'store']);
-            Route::put('/{id}', [TipoDocController::class, 'edit']);
-            Route::delete('/{id}', [TipoDocController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [TipoDocController::class, 'restore']);
-        });
-
-        // -- Documentos Routes
-        Route::prefix('documentos')->group(function (){
-            Route::get('/', [DocumentosController::class, 'index']);
-            Route::get('/{id}', [DocumentosController::class, 'show']);
-            Route::post('/', [DocumentosController::class, 'store']);
-            Route::post('/{id}', [DocumentosController::class, 'edit']);
-            Route::get('/{id}/file', [DocumentosController::class, 'getFile']);
-            Route::delete('/{id}', [DocumentosController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [DocumentosController::class, 'restore']);
-        });
-
-        // -- Categorias Licencia Routes
-        Route::prefix('categorias_licencia')->group(function (){
-            Route::get('/', [CategoriasLicenciaController::class, 'index']);
-            Route::get('/{id}', [CategoriasLicenciaController::class, 'show']);
-            Route::post('/', [CategoriasLicenciaController::class, 'store']);
-            Route::put('/{id}', [CategoriasLicenciaController::class, 'edit']);
-            Route::delete('/{id}', [CategoriasLicenciaController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [CategoriasLicenciaController::class, 'restore']);
-        });
-
-        // -- Restricciones Licencia Routes
-        Route::prefix('restriccion_lic')->group(function (){
-            Route::get('/', [RestriccionLicController::class, 'index']);
-            Route::get('/{id}', [RestriccionLicController::class, 'show']);
-            Route::post('/', [RestriccionLicController::class, 'store']);
-            Route::put('/{id}', [RestriccionLicController::class, 'edit']);
-            Route::delete('/{id}', [RestriccionLicController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [RestriccionLicController::class, 'restore']);
-        });
-
-        // -- Licencias Routes
-        Route::prefix('licencias')->group(function (){
-            Route::get('/', [LicenciasController::class, 'index']);
-            Route::get('/{id}', [LicenciasController::class, 'show']);
-            Route::post('/', [LicenciasController::class, 'store']);
-            Route::put('/{id}', [LicenciasController::class, 'edit']);
-            Route::delete('/{id}', [LicenciasController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [LicenciasController::class, 'restore']);
-        });
-
-        // -- Personas Routes
-        Route::prefix('personas')->group(function (){
-            Route::get('/', [PersonasController::class, 'index']);
-            Route::get('/{id}', [PersonasController::class, 'show']);
-            Route::post('/', [PersonasController::class, 'store']);
-            Route::put('/{id}', [PersonasController::class, 'edit']);
-            Route::delete('/{id}', [PersonasController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [PersonasController::class, 'restore']);
-        });
-
-        // -- Permisos Routes
-        Route::prefix('permisos')->group(function (){
-            Route::get('/', [PermisosController::class, 'index']);
-            Route::get('/{id}', [PermisosController::class, 'show']);
-            Route::post('/', [PermisosController::class, 'store']);
-            Route::put('/{id}', [PermisosController::class, 'edit']);
-            Route::delete('/{id}', [PermisosController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [PermisosController::class, 'restore']);
-        });
-
-        // -- Rol Routes
-        Route::prefix('rol')->group(function (){
-            Route::get('/', [RolController::class, 'index']);
-            Route::get('/{id}', [RolController::class, 'show']);
-            Route::post('/', [RolController::class, 'store']);
-            Route::put('/{id}', [RolController::class, 'edit']);
-            Route::delete('/{id}', [RolController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [RolController::class, 'restore']);
-        });
-
-        // -- Menus Routes
-        Route::prefix('menus')->group(function (){
-            Route::get('/', [MenusController::class, 'index']);
-            Route::get('/{id}', [MenusController::class, 'show']);
-            Route::post('/', [MenusController::class, 'store']);
-            Route::put('/{id}', [MenusController::class, 'edit']);
-            Route::delete('/{id}', [MenusController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [MenusController::class, 'restore']);
-        });
-
-        // -- Roles Menus Routes
-        Route::prefix('roles-menus')->group(function (){
-            Route::get('/', [RolesMenusController::class, 'index']);
-            Route::get('/{id}', [RolesMenusController::class, 'show']);
-            Route::post('/', [RolesMenusController::class, 'store']);
-            Route::put('/{id}', [RolesMenusController::class, 'edit']);
-            Route::delete('/{id}', [RolesMenusController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [RolesMenusController::class, 'restore']);
-        });
-
-        // -- Tipo Empresa Routes
-        Route::prefix('tipo-empresa')->group(function (){
-            Route::get('/', [TipoEmpresaController::class, 'index']);
-            Route::get('/{id}', [TipoEmpresaController::class, 'show']);
-            Route::post('/', [TipoEmpresaController::class, 'store']);
-            Route::put('/{id}', [TipoEmpresaController::class, 'edit']);
-            Route::delete('/{id}', [TipoEmpresaController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [TipoEmpresaController::class, 'restore']);
-        });
-
-        // -- Empresas Routes
-        Route::prefix('empresas')->group(function (){
-            Route::get('/', [EmpresasController::class, 'index']);
-            Route::get('/{id}', [EmpresasController::class, 'show']);
-            Route::post('/', [EmpresasController::class, 'store']);
-            Route::put('/{id}', [EmpresasController::class, 'edit']);
-            Route::delete('/{id}', [EmpresasController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [EmpresasController::class, 'restore']);
-        });
-
-        // -- Rutas Routes
-        Route::prefix('rutas')->group(function (){
-            Route::get('/', [RutasController::class, 'index']);
-            Route::get('/{id}', [RutasController::class, 'show']);
-            Route::get('/{id}/file', [RutasController::class, 'getFile']);
-            Route::post('/', [RutasController::class, 'store']);
-            Route::post('/{id}', [RutasController::class, 'edit']);
-            Route::patch('/{id}', [RutasController::class, 'patch']);
-            Route::delete('/{id}', [RutasController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [RutasController::class, 'restore']);
-        });
-
-        // -- Users Routes
-        Route::prefix('users')->group(function (){
-            Route::get('/', [UsersController::class, 'index']);
-            Route::get('/{id}', [UsersController::class, 'show']);
-            Route::post('/', [UsersController::class, 'store']);
-            Route::put('/{id}', [UsersController::class, 'edit']);
-            Route::delete('/{id}', [UsersController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [UsersController::class, 'restore']);
-            Route::patch('/{id}/role', [UsersController::class, 'patch']);
-        });
-
-        // -- Conductores Routes
-        Route::prefix('conductores')->group(function (){
-            Route::get('/', [ConductoresController::class, 'index']);
-            Route::get('/{id}', [ConductoresController::class, 'show']);
-            Route::post('/', [ConductoresController::class, 'store']);
-            Route::put('/{id}', [ConductoresController::class, 'edit']);
-            Route::delete('/{id}', [ConductoresController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [ConductoresController::class, 'restore']);
-        });
-
-        // -- Tipo Vehiculo Routes
-        Route::prefix('tipo-vehiculo')->group(function (){
-            Route::get('/', [TipoVehiculoController::class, 'index']);
-            Route::get('/{id}', [TipoVehiculoController::class, 'show']);
-            Route::post('/', [TipoVehiculoController::class, 'store']);
-            Route::put('/{id}', [TipoVehiculoController::class, 'edit']);
-            Route::delete('/{id}', [TipoVehiculoController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [TipoVehiculoController::class, 'restore']);
-        });
-
-        // -- Propietarios Routes
-        Route::prefix('propietarios')->group(function (){
-            Route::get('/', [PropietariosController::class, 'index']);
-            Route::get('/{id}', [PropietariosController::class, 'show']);
-            Route::post('/', [PropietariosController::class, 'store']);
-            Route::put('/{id}', [PropietariosController::class, 'edit']);
-            Route::delete('/{id}', [PropietariosController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [PropietariosController::class, 'restore']);
-        });
-
-        // -- Vehiculos Routes
-        Route::prefix('vehiculos')->group(function (){
-            Route::get('/', [VehiculoController::class, 'index']);
-            Route::get('/{id}', [VehiculoController::class, 'show']);
-            Route::post('/', [VehiculoController::class, 'store']);
-            Route::put('/{id}', [VehiculoController::class, 'edit']);
-            Route::delete('/{id}', [VehiculoController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [VehiculoController::class, 'restore']);
-        });
-
-        // -- Conductores Licencias Routes
-        Route::prefix('conductores-licencias')->group(function (){
-            Route::get('/', [ConductoresLicenciaController::class, 'index']);
-            Route::get('/{id}', [ConductoresLicenciaController::class, 'show']);
-            Route::post('/', [ConductoresLicenciaController::class, 'store']);
-            Route::put('/{id}', [ConductoresLicenciaController::class, 'edit']);
-            Route::delete('/{id}', [ConductoresLicenciaController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [ConductoresLicenciaController::class, 'restore']);
-        });
-
-        // -- Seguimientos GPS Routes
-        Route::prefix('seguim-gps')->group(function (){
-            Route::get('/', [SeguimGpsController::class, 'index']);
-            Route::get('/{id}', [SeguimGpsController::class, 'show']);
-            Route::post('/', [SeguimGpsController::class, 'store']);
-            Route::put('/{id}', [SeguimGpsController::class, 'edit']);
-            Route::delete('/{id}', [SeguimGpsController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [SeguimGpsController::class, 'restore']);
-        });
-
-        // -- Seguimientos Estado Vehículo Routes
-        Route::prefix('seguim-estado-veh')->group(function (){
-            Route::get('/', [SeguimEstadoVehController::class, 'index']);
-            Route::get('/{id}', [SeguimEstadoVehController::class, 'show']);
-            Route::post('/', [SeguimEstadoVehController::class, 'store']);
-            Route::put('/{id}', [SeguimEstadoVehController::class, 'edit']);
-            Route::delete('/{id}', [SeguimEstadoVehController::class, 'destroy']);
-            Route::post('/{id}/rehabilitate', [SeguimEstadoVehController::class, 'restore']);
-        });
+        // Configuración del Sistema y Seguridad Crítica
+        Route::post('/empresas', [EmpresasController::class, 'store']);
+        Route::put('/empresas/{id}', [EmpresasController::class, 'edit']);
+        Route::delete('/empresas/{id}', [EmpresasController::class, 'destroy']);
+        Route::post('/empresas/{id}/rehabilitate', [EmpresasController::class, 'restore']);
+        
+        Route::post('/permisos', [PermisosController::class, 'store']);
+        Route::put('/permisos/{id}', [PermisosController::class, 'edit']);
+        Route::delete('/permisos/{id}', [PermisosController::class, 'destroy']);
+        Route::post('/permisos/{id}/rehabilitate', [PermisosController::class, 'restore']);
+        
+        Route::post('/rol', [RolController::class, 'store']);
+        Route::put('/rol/{id}', [RolController::class, 'edit']);
+        Route::delete('/rol/{id}', [RolController::class, 'destroy']);
+        Route::post('/rol/{id}/rehabilitate', [RolController::class, 'restore']);
+        
+        Route::post('/menus', [MenusController::class, 'store']);
+        Route::put('/menus/{id}', [MenusController::class, 'edit']);
+        Route::delete('/menus/{id}', [MenusController::class, 'destroy']);
+        Route::post('/menus/{id}/rehabilitate', [MenusController::class, 'restore']);
+        
+        Route::post('/roles-menus', [RolesMenusController::class, 'store']);
+        Route::put('/roles-menus/{id}', [RolesMenusController::class, 'edit']);
+        Route::delete('/roles-menus/{id}', [RolesMenusController::class, 'destroy']);
+        Route::post('/roles-menus/{id}/rehabilitate', [RolesMenusController::class, 'restore']);
+        
+        Route::post('/users', [UsersController::class, 'store']);
+        Route::put('/users/{id}', [UsersController::class, 'edit']);
+        Route::delete('/users/{id}', [UsersController::class, 'destroy']);
+        Route::post('/users/{id}/rehabilitate', [UsersController::class, 'restore']);
+        Route::patch('/users/{id}/role', [UsersController::class, 'patch']);
     });
 });
