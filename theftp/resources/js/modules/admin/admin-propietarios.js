@@ -235,17 +235,24 @@ const AdminPropietarios = (function() {
             return;
         }
 
-        let res;
-        if (editingId) {
-            res = await AdminBase.apiCall(`/propietarios/${editingId}`, 'PUT', payload);
-        } else {
-            res = await AdminBase.apiCall('/propietarios', 'POST', payload);
-        }
+        const btnSubmit = document.querySelector('#form-propietario button[type="submit"]');
+        if (btnSubmit && btnSubmit.disabled) return;
+        if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
 
-        if (res && res.status) {
-            AdminBase.showNotification('success', 'Éxito', 'Propietario guardado.');
-            closeModal();
-            load();
+        try {
+            let res;
+            if (editingId) {
+                res = await AdminBase.apiCall(`/propietarios/${editingId}`, 'PUT', payload);
+            } else {
+                res = await AdminBase.apiCall('/propietarios', 'POST', payload);
+            }
+            if (res && res.status) {
+                AdminBase.showNotification('success', 'Éxito', 'Propietario guardado.');
+                closeModal();
+                load();
+            }
+        } finally {
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
         }
     }
 

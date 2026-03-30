@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTipoVehiculoRequest;
+use App\Http\Requests\UpdateTipoVehiculoRequest;
+
 use App\Enums\Tablas;
-use App\Models\tipo_vehiculo;
+use App\Models\TipoVehiculo;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class TipoVehiculoController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new tipo_vehiculo(), Tablas::TIPO_VEHICULO);
+        parent::__construct(new TipoVehiculo(), Tablas::TIPO_VEHICULO);
     }
 
     /**
@@ -107,27 +109,10 @@ class TipoVehiculoController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreTipoVehiculoRequest $request)
     {
-        $rules = [
-            'descripcion' => 'required|string|max:255',
-            'capacidad'   => 'nullable|integer|min:0',
-        ];
 
-        $messages = [
-            'descripcion.required' => 'El campo descripción es obligatorio.',
-            'descripcion.string'   => 'La descripción debe ser una cadena de texto.',
-            'descripcion.max'      => 'La descripción no debe exceder 255 caracteres.',
-            'capacidad.integer'    => 'La capacidad debe ser un número entero.',
-            'capacidad.min'        => 'La capacidad no puede ser negativa.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -149,27 +134,10 @@ class TipoVehiculoController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateTipoVehiculoRequest $request)
     {
-        $rules = [
-            'descripcion' => 'required|string|max:255',
-            'capacidad'   => 'nullable|integer|min:0',
-        ];
 
-        $messages = [
-            'descripcion.required' => 'El campo descripción es obligatorio.',
-            'descripcion.string'   => 'La descripción debe ser una cadena de texto.',
-            'descripcion.max'      => 'La descripción no debe exceder 255 caracteres.',
-            'capacidad.integer'    => 'La capacidad debe ser un número entero.',
-            'capacidad.min'        => 'La capacidad no puede ser negativa.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

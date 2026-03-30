@@ -3,16 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Tablas;
-use App\Models\conductores;
+use App\Models\Conductor;
+use App\Http\Requests\StoreConductorRequest;
+use App\Http\Requests\UpdateConductorRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class ConductoresController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new conductores(), Tablas::CONDUCTORES);
+        parent::__construct(new Conductor(), Tablas::CONDUCTORES);
+        $this->resourceClass = \App\Http\Resources\ConductorResource::class;
     }
 
     /**
@@ -103,31 +105,17 @@ class ConductoresController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreConductorRequest $request)
     {
-        $rules = [
-            'persona_id' => 'required|integer|exists:personas,id',
-        ];
-
-        $messages = [
-            'persona_id.required' => 'El campo persona es obligatorio.',
-            'persona_id.integer'  => 'El campo persona debe ser un número entero.',
-            'persona_id.exists'   => 'La persona especificada no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
 
         // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA ---
         $user = auth()->user();
-        if ($user && !in_array($user->rol_id, [1, 6])) {
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value])) {
             $request->merge(['empresa_id' => $user->empresa_id]);
         }
         // --------------------------------------------------------
 
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -148,31 +136,17 @@ class ConductoresController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateConductorRequest $request)
     {
-        $rules = [
-            'persona_id' => 'required|integer|exists:personas,id',
-        ];
-
-        $messages = [
-            'persona_id.required' => 'El campo persona es obligatorio.',
-            'persona_id.integer'  => 'El campo persona debe ser un número entero.',
-            'persona_id.exists'   => 'La persona especificada no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
 
         // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (UPDATE) ---
         $user = auth()->user();
-        if ($user && !in_array($user->rol_id, [1, 6])) {
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value])) {
             $request->merge(['empresa_id' => $user->empresa_id]);
         }
         // -----------------------------------------------------------------
 
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

@@ -75,10 +75,13 @@ window.loadEmpresasSelect = async function () {
 // --- Descargar / ver documento PDF ---
 window.downloadDocumento = async function (id) {
     showNotification('info', 'Descargando', 'Obteniendo archivo seguro...');
-    const token = getToken();
     try {
         const response = await fetch(`/api/documentos/${id}/file`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin'
         });
 
         if (!response.ok) throw new Error('No se pudo acceder al archivo.');

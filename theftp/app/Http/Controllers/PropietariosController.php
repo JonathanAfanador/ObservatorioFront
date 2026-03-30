@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePropietariosRequest;
+use App\Http\Requests\UpdatePropietariosRequest;
+
 use App\Enums\Tablas;
-use App\Models\propietarios;
+use App\Models\Propietario;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class PropietariosController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new propietarios(), Tablas::PROPIETARIOS);
+        parent::__construct(new Propietario(), Tablas::PROPIETARIOS);
     }
 
     /**
@@ -106,30 +108,10 @@ class PropietariosController extends Controller
      * @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StorePropietariosRequest $request)
     {
-        $rules = [
-            'fecha_registro' => 'nullable|date',
-            'documento_id'   => 'required|integer|exists:documentos,id',
-            'persona_id'     => 'required|integer|exists:personas,id' // <--- NUEVA REGLA
-        ];
 
-        $messages = [
-            'fecha_registro.date'   => 'La fecha de registro debe ser una fecha válida.',
-            'documento_id.required' => 'El campo documento_id es obligatorio.',
-            'documento_id.integer'  => 'El campo documento_id debe ser un número entero.',
-            'documento_id.exists'   => 'El documento seleccionado no existe.',
-            'persona_id.required'   => 'Debe asociar una persona al propietario.',
-            'persona_id.exists'     => 'La persona seleccionada no existe.'
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
     /**
      * @OA\Put(
@@ -151,29 +133,10 @@ class PropietariosController extends Controller
      * @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdatePropietariosRequest $request)
     {
-        $rules = [
-            'fecha_registro' => 'nullable|date',
-            'documento_id'   => 'required|integer|exists:documentos,id',
-            'persona_id'     => 'required|integer|exists:personas,id' // <--- NUEVA REGLA
-        ];
 
-        $messages = [
-            'fecha_registro.date'   => 'La fecha de registro debe ser una fecha válida.',
-            'documento_id.required' => 'El campo documento_id es obligatorio.',
-            'documento_id.exists'   => 'El documento seleccionado no existe.',
-            'persona_id.required'   => 'Debe asociar una persona.',
-            'persona_id.exists'     => 'La persona seleccionada no existe.'
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
     /**
      * @OA\Delete(

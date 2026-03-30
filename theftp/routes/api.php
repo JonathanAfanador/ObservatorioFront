@@ -7,6 +7,10 @@ use App\Http\Controllers\BarriosController;
 use App\Http\Controllers\CategoriasLicenciaController;
 use App\Http\Controllers\ConductoresController;
 use App\Http\Controllers\ConductoresLicenciaController;
+use App\Http\Controllers\NovedadConductorController;
+use App\Http\Controllers\NovedadLicenciaController;
+// use App\Http\Controllers\RestriccionLicenciaController; // Eliminado por redundancia
+use Illuminate\Http\Request;
 use App\Http\Controllers\EmpresasController;
 use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\PersonasController;
@@ -25,6 +29,7 @@ use App\Http\Controllers\TipoDocController;
 use App\Http\Controllers\TipoVehiculoController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiculoController;
+use App\Http\Controllers\NovedadVehiculoController;
 use App\Http\Controllers\AuditoriaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
@@ -123,37 +128,52 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'thrott
     
     Route::get('/conductores-licencias', [ConductoresLicenciaController::class, 'index']);
     Route::get('/conductores-licencias/{id}', [ConductoresLicenciaController::class, 'show']);
+    
+    Route::get('/novedades-conductores', [NovedadConductorController::class, 'index']);
+    Route::get('/novedades-conductores/{id}', [NovedadConductorController::class, 'show']);
+    
+    Route::get('/novedades-licencias', [NovedadLicenciaController::class, 'index']);
+    Route::get('/novedades-licencias/{id}', [NovedadLicenciaController::class, 'show']);
 
     // ==============================================
-    // 1.1 MÓDULO GPS (Se deja tal y como el usuario solicitó, protegido por sanctum)
+    // 1.1 MÓDULO GPS (Protegido por rol: Admin, Empresa, Secretaría)
     // ==============================================
-    Route::prefix('seguim-gps')->group(function (){
-        Route::get('/', [SeguimGpsController::class, 'index']);
-        Route::get('/{id}', [SeguimGpsController::class, 'show']);
-        Route::post('/', [SeguimGpsController::class, 'store']);
-        Route::put('/{id}', [SeguimGpsController::class, 'edit']);
-        Route::delete('/{id}', [SeguimGpsController::class, 'destroy']);
-        Route::post('/{id}/rehabilitate', [SeguimGpsController::class, 'restore']);
+    Route::middleware('role:1,2,3,6')->group(function () {
+        Route::prefix('seguim-gps')->group(function (){
+            Route::get('/', [SeguimGpsController::class, 'index']);
+            Route::get('/{id}', [SeguimGpsController::class, 'show']);
+            Route::post('/', [SeguimGpsController::class, 'store']);
+            Route::put('/{id}', [SeguimGpsController::class, 'edit']);
+            Route::delete('/{id}', [SeguimGpsController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [SeguimGpsController::class, 'restore']);
+        });
+
+        Route::prefix('seguim-estado-veh')->group(function (){
+            Route::get('/', [SeguimEstadoVehController::class, 'index']);
+            Route::get('/{id}', [SeguimEstadoVehController::class, 'show']);
+            Route::post('/', [SeguimEstadoVehController::class, 'store']);
+            Route::put('/{id}', [SeguimEstadoVehController::class, 'edit']);
+            Route::delete('/{id}', [SeguimEstadoVehController::class, 'destroy']);
+            Route::post('/{id}/rehabilitate', [SeguimEstadoVehController::class, 'restore']);
+        });
     });
 
-    Route::prefix('seguim-estado-veh')->group(function (){
-        Route::get('/', [SeguimEstadoVehController::class, 'index']);
-        Route::get('/{id}', [SeguimEstadoVehController::class, 'show']);
-        Route::post('/', [SeguimEstadoVehController::class, 'store']);
-        Route::put('/{id}', [SeguimEstadoVehController::class, 'edit']);
-        Route::delete('/{id}', [SeguimEstadoVehController::class, 'destroy']);
-        Route::post('/{id}/rehabilitate', [SeguimEstadoVehController::class, 'restore']);
-    });
-
     // ==============================================
-    // 2. RUTAS PROTEGIDAS PARA GESTIÓN DE EMPRESAS (Opción B: Admin [1,6] y Empresa [3])
+    // 2. RUTAS PROTEGIDAS PARA GESTIÓN DE EMPRESAS (Admin [1,6], Secretaría [2] y Empresa [3])
     // ==============================================
-    Route::middleware('role:1,3,6')->group(function () {
+    Route::middleware('role:1,2,3,6')->group(function () {
         // Vehículos (La Empresa 3 puede crear los suyos)
         Route::post('/vehiculos', [VehiculoController::class, 'store']);
-        Route::put('/vehiculos/{id}', [VehiculoController::class, 'edit']);
+        Route::put('/vehiculos/{id}', [VehiculoController::class, 'update']);
         Route::delete('/vehiculos/{id}', [VehiculoController::class, 'destroy']);
         Route::post('/vehiculos/{id}/rehabilitate', [VehiculoController::class, 'restore']);
+        
+        // Novedades de Vehículos
+        Route::get('/novedades-vehiculos', [NovedadVehiculoController::class, 'index']);
+        Route::post('/novedades-vehiculos', [NovedadVehiculoController::class, 'store']);
+        Route::get('/novedades-vehiculos/{id}', [NovedadVehiculoController::class, 'show']);
+        Route::put('/novedades-vehiculos/{id}', [NovedadVehiculoController::class, 'update']);
+        Route::delete('/novedades-vehiculos/{id}', [NovedadVehiculoController::class, 'destroy']);
 
         // Rutas de Transporte (La Empresa 3 puede proponer/crear sus rutas)
         Route::post('/rutas', [RutasController::class, 'store']);
@@ -190,6 +210,15 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'thrott
         Route::delete('/conductores-licencias/{id}', [ConductoresLicenciaController::class, 'destroy']);
         Route::post('/conductores-licencias/{id}/rehabilitate', [ConductoresLicenciaController::class, 'restore']);
         
+        // Historial de Novedades de Condcutores
+        Route::post('/novedades-conductores', [NovedadConductorController::class, 'store']);
+        Route::put('/novedades-conductores/{id}', [NovedadConductorController::class, 'update']);
+        Route::delete('/novedades-conductores/{id}', [NovedadConductorController::class, 'destroy']);
+        
+        // Historial de Novedades de Licencias
+        Route::apiResource('novedades-licencias', NovedadLicenciaController::class);
+        Route::apiResource('restricciones-licencia', RestriccionLicController::class);
+        
         // Documentos
         Route::post('/documentos', [DocumentosController::class, 'store']);
         Route::post('/documentos/{id}', [DocumentosController::class, 'edit']);
@@ -198,18 +227,20 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'thrott
     });
 
     // ==============================================
-    // 3. RUTAS ESTRICTAMENTE ADMINISTRATIVAS (Opción B: Solo Admin [1,6])
-    // Secretarías o Empresas no pueden modificar estos catálogos base.
+    // 3. RUTAS ESTRICTAMENTE ADMINISTRATIVAS
     // ==============================================
-    Route::middleware('role:1,6')->group(function () {
+    Route::middleware('role:1,4,6')->group(function () { // <-- Operador UPC [4] incluido para Auditoría
         
-        // Auditoría (A veces delicada)
+        // Auditoría (UPC tiene acceso)
         Route::prefix('auditoria')->group(function (){
             Route::get('/', [AuditoriaController::class,'index']);
             Route::get('/{id}', [AuditoriaController::class,'show']);
             Route::get('/{field}/uniques', [AuditoriaController::class, 'getUniqueFields']);
         });
+    });
 
+    // Catálogos Base (Solo Admin y Subadmin pueden modificarlos)
+    Route::middleware('role:1,6')->group(function () {
         // Catálogos Geográficos
         Route::post('/municipios', [MunicipiosController::class, 'store']);
         Route::put('/municipios/{id}', [MunicipiosController::class, 'edit']);
@@ -237,7 +268,6 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'thrott
         Route::delete('/tipo_doc/{id}', [TipoDocController::class, 'destroy']);
         Route::post('/tipo_doc/{id}/rehabilitate', [TipoDocController::class, 'restore']);
         
-        Route::post('/categorias_licencia', [CategoriasLicenciaController::class, 'index']);
         Route::post('/categorias_licencia', [CategoriasLicenciaController::class, 'store']);
         Route::put('/categorias_licencia/{id}', [CategoriasLicenciaController::class, 'edit']);
         Route::delete('/categorias_licencia/{id}', [CategoriasLicenciaController::class, 'destroy']);

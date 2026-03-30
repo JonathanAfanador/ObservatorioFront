@@ -1,17 +1,19 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreMunicipiosRequest;
+use App\Http\Requests\UpdateMunicipiosRequest;
+
 use App\Enums\Tablas;
 use App\Http\Controllers\Controller;
-use App\Models\municipios;
+use App\Models\Municipio;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class MunicipiosController extends Controller{
 
     // constructor
     public function __construct(){
-        parent::__construct( new municipios(), Tablas::MUNICIPIOS);
+        parent::__construct( new Municipio(), Tablas::MUNICIPIOS);
     }
 
     /**
@@ -224,27 +226,9 @@ class MunicipiosController extends Controller{
      *     )
      * )
      */
-    public function store(Request $request){
-        $rules = [
-            'name' => 'required|string|max:255',
-            'codigo_dane' => 'required|string|max:255',
-            'departamentos_id' => 'required|integer|exists:departamentos,id',
-        ];
+    public function store(StoreMunicipiosRequest $request){
 
-        $messages = [
-            'name.required' => 'El campo nombre es obligatorio.',
-            'codigo_dane.required' => 'El campo código DANE es obligatorio.',
-            'departamentos_id.required' => 'El campo departamento es obligatorio.',
-            'departamentos_id.exists' => 'El departamento especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -282,27 +266,9 @@ class MunicipiosController extends Controller{
      *     )
      * )
      */
-    public function edit(string $id, Request $request){
-        $rules = [
-            'name' => 'required|string|max:255',
-            'codigo_dane' => 'required|string|max:255',
-            'departamentos_id' => 'required|integer|exists:departamentos,id',
-        ];
+    public function edit(string $id, UpdateMunicipiosRequest $request){
 
-        $messages = [
-            'name.required' => 'El campo nombre es obligatorio.',
-            'codigo_dane.required' => 'El campo código DANE es obligatorio.',
-            'departamentos_id.required' => 'El campo departamento es obligatorio.',
-            'departamentos_id.exists' => 'El departamento especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

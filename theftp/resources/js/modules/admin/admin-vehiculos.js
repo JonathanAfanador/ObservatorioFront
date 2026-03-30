@@ -255,17 +255,24 @@ const AdminVehiculos = (function() {
             return;
         }
 
-        let response;
-        if (editingId) {
-            response = await AdminBase.apiCall(`/vehiculos/${editingId}`, 'PUT', payload);
-        } else {
-            response = await AdminBase.apiCall('/vehiculos', 'POST', payload);
-        }
+        const btnSubmit = document.querySelector('#form-vehiculo button[type="submit"]');
+        if (btnSubmit && btnSubmit.disabled) return;
+        if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
 
-        if (response && response.status) {
-            AdminBase.showNotification('success', 'Éxito', 'Vehículo guardado correctamente.');
-            closeModal();
-            load();
+        try {
+            let response;
+            if (editingId) {
+                response = await AdminBase.apiCall(`/vehiculos/${editingId}`, 'PUT', payload);
+            } else {
+                response = await AdminBase.apiCall('/vehiculos', 'POST', payload);
+            }
+            if (response && response.status) {
+                AdminBase.showNotification('success', 'Éxito', 'Vehículo guardado correctamente.');
+                closeModal();
+                load();
+            }
+        } finally {
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
         }
     }
 

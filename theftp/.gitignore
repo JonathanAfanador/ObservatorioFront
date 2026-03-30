@@ -22,3 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Scripts de auditoría y testing temporales
+/tests/test_*.php
+/tests/clean_*.php

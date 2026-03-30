@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreMenusRequest;
+
 use App\Enums\Tablas;
-use App\Models\menus;
+use App\Models\Menu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -12,7 +14,7 @@ class MenusController extends Controller
     // Constructor
     public function __construct()
     {
-        parent::__construct(new menus(), Tablas::MENUS);
+        parent::__construct(new Menu(), Tablas::MENUS);
     }
 
     /**
@@ -205,31 +207,10 @@ class MenusController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreMenusRequest $request)
     {
-        $rules = [
-            'name'     => 'required|string',
-            'icon'     => 'nullable|string',
-            'url'      => 'nullable|string',
-            'padre_id' => 'required|integer|exists:menus,id',
-        ];
 
-        $messages = [
-            'name.required'     => 'El campo nombre es obligatorio.',
-            'name.string'       => 'El campo nombre debe ser una cadena de texto.',
-            'icon.string'       => 'El campo icono debe ser una cadena de texto.',
-            'url.string'        => 'El campo url debe ser una cadena de texto.',
-            'padre_id.required' => 'El campo padre_id es obligatorio.',
-            'padre_id.integer'  => 'El campo padre_id debe ser un número entero.',
-            'padre_id.exists'   => 'El menú padre especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -287,7 +268,7 @@ class MenusController extends Controller
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
 
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

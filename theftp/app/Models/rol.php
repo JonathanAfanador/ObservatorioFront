@@ -55,7 +55,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *   )
  * )
  */
-class rol extends Model implements Auditable
+class Rol extends Model implements Auditable
 {
     /** @use HasFactory<\Database\Factories\RolFactory> */
     use HasFactory;
@@ -80,6 +80,6 @@ class rol extends Model implements Auditable
 
     // Relación con el modelo Permisos (un rol puede tener muchos permisos)
     public function permisos(){
-        return $this->hasMany(permisos::class, 'rol_id');
+        return $this->hasMany(Permiso::class, 'rol_id');
     }
 }

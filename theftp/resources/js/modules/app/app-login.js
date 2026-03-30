@@ -139,6 +139,11 @@ if (loginFormEl) {
                 sessionStorage.removeItem('user_empresa_id');
             }
 
+            if (user.rol && user.rol.permisos) {
+                sessionStorage.setItem('user_permissions', JSON.stringify(user.rol.permisos));
+                console.log('Permisos cargados en sesión');
+            }
+
             // Redirigir a la página principal tras login exitoso
             window.location.href = '/';
 

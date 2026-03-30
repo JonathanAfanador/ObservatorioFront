@@ -5,7 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\categorias_licencia>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CategoriaLicencia>
  */
 class CategoriasLicenciaFactory extends Factory
 {

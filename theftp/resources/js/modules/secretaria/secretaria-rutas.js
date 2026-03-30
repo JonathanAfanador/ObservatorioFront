@@ -148,11 +148,14 @@ function renderRutasTable(data, container) {
 // --- Descargar archivo KML de la ruta ---
 window.downloadRutaFile = async function (id) {
     showNotification('info', 'Solicitando KML', 'Iniciando descarga de ruta...');
-    const token = getToken();
 
     try {
         const response = await fetch(`/api/rutas/${id}/file`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin'
         });
 
         if (!response.ok) throw new Error('El archivo KML no está disponible.');

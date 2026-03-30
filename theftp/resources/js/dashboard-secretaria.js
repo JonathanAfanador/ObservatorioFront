@@ -7,5 +7,7 @@ import './modules/secretaria/secretaria-base.js';        // Utilidades globales:
 import './modules/secretaria/secretaria-nav.js';          // Menú lateral y navegación entre vistas
 import './modules/secretaria/secretaria-resoluciones.js'; // Gestión de resoluciones (listar, subir, descargar)
 import './modules/secretaria/secretaria-rutas.js';        // Validación de rutas (aprobar, desaprobar, KML)
+import './modules/secretaria/secretaria-licencias.js';    // Auditoría de licencias por el tránsito
+import './modules/secretaria/secretaria-vehiculos.js';    // Revisión de documentación vehicular (SOAT/Tecno)
 import './modules/secretaria/secretaria-empresas.js';     // Reporte de empresas y estadísticas resumen
 import './modules/secretaria/secretaria-init.js';         // Inicialización: buildMenu, vista por defecto, eventos

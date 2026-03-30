@@ -22,6 +22,12 @@ function buildEmpresaMenu() {
                 </svg>
                 <span>Licencias</span>
             </a>
+            <a href="#restricciones" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>Restricciones</span>
+            </a>
             <a href="#vehiculos" class="nav-link">
                 <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
@@ -107,7 +113,9 @@ function navigateTo(viewName) {
       'dashboard': 'Panel de Control'
       , 'conductores': 'Gestión de Conductores'
       , 'licencias': 'Gestión de Licencias'
+      , 'restricciones': 'Tipos de Restricción'
       , 'vehiculos': 'Gestión de Vehículos'
+      , 'resoluciones': 'Resoluciones y Comunicados'
       , 'rutas': 'Gestión de Rutas'
       , 'asignaciones': 'Asignación Vehículos a Rutas'
       , 'informes': 'Informes y Reportes'
@@ -131,6 +139,9 @@ function navigateTo(viewName) {
       case 'licencias':
         loadLicencias();
         break;
+      case 'restricciones':
+        loadRestricciones();
+        break;
       case 'vehiculos':
         loadVehiculos();
         break;
@@ -152,3 +163,4 @@ function navigateTo(viewName) {
 // Exponer al scope global
 window.buildEmpresaMenu = buildEmpresaMenu;
 window.navigateTo = navigateTo;
+window.showView = navigateTo;

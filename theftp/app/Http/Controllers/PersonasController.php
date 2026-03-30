@@ -3,16 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Tablas;
-use App\Models\personas;
+use App\Models\Persona;
+use App\Http\Requests\StorePersonaRequest;
+use App\Http\Requests\UpdatePersonaRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class PersonasController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new personas(), Tablas::PERSONAS);
+        parent::__construct(new Persona(), Tablas::PERSONAS);
     }
 
     /**
@@ -207,38 +208,9 @@ class PersonasController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StorePersonaRequest $request)
     {
-        $rules = [
-            'nui'           => 'required|string|max:255|unique:personas,nui',
-            'name'          => 'required|string|max:255',
-            'last_name'     => 'required|string|max:255',
-            'phone_number'  => 'required|string|max:255',
-            'gender'        => 'required|in:Mujer,Hombre',
-            'tipo_ident_id' => 'required|integer|exists:tipo_ident,id',
-        ];
-
-        $messages = [
-            'nui.required'           => 'El campo NUI es obligatorio.',
-            'nui.string'             => 'El campo NUI debe ser una cadena de texto.',
-            'nui.max'                => 'El campo NUI no debe exceder 255 caracteres.',
-            'nui.unique'             => 'El NUI ya está registrado.',
-            'name.required'          => 'El campo nombre es obligatorio.',
-            'last_name.required'     => 'El campo apellidos es obligatorio.',
-            'phone_number.required'  => 'El campo teléfono es obligatorio.',
-            'gender.required'        => 'El campo género es obligatorio.',
-            'gender.in'              => 'El género debe ser "Mujer" o "Hombre".',
-            'tipo_ident_id.required' => 'El campo tipo_ident_id es obligatorio.',
-            'tipo_ident_id.integer'  => 'El campo tipo_ident_id debe ser un número entero.',
-            'tipo_ident_id.exists'   => 'El tipo de identificación especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -270,39 +242,9 @@ class PersonasController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdatePersonaRequest $request)
     {
-        $rules = [
-            // única pero ignorando el registro actual
-            'nui'           => 'required|string|max:255|unique:personas,nui,' . $id . ',id',
-            'name'          => 'required|string|max:255',
-            'last_name'     => 'required|string|max:255',
-            'phone_number'  => 'required|string|max:255',
-            'gender'        => 'required|in:Mujer,Hombre',
-            'tipo_ident_id' => 'required|integer|exists:tipo_ident,id',
-        ];
-
-        $messages = [
-            'nui.required'           => 'El campo NUI es obligatorio.',
-            'nui.string'             => 'El campo NUI debe ser una cadena de texto.',
-            'nui.max'                => 'El campo NUI no debe exceder 255 caracteres.',
-            'nui.unique'             => 'El NUI ya está registrado por otra persona.',
-            'name.required'          => 'El campo nombre es obligatorio.',
-            'last_name.required'     => 'El campo apellidos es obligatorio.',
-            'phone_number.required'  => 'El campo teléfono es obligatorio.',
-            'gender.required'        => 'El campo género es obligatorio.',
-            'gender.in'              => 'El género debe ser "Mujer" o "Hombre".',
-            'tipo_ident_id.required' => 'El campo tipo_ident_id es obligatorio.',
-            'tipo_ident_id.integer'  => 'El campo tipo_ident_id debe ser un número entero.',
-            'tipo_ident_id.exists'   => 'El tipo de identificación especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

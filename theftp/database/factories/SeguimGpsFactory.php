@@ -5,7 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\seguim_gps>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SeguimientoGps>
  */
 class SeguimGpsFactory extends Factory
 {

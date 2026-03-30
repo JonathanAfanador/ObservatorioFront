@@ -313,17 +313,24 @@ async function saveUser(e) {
         return AdminBase.showNotification('warning', 'Atencion', 'La contrasena es obligatoria para nuevos usuarios.');
     }
 
-    let result;
-    if (editingUserId) {
-        result = await AdminBase.apiCall(`/users/${editingUserId}`, 'PUT', payload);
-    } else {
-        result = await AdminBase.apiCall('/users', 'POST', payload);
-    }
+    const btnSubmit = document.querySelector('#form-user button[type="submit"]');
+    if (btnSubmit && btnSubmit.disabled) return;
+    if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
 
-    if (result && result.status) {
-        AdminBase.showNotification('success', 'Exito', 'Usuario guardado.');
-        document.getElementById('modal-user').style.display = 'none';
-        loadUsers();
+    try {
+        let result;
+        if (editingUserId) {
+            result = await AdminBase.apiCall(`/users/${editingUserId}`, 'PUT', payload);
+        } else {
+            result = await AdminBase.apiCall('/users', 'POST', payload);
+        }
+        if (result && result.status) {
+            AdminBase.showNotification('success', 'Exito', 'Usuario guardado.');
+            document.getElementById('modal-user').style.display = 'none';
+            loadUsers();
+        }
+    } finally {
+        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
     }
 }
 

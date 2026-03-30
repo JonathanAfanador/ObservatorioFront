@@ -3,16 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Tablas;
-use App\Models\vehiculo;
+use App\Models\Vehiculo;
+use App\Http\Requests\StoreVehiculoRequest;
+use App\Http\Requests\UpdateVehiculoRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class VehiculoController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new vehiculo(), Tablas::VEHICULO);
+        parent::__construct(new Vehiculo(), Tablas::VEHICULO);
+        $this->resourceClass = \App\Http\Resources\VehiculoResource::class;
     }
 
     /**
@@ -113,56 +115,19 @@ class VehiculoController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreVehiculoRequest $request)
     {
-        $rules = [
-            'color'          => 'required|string|max:255',
-            'marca'          => 'required|string|max:255',
-            'placa'          => 'required|string|max:255',
-            'modelo'         => 'required|string|max:255',
-            'servicio'       => 'nullable|boolean',
-            'propietario_id' => 'required|integer|exists:propietarios,id',
-            'tipo_veh_id'    => 'required|integer|exists:tipo_vehiculo,id',
-        ];
-
-        $messages = [
-            'color.required'          => 'El color es obligatorio.',
-            'marca.required'          => 'La marca es obligatoria.',
-            'placa.required'          => 'La placa es obligatoria.',
-            'modelo.required'         => 'El modelo es obligatorio.',
-            'color.string'            => 'El color debe ser texto.',
-            'marca.string'            => 'La marca debe ser texto.',
-            'placa.string'            => 'La placa debe ser texto.',
-            'modelo.string'           => 'El modelo debe ser texto.',
-            'servicio.boolean'        => 'El campo servicio debe ser verdadero o falso.',
-            'propietario_id.required' => 'El propietario es obligatorio.',
-            'propietario_id.integer'  => 'El propietario debe ser un número entero.',
-            'propietario_id.exists'   => 'El propietario seleccionado no existe.',
-            'tipo_veh_id.required'    => 'El tipo de vehículo es obligatorio.',
-            'tipo_veh_id.integer'     => 'El tipo de vehículo debe ser un número entero.',
-            'tipo_veh_id.exists'      => 'El tipo de vehículo seleccionado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        // Valor por defecto para servicio si no viene
-        if (!$request->has('servicio')) {
-            $request->merge(['servicio' => false]);
-        }
 
         // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA ---
         // Asignación forzosa de la empresa actual al registro que se va a crear.
         // Solo un administrador (Rol 1 o 6) puede asignar manualmente el empresa_id.
         $user = auth()->user();
-        if ($user && !in_array($user->rol_id, [1, 6])) {
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value])) {
             $request->merge(['empresa_id' => $user->empresa_id]);
         }
         // --------------------------------------------------------
 
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -190,53 +155,17 @@ class VehiculoController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function update(string $id, UpdateVehiculoRequest $request)
     {
-        $rules = [
-            'color'          => 'required|string|max:255',
-            'marca'          => 'required|string|max:255',
-            'placa'          => 'required|string|max:255',
-            'modelo'         => 'required|string|max:255',
-            'servicio'       => 'nullable|boolean',
-            'propietario_id' => 'required|integer|exists:propietarios,id',
-            'tipo_veh_id'    => 'required|integer|exists:tipo_vehiculo,id',
-        ];
-
-        $messages = [
-            'color.required'          => 'El color es obligatorio.',
-            'marca.required'          => 'La marca es obligatoria.',
-            'placa.required'          => 'La placa es obligatoria.',
-            'modelo.required'         => 'El modelo es obligatorio.',
-            'color.string'            => 'El color debe ser texto.',
-            'marca.string'            => 'La marca debe ser texto.',
-            'placa.string'            => 'La placa debe ser texto.',
-            'modelo.string'           => 'El modelo debe ser texto.',
-            'servicio.boolean'        => 'El campo servicio debe ser verdadero o falso.',
-            'propietario_id.required' => 'El propietario es obligatorio.',
-            'propietario_id.integer'  => 'El propietario debe ser un número entero.',
-            'propietario_id.exists'   => 'El propietario seleccionado no existe.',
-            'tipo_veh_id.required'    => 'El tipo de vehículo es obligatorio.',
-            'tipo_veh_id.integer'     => 'El tipo de vehículo debe ser un número entero.',
-            'tipo_veh_id.exists'      => 'El tipo de vehículo seleccionado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        if (!$request->has('servicio')) {
-            $request->merge(['servicio' => false]);
-        }
 
         // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (UPDATE) ---
         $user = auth()->user();
-        if ($user && !in_array($user->rol_id, [1, 6])) {
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value])) {
             $request->merge(['empresa_id' => $user->empresa_id]);
         }
         // -----------------------------------------------------------------
 
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

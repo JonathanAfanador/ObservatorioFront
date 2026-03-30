@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreDocumentosRequest;
+use App\Http\Requests\UpdateDocumentosRequest;
+
 use App\Enums\Tablas;
-use App\Models\documentos;
+use App\Models\Documento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 
 class DocumentosController extends Controller{
 
@@ -15,7 +17,7 @@ class DocumentosController extends Controller{
     // Constructor
     public function __construct()
     {
-        parent::__construct(new documentos(), Tablas::DOCUMENTOS);
+        parent::__construct(new Documento(), Tablas::DOCUMENTOS);
     }
 
     /**
@@ -224,7 +226,7 @@ class DocumentosController extends Controller{
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreDocumentosRequest $request)
     {
         // ! Validación de archivos
         try{
@@ -233,30 +235,12 @@ class DocumentosController extends Controller{
             return response()->json(['status' => false, 'errors' => ['file' => [$e->getMessage()]]] , 422);
         }
 
-        $rules = [
-            'observaciones' => 'required|string',
-            'tipo_doc_id'   => 'required|integer|exists:tipo_doc,id',
-            'empresa_id' => 'nullable|integer|exists:empresas,id',
-        ];
-
-        $messages = [
-            'observaciones.required'   => 'El campo observaciones es obligatorio.',
-            'tipo_doc_id.required'     => 'El campo tipo_doc_id es obligatorio.',
-            'tipo_doc_id.integer'      => 'El campo tipo_doc_id debe ser un número entero.',
-            'tipo_doc_id.exists'       => 'El tipo de documento especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
 
         // Almacenar el archivo localmente
         $file = Storage::disk('local')->put(self::FOLDER, $request->file('file'));
         $request->merge(['url' => Storage::url($file)]);
 
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -303,7 +287,7 @@ class DocumentosController extends Controller{
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)    {
+    public function edit(string $id, UpdateDocumentosRequest $request)    {
 
         // ! Validación de archivos
         try{
@@ -312,29 +296,13 @@ class DocumentosController extends Controller{
             return response()->json(['status' => false, 'errors' => ['file' => [$e->getMessage()]]] , 422);
         }
 
-        $rules = [
-            'observaciones' => 'required|string',
-            'tipo_doc_id'   => 'required|integer|exists:tipo_doc,id',
-        ];
-
-        $messages = [
-            'observaciones.required'   => 'El campo observaciones es obligatorio.',
-            'tipo_doc_id.required'     => 'El campo tipo_doc_id es obligatorio.',
-            'tipo_doc_id.integer'      => 'El campo tipo_doc_id debe ser un número entero.',
-            'tipo_doc_id.exists'       => 'El tipo de documento especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
 
         // Eliminar el archivo anterior si se subió uno nuevo
         $file = $request->file('file');
         if (!$file){
             return;
         }
-        $documento = documentos::find($id);
+        $documento = Documento::find($id);
         if (!$documento || !$documento->url) {
             return;
         }
@@ -349,12 +317,12 @@ class DocumentosController extends Controller{
 
         // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (UPDATE) ---
         $user = auth()->user();
-        if ($user && !in_array($user->rol_id, [1, 6])) {
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value])) {
             $request->merge(['empresa_id' => $user->empresa_id]);
         }
         // -----------------------------------------------------------------
 
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**
@@ -439,7 +407,7 @@ class DocumentosController extends Controller{
      */
     public function getFile(string $id){
 
-        $model = documentos::find($id);
+        $model = Documento::find($id);
 
         if(!$model){
             return response()->json(['status' => false, 'message' => 'Registro no encontrado.'], 404);

@@ -48,6 +48,7 @@ async function loadRutas() {
             </div>
             <div class="ruta-actions">
                 <div class="ruta-actions-row">
+                    ${window.canUpdate('rutas') ? `
                     <button class="ruta-btn ruta-btn--edit" aria-label="Editar ruta" data-id="${r.id}" data-action="edit" title="Editar">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
                             <path d="M4 20h4l10.142-10.142a1.5 1.5 0 000-2.121L15.263 4.857a1.5 1.5 0 00-2.121 0L3 15.999V20Z" />
@@ -55,6 +56,8 @@ async function loadRutas() {
                         </svg>
                         Editar
                     </button>
+                    ` : ''}
+                    ${window.canDelete('rutas') ? `
                     <button class="ruta-btn ruta-btn--delete" aria-label="Eliminar ruta" data-id="${r.id}" data-action="delete" title="Eliminar">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 7h12" />
@@ -65,6 +68,7 @@ async function loadRutas() {
                         </svg>
                         Eliminar
                     </button>
+                    ` : ''}
                 </div>
                 ${fileName ? `<button class="ruta-btn ruta-btn--download" aria-label="Descargar ruta" data-id="${r.id}" data-action="download" title="Descargar archivo">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -209,19 +213,27 @@ async function saveRuta(e) {
   formData.append('empresa_id', empresaId);
   if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
 
-  let result;
-  if (editId) {
-    result = await apiPostFile(`/rutas/${editId}`, formData);
-  } else {
-    result = await apiPostFile('/rutas', formData);
-  }
+  const btnSubmit = e.target.querySelector('button[type="submit"]') || document.getElementById('ruta-submit-btn');
+  if (btnSubmit && btnSubmit.disabled) return;
+  if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
 
-  if (result && result.status !== false) {
-    showNotification('success', 'Éxito', 'Ruta guardada.');
-    document.getElementById('modal-ruta').style.display = 'none';
-    loadRutas();
-  } else {
-    showNotification('error', 'Error', 'No se pudo guardar.');
+  try {
+    let result;
+    if (editId) {
+      result = await apiPostFile(`/rutas/${editId}`, formData);
+    } else {
+      result = await apiPostFile('/rutas', formData);
+    }
+
+    if (result && result.status !== false) {
+      showNotification('success', 'Éxito', 'Ruta guardada.');
+      document.getElementById('modal-ruta').style.display = 'none';
+      loadRutas();
+    } else {
+      showNotification('error', 'Error', 'No se pudo guardar.');
+    }
+  } finally {
+    if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
   }
 }
 

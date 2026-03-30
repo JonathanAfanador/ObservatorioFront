@@ -94,7 +94,7 @@ use App\Models\Scopes\TenantScope;
  *   )
  * )
  */
-class vehiculo extends Model implements Auditable
+class Vehiculo extends Model implements Auditable
 {
     /** @use HasFactory<\Database\Factories\VehiculoFactory> */
     use HasFactory;
@@ -123,15 +123,35 @@ class vehiculo extends Model implements Auditable
         'servicio',
         'propietario_id',
         'tipo_veh_id',
+        'empresa_id',
+        'estado',
+        'motivo_estado',
+        'fecha_matricula',
+        'fecha_expedicion_soat',
+        'fecha_vencimiento_soat',
+        'fecha_expedicion_tecno',
+        'fecha_vencimiento_tecno',
+        'documento_soat_id',
+        'documento_tecno_id',
     ];
 
     // Relación con el modelo tipo_vehiculo
     public function tipo(){
-        return $this->belongsTo(tipo_vehiculo::class, 'tipo_veh_id');
+        return $this->belongsTo(TipoVehiculo::class, 'tipo_veh_id');
     }
 
     // Relación con el modelo propietarios
     public function propietario(){
-        return $this->belongsTo(propietarios::class, 'propietario_id');
+        return $this->belongsTo(Propietario::class, 'propietario_id');
+    }
+
+    // Relación con el documento SOAT
+    public function documentoSoat(){
+        return $this->belongsTo(Documento::class, 'documento_soat_id');
+    }
+
+    // Relación con el documento Tecnomecánica
+    public function documentoTecno(){
+        return $this->belongsTo(Documento::class, 'documento_tecno_id');
     }
 }

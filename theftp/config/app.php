@@ -122,4 +122,12 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Límites de Archivos Subidos
+    |--------------------------------------------------------------------------
+    */
+    'max_file_size_mb' => (int) env('MAX_SIZE_FILES_IN_MB', 10),
+    'mimetypes_allowed' => env('MIMETYPES_ALLOWED', ''),
 ];

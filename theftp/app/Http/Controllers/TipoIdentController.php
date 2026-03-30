@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTipoIdentRequest;
+use App\Http\Requests\UpdateTipoIdentRequest;
+
 use App\Enums\Tablas;
-use App\Models\tipo_ident;
+use App\Models\TipoIdentificacion;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class TipoIdentController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new tipo_ident(), Tablas::TIPO_IDENT);
+        parent::__construct(new TipoIdentificacion(), Tablas::TIPO_IDENT);
     }
 
     /**
@@ -199,24 +201,10 @@ class TipoIdentController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreTipoIdentRequest $request)
     {
-        $rules = [
-            'descripcion' => 'required|string|max:255',
-        ];
 
-        $messages = [
-            'descripcion.required' => 'El campo descripción es obligatorio.',
-            'descripcion.string'   => 'El campo descripción debe ser una cadena de texto.',
-            'descripcion.max'      => 'El campo descripción no debe exceder 255 caracteres.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -243,24 +231,10 @@ class TipoIdentController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateTipoIdentRequest $request)
     {
-        $rules = [
-            'descripcion' => 'required|string|max:255',
-        ];
 
-        $messages = [
-            'descripcion.required' => 'El campo descripción es obligatorio.',
-            'descripcion.string'   => 'El campo descripción debe ser una cadena de texto.',
-            'descripcion.max'      => 'El campo descripción no debe exceder 255 caracteres.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

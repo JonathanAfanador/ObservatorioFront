@@ -3,16 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Tablas;
-use App\Models\licencias;
+use App\Models\Licencia;
+use App\Http\Requests\StoreLicenciaRequest;
+use App\Http\Requests\UpdateLicenciaRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class LicenciasController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new licencias(), Tablas::LICENCIAS);
+        parent::__construct(new Licencia(), Tablas::LICENCIAS);
     }
 
     /**
@@ -204,32 +205,11 @@ class LicenciasController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreLicenciaRequest $request)
     {
-        $rules = [
-            'restriccion_lic_id' => 'required|integer|exists:restriccion_lic,id',
-            'categoria_lic_id'   => 'required|integer|exists:categorias_licencia,id',
-            'documento_id'       => 'required|integer|exists:documentos,id',
-        ];
+        // Resolver y ejecutar validación del FormRequest correspondiente
 
-        $messages = [
-            'restriccion_lic_id.required' => 'El campo restriccion_lic_id es obligatorio.',
-            'restriccion_lic_id.integer'  => 'El campo restriccion_lic_id debe ser un número entero.',
-            'restriccion_lic_id.exists'   => 'La restricción de licencia especificada no existe.',
-            'categoria_lic_id.required'   => 'El campo categoria_lic_id es obligatorio.',
-            'categoria_lic_id.integer'    => 'El campo categoria_lic_id debe ser un número entero.',
-            'categoria_lic_id.exists'     => 'La categoría de licencia especificada no existe.',
-            'documento_id.required'       => 'El campo documento_id es obligatorio.',
-            'documento_id.integer'        => 'El campo documento_id debe ser un número entero.',
-            'documento_id.exists'         => 'El documento especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -258,32 +238,11 @@ class LicenciasController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateLicenciaRequest $request)
     {
-        $rules = [
-            'restriccion_lic_id' => 'required|integer|exists:restriccion_lic,id',
-            'categoria_lic_id'   => 'required|integer|exists:categorias_licencia,id',
-            'documento_id'       => 'required|integer|exists:documentos,id',
-        ];
+        // Resolver y ejecutar validación del FormRequest correspondiente
 
-        $messages = [
-            'restriccion_lic_id.required' => 'El campo restriccion_lic_id es obligatorio.',
-            'restriccion_lic_id.integer'  => 'El campo restriccion_lic_id debe ser un número entero.',
-            'restriccion_lic_id.exists'   => 'La restricción de licencia especificada no existe.',
-            'categoria_lic_id.required'   => 'El campo categoria_lic_id es obligatorio.',
-            'categoria_lic_id.integer'    => 'El campo categoria_lic_id debe ser un número entero.',
-            'categoria_lic_id.exists'     => 'La categoría de licencia especificada no existe.',
-            'documento_id.required'       => 'El campo documento_id es obligatorio.',
-            'documento_id.integer'        => 'El campo documento_id debe ser un número entero.',
-            'documento_id.exists'         => 'El documento especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

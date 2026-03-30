@@ -12,5 +12,6 @@ import './modules/empresa/empresa-vehiculos.js';   // CRUD de vehículos + modal
 import './modules/empresa/empresa-resoluciones.js';// Vista y descarga de resoluciones
 import './modules/empresa/empresa-rutas.js';       // CRUD de rutas + modal
 import './modules/empresa/empresa-asignaciones.js';// CRUD de asignaciones veh-ruta + modal
+import './modules/empresa/empresa-restricciones.js'; // CRUD de tipos de restricción
 import './modules/empresa/empresa-informes.js';    // Informes: conductores/licencias, vehículos/rutas
 import './modules/empresa/empresa-init.js';        // Inicialización: buildMenu, setupEventListeners, navigateTo

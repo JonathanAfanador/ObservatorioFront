@@ -121,17 +121,22 @@ const AdminDocumentos = (function() {
         let endpoint = '/documentos';
         if (editingId) {
             endpoint += `/${editingId}`;
-            // Hack para Laravel PUT con archivos
-            formData.append('_method', 'POST'); // Asegúrate que tu ruta soporte POST para update o usa lógica especial
+            formData.append('_method', 'POST');
         }
 
-        // Usamos POST siempre con FormData por compatibilidad
-        const res = await AdminBase.apiCall(endpoint, 'POST', formData);
+        const btnSubmit = document.querySelector('#form-documento button[type="submit"]');
+        if (btnSubmit && btnSubmit.disabled) return;
+        if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
 
-        if (res && res.status) {
-            AdminBase.showNotification('success', 'Éxito', 'Documento guardado.');
-            closeModal();
-            load();
+        try {
+            const res = await AdminBase.apiCall(endpoint, 'POST', formData);
+            if (res && res.status) {
+                AdminBase.showNotification('success', 'Éxito', 'Documento guardado.');
+                closeModal();
+                load();
+            }
+        } finally {
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
         }
     }
 

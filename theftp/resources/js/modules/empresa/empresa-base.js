@@ -9,29 +9,7 @@ function getCookie(name) {
     return null;
 }
 
-// Decodifica el payload de un JWT (sin verificar firma) y devuelve el objeto JSON
-function decodeJwtPayload(token) {
-  try {
-    if (!token || typeof token !== 'string') return null;
-    const parts = token.split('.');
-    if (parts.length < 2) return null;
-    // El payload está en la segunda parte (base64url)
-    const payload = parts[1];
-    // Convertir base64url a base64 estándar
-    const b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = b64.padEnd(b64.length + (4 - (b64.length % 4)) % 4, '=');
-    const jsonStr = atob(padded);
-    try {
-      return JSON.parse(jsonStr);
-    } catch (e) {
-      // Algunos servidores devuelven cadenas URI-encoded dentro del JWT
-      return JSON.parse(decodeURIComponent(escape(jsonStr)));
-    }
-  } catch (err) {
-    console.warn('decodeJwtPayload failed:', err);
-    return null;
-  }
-}
+
 
 // Intenta resolver el user id desde varias fuentes: sessionStorage keys, auth_user JSON, o el token JWT
 function getUserId() {
@@ -124,9 +102,9 @@ function showConfirm(title, message, onConfirm, onCancel = null) {
         <div class="notification-content">
             <div class="notification-title">${title}</div>
             <div class="notification-message">${message}</div>
-            <div class="confirm-buttons" style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <button class="confirm-yes" style="flex: 1; padding: 0.5rem; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Eliminar</button>
-                <button class="confirm-no" style="flex: 1; padding: 0.5rem; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Cancelar</button>
+            <div class="confirm-buttons" style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+                <button class="confirm-yes btn-delete" style="flex: 1;">Eliminar</button>
+                <button class="confirm-no btn-secondary" style="flex: 1;">Cancelar</button>
             </div>
         </div>
     `;
@@ -231,7 +209,7 @@ async function apiPost(path, data) {
     return await response.json();
   } catch (error) {
     console.error('Error en POST:', error);
-    alert('Error al guardar:\n' + error.message);
+    showNotification('error', 'Error al guardar', error.message);
     return null;
   }
 }
@@ -318,7 +296,6 @@ window.currentView = currentView;
 window.editingId = editingId;
 window.myEmpresaId = myEmpresaId;
 window.getCookie = getCookie;
-window.decodeJwtPayload = decodeJwtPayload;
 window.getUserId = getUserId;
 window.showNotification = showNotification;
 window.showConfirm = showConfirm;

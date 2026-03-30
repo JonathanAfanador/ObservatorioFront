@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use ReflectionClass;
 use ReflectionMethod;
@@ -50,8 +51,8 @@ abstract class Controller{
     public function __construct(Model $model, Tablas $table){
         $this->model = $model;
         $this->table = $table->value;
-        $this->MAX_SIZE_FILES_IN_MB = env('MAX_SIZE_FILES_IN_MB', 10);
-        $this->MIMETYPES_ALLOWED = env('MIMETYPES_ALLOWED', ''); // Coma-separated list of allowed MIME types
+        $this->MAX_SIZE_FILES_IN_MB = config('app.max_file_size_mb', 10);
+        $this->MIMETYPES_ALLOWED = config('app.mimetypes_allowed', ''); // Coma-separated list of allowed MIME types
     }
 
     /**
@@ -236,7 +237,7 @@ abstract class Controller{
         // --- Extracción y Normalización de Parámetros (El código original comienza aquí) ---
 
         $page = $request->input('page', 1);
-        $limit = $request->input('limit', 10);
+        $limit = $request->input('limit', 100);
         $columns = $request->input('columns', '*');
         $orderBy = $request->input('orderBy', 'id');
         $orderDirection = $request->input('orderDirection', 'asc');
@@ -341,6 +342,12 @@ abstract class Controller{
                     $operator = $f['operator'];
                     $value = $f['value'] ?? null;
 
+                    // --- PROTECCIÓN ANTI SQL-INJECTION: Validar que la columna exista en la tabla ---
+                    $validColumns = Schema::getColumnListing($this->model->getTable());
+                    if (!in_array($column, $validColumns)) {
+                        throw new Exception("La columna '{$column}' no existe en la tabla '{$this->model->getTable()}'.");
+                    }
+
                     switch ($operator) {
                         case '=':
                         case '!=':
@@ -385,11 +392,16 @@ abstract class Controller{
 
             $total = $data->total();
 
+            // Transformar con Eloquent Resource si está definido
+            $formattedData = isset($this->resourceClass) && $this->resourceClass 
+                ? $this->resourceClass::collection($data)->response()->getData(true)
+                : $data;
+
             // Respuesta exitosa
             return response()->json([
                 'status' => true,
                 'total' => $total,
-                'data' => $data,
+                'data' => $formattedData,
             ], 200);
         } catch (Exception $e) {
             // Manejo de errores
@@ -504,21 +516,8 @@ abstract class Controller{
 
             // Incluir relaciones si se especifican
             if (count($include) != 0){
-                if ($includeRelatedSoftDeleted) {
-                    // Para cada relación pedida, añadimos una clausura que intenta aplicar withTrashed()
-                    // en la consulta de la relación (si el builder soporta withTrashed).
-                    $eager = [];
-                    foreach ($include as $inc) {
-                        $eager[$inc] = function ($q) {
-                            $q->withTrashed();
-                        };
-                    }
-                    $query->with($eager);
-                }
-
                 if ($onlyRelatedSoftDeleted) {
-                    // Para cada relación pedida, añadimos una clausura que intenta aplicar onlyTrashed()
-                    // en la consulta de la relación (si el builder soporta onlyTrashed).
+                    // Para cada relación pedida, añadimos una clausura que aplica onlyTrashed()
                     $eager = [];
                     foreach ($include as $inc) {
                         $eager[$inc] = function ($q) {
@@ -526,9 +525,17 @@ abstract class Controller{
                         };
                     }
                     $query->with($eager);
-                }
-
-                else {
+                } elseif ($includeRelatedSoftDeleted) {
+                    // Para cada relación pedida, añadimos una clausura que aplica withTrashed()
+                    $eager = [];
+                    foreach ($include as $inc) {
+                        $eager[$inc] = function ($q) {
+                            $q->withTrashed();
+                        };
+                    }
+                    $query->with($eager);
+                } else {
+                    // Inclusión normal sin soft-deleted
                     $query->with($include);
                 }
             }
@@ -543,10 +550,14 @@ abstract class Controller{
                 ], 404);
             }
 
+            $formattedData = isset($this->resourceClass) && $this->resourceClass 
+                ? new $this->resourceClass($record) 
+                : $record;
+
             // Respuesta exitosa
             return response()->json([
                 'status' => true,
-                'data' => $record,
+                'data' => $formattedData,
             ], 200);
         } catch (Exception $e) {
             // Manejo de errores
@@ -558,7 +569,7 @@ abstract class Controller{
         }
     }
 
-    public function store(Request $request){
+    public function baseStore(Request $request){
 
         // -- Permisos
         try{
@@ -574,10 +585,14 @@ abstract class Controller{
         try{
             $newRecord = $this->model->create($request->all());
 
+            $formattedData = isset($this->resourceClass) && $this->resourceClass 
+                ? new $this->resourceClass($newRecord) 
+                : $newRecord;
+
             return response()->json([
                 'status' => true,
                 'message' => 'Registro creado exitosamente.',
-                'data' => $newRecord,
+                'data' => $formattedData,
             ], 201);
 
         } catch (Exception $e){
@@ -589,7 +604,7 @@ abstract class Controller{
         }
     }
 
-    public function update(string $id, Request $request){
+    public function baseUpdate(string $id, Request $request){
 
         // -- Permisos
         try{
@@ -612,10 +627,14 @@ abstract class Controller{
             }
             $record->update($request->all());
 
+            $formattedData = isset($this->resourceClass) && $this->resourceClass 
+                ? new $this->resourceClass($record) 
+                : $record;
+
             return response()->json([
                 'status' => true,
                 'message' => 'Registro actualizado exitosamente.',
-                'data' => $record,
+                'data' => $formattedData,
             ], 200);
 
         } catch (Exception $e){

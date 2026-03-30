@@ -6,6 +6,8 @@ use App\Enums\Tablas;
 use App\Enums\Acciones;
 use App\Http\Services\PermisosService;
 use App\Models\User;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +18,7 @@ class UsersController extends Controller
     public function __construct()
     {
         parent::__construct(new User(), Tablas::USERS);
+        $this->resourceClass = \App\Http\Resources\UserResource::class;
     }
 
     /**
@@ -117,45 +120,12 @@ class UsersController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $rules = [
-            'name'              => 'required|string|max:255',
-            'email'             => 'required|string|email|max:255|unique:users,email',
-            'password'          => 'required|string|min:8',
-            'unable'            => 'sometimes|boolean',
-            'unable_date'       => 'nullable|date',
-            'email_verified_at' => 'nullable|date',
-            'persona_id'        => 'required|integer|exists:personas,id',
-            'rol_id'            => 'required|integer|exists:rol,id',
-            'empresa_id'        => 'nullable|integer|exists:empresas,id',
-        ];
+        // La contraseña se hashea automáticamente gracias al cast 'hashed' en el modelo User
 
-        $messages = [
-            'name.required'        => 'El campo nombre es obligatorio.',
-            'email.required'       => 'El campo email es obligatorio.',
-            'email.email'          => 'El campo email debe ser un correo válido.',
-            'email.unique'         => 'El correo ya está registrado.',
-            'password.required'    => 'El campo contraseña es obligatorio.',
-            'password.min'         => 'La contraseña debe tener al menos 8 caracteres.',
-            'persona_id.required'  => 'El campo persona es obligatorio.',
-            'persona_id.exists'    => 'La persona especificada no existe.',
-            'rol_id.required'      => 'El campo rol es obligatorio.',
-            'rol_id.exists'        => 'El rol especificado no existe.',
-            'empresa_id.exists'    => 'La empresa especificada no existe.',
-        ];
 
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        // Hash de contraseña antes de guardar
-        $request->merge([
-            'password' => Hash::make($request->input('password')),
-        ]);
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -184,49 +154,16 @@ class UsersController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateUserRequest $request)
     {
-        $rules = [
-            'name'              => 'required|string|max:255',
-            'email'             => 'required|string|email|max:255|unique:users,email,' . $id,
-            'password'          => 'sometimes|nullable|string|min:8',
-            'unable'            => 'sometimes|boolean',
-            'unable_date'       => 'nullable|date',
-            'email_verified_at' => 'nullable|date',
-            'persona_id'        => 'required|integer|exists:personas,id',
-            'rol_id'            => 'required|integer|exists:rol,id',
-            'empresa_id'        => 'nullable|integer|exists:empresas,id',
-        ];
 
-        $messages = [
-            'name.required'        => 'El campo nombre es obligatorio.',
-            'email.required'       => 'El campo email es obligatorio.',
-            'email.email'          => 'El campo email debe ser un correo válido.',
-            'email.unique'         => 'El correo ya está registrado por otro usuario.',
-            'password.min'         => 'La contraseña debe tener al menos 8 caracteres.',
-            'persona_id.required'  => 'El campo persona es obligatorio.',
-            'persona_id.exists'    => 'La persona especificada no existe.',
-            'rol_id.required'      => 'El campo rol es obligatorio.',
-            'rol_id.exists'        => 'El rol especificado no existe.',
-            'empresa_id.exists'    => 'La empresa especificada no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        // Si viene contraseña, hashearla; si no viene, no modificarla
-        if ($request->filled('password')) {
-            $request->merge([
-                'password' => Hash::make($request->input('password')),
-            ]);
-        } else {
-            // Evitar que el campo password se sobreescriba como null
+        // Si la contraseña está vacía, la omitimos para no sobreescribirla
+        if (!$request->filled('password')) {
             $request->request->remove('password');
         }
+        // Si no está vacía, el cast 'hashed' del modelo se encargará de encriptarla.
 
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

@@ -1,171 +1,203 @@
 // ==========================
-// 6. ASIGNACIONES VEH-RUTA
+// 6. ASIGNACIONES VEH-RUTA (REFACTORIZADO)
 // ==========================
-async function loadAsignaciones() {
-  const response = await apiGet('/seguim-estado-veh');
-  const asignaciones = normalizeList(response);
 
-  if (asignaciones.length === 0) {
-    document.getElementById('asignaciones-table').innerHTML = '';
-    return;
+window.asignacionesCurrentPage = 1;
+window.asignacionesLastPage = 1;
+window.asignacionesLimit = 10;
+
+async function loadAsignaciones(page = 1) {
+  window.asignacionesCurrentPage = page;
+  const container = document.getElementById('asignaciones-table');
+  const paginationDiv = document.getElementById('asignaciones-pagination');
+
+  if (!container) return;
+
+  container.innerHTML = '<div class="loading-state" style="padding:2rem; text-align:center; color:#666;"><p>Buscando asignaciones...</p></div>';
+
+  let endpoint = `/seguim-estado-veh?include=vehiculo,ruta,usuario,conductor.persona&limit=${window.asignacionesLimit}&page=${page}`;
+
+  // Construcción de Filtros
+  let filtros = [];
+  const vehiculoId = document.getElementById('filter-asig-vehiculo')?.value;
+  const conductorId = document.getElementById('filter-asig-conductor')?.value;
+  const rutaId = document.getElementById('filter-asig-ruta')?.value;
+  const fecha = document.getElementById('filter-asig-fecha')?.value;
+
+  if (vehiculoId) filtros.push({ "column": "vehiculo_id", "operator": "=", "value": vehiculoId });
+  if (conductorId) filtros.push({ "column": "conductor_id", "operator": "=", "value": conductorId });
+  if (rutaId) filtros.push({ "column": "ruta_id", "operator": "=", "value": rutaId });
+  if (fecha) {
+    filtros.push({ "column": "fecha_hora", "operator": ">=", "value": fecha + ' 00:00:00' });
+    filtros.push({ "column": "fecha_hora", "operator": "<=", "value": fecha + ' 23:59:59' });
   }
 
-  // Detectar si la API devolvió objetos anidados o solo IDs
-  const needsVehiculoMap = asignaciones.some(a => !(a.vehiculo && a.vehiculo.placa));
-  const needsRutaMap = asignaciones.some(a => !(a.ruta && (a.ruta.nombre || a.ruta.name)));
-  const needsUsuarioMap = asignaciones.some(a => !(a.usuario && (a.usuario.name || a.usuario.nombre)));
+  const filtroJson = encodeURIComponent(JSON.stringify(filtros));
+  endpoint += `&filter=${filtroJson}&orderBy=fecha_hora&orderDirection=desc`;
 
-  // Mapas por id
-  const vehiculoMap = new Map(); // id -> placa
-  const rutaMap = new Map(); // id -> nombre
-  const usuarioMap = new Map(); // id -> nombre
-
-  // Cargar catálogos solo si es necesario
   try {
-    if (needsVehiculoMap) {
-      const vehResp = await apiGet('/vehiculos');
-      const vehiculos = normalizeList(vehResp);
-      vehiculos.forEach(v => {
-        if (v && v.id) vehiculoMap.set(v.id, v.placa || v.plate || v.placa);
-      });
+    const res = await apiGet(endpoint);
+    const docs = normalizeList(res);
+
+    const meta = res.data?.meta || res.data || {};
+    window.asignacionesLastPage = meta.last_page || Math.ceil((res.total || 0) / window.asignacionesLimit) || 1;
+
+    if (docs.length === 0) {
+      container.innerHTML = '<div style="padding:3rem; text-align:center; background:#f9fafb; border-radius:8px; color:#6b7280;"><p>No se encontraron asignaciones con los filtros aplicados.</p></div>';
+      if (paginationDiv) paginationDiv.style.display = 'none';
+      setupAsignacionesFilters(); // Asegurar poblado de filtros aunque no haya datos
+      return;
     }
-  } catch (e) {
-    console.debug('loadAsignaciones: no se pudo cargar vehiculos', e);
-  }
 
-  try {
-    if (needsRutaMap) {
-      const rutasResp = await apiGet('/rutas');
-      const rutas = normalizeList(rutasResp);
-      rutas.forEach(r => {
-        if (r && r.id) rutaMap.set(r.id, r.nombre || r.name || r.title || `Ruta #${r.id}`);
-      });
-    }
-  } catch (e) {
-    console.debug('loadAsignaciones: no se pudo cargar rutas', e);
-  }
+    let html = `<table class="data-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Vehículo</th>
+                <th>Conductor</th>
+                <th>Ruta</th>
+                <th>Kilometraje</th>
+                <th>Fecha/Hora</th>
+                <th>Usuario</th>
+                <th>Gestión</th>
+            </tr>
+        </thead>
+        <tbody>`;
 
-  try {
-    if (needsUsuarioMap) {
-      // Intentar múltiples endpoints comunes para usuarios
-      const userEndpoints = ['/users', '/usuarios', '/users?per_page=999', '/usuarios?per_page=999'];
-      for (const ep of userEndpoints) {
-        try {
-          const uresp = await apiGet(ep);
-          if (!uresp) continue;
-          const users = normalizeList(uresp);
-          if (users.length > 0) {
-            users.forEach(u => {
-              if (u && u.id) usuarioMap.set(u.id, u.name || u.nombre || u.email || `Usuario #${u.id}`);
-            });
-            break;
-          }
-        } catch (err) {
-          // continuar intentando otros endpoints
-        }
+    docs.forEach((a, index) => {
+      const rowNum = ((page - 1) * window.asignacionesLimit) + index + 1;
+      const placa = a.vehiculo?.placa || 'N/A';
+      const rutaNombre = a.ruta?.nombre || a.ruta?.name || 'N/A';
+      const usuarioNombre = a.usuario?.name || a.usuario?.nombre || 'N/A';
+
+      let conductorNombre = 'N/A';
+      if (a.conductor && a.conductor.persona) {
+        const p = a.conductor.persona;
+        conductorNombre = `${p.name || ''} ${p.last_name || ''}`.trim();
       }
-    }
-  } catch (e) {
-    console.debug('loadAsignaciones: no se pudo cargar usuarios', e);
-  }
 
-  // Si aún faltan usuarios en el mapa, intentar solicitarlos por id individualmente
-  try {
-    // 1. Obtener IDs de usuario faltantes
-    const missingUserIds = new Set();
-    asignaciones.forEach(a => {
-      const uid = a.usuario_id || (a.usuario && a.usuario.id) || null;
-      if (uid && !usuarioMap.has(uid)) missingUserIds.add(uid);
+      const formatDateTime = (dt) => dt ? String(dt).substring(0, 16).replace('T', ' ') : 'N/A';
+      let timeStr = formatDateTime(a.fecha_hora);
+      if (a.fecha_hora_fin) {
+        timeStr += `<div style="font-size:0.75rem; color:#6b7280; font-style:italic;">hasta ${formatDateTime(a.fecha_hora_fin)}</div>`;
+      }
+
+      html += `<tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="color:#6b7280;">${rowNum}</td>
+              <td style="font-weight:600;">${placa}</td>
+              <td>${conductorNombre}</td>
+              <td><span style="background:#f3f4f6; padding:2px 6px; border-radius:4px; font-size:0.8rem;">${rutaNombre}</span></td>
+              <td>${a.kilometraje || '-'} km</td>
+              <td>${timeStr}</td>
+              <td style="font-size:0.8rem; color:#4b5563;">${usuarioNombre}</td>
+              <td>
+                  <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <button class="btn-edit btn-sm" onclick="editAsignacion(${a.id})" title="Editar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="width:14px; height:14px;">
+                            <path d="M4 20h4l10.142-10.142a1.5 1.5 0 000-2.121L15.263 4.857a1.5 1.5 0 00-2.121 0L3 15.999V20Z" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M13.5 6.5l4 4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Editar
+                    </button>
+                    <button class="btn-delete btn-sm" onclick="openModalAnular(${a.id})" title="Anular Despacho">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/>
+                        </svg>
+                        Anular
+                    </button>
+                  </div>
+              </td>
+          </tr>`;
     });
 
-    // 2. Si hay IDs faltantes, consultarlos
-    if (missingUserIds.size > 0) {
-      for (const uid of missingUserIds) {
+    html += '</tbody></table>';
+    container.innerHTML = html;
 
-        // --- CORRECCIÓN APLICADA AQUÍ ---
-        const tryPaths = [
-          `/users/${uid}`, // <--- 1. Ruta correcta (Laravel standard)
-          `/users/${uid}?include=persona`, // 2. Con datos de persona
-          `/usuarios/${uid}`, // 3. Fallback (por si acaso)
-          `/user/${uid}` // 4. Fallback
-        ];
-
-        let found = false;
-        for (const p of tryPaths) {
-          try {
-            const r = await apiGet(p);
-            if (!r) continue;
-
-            const userObj = r.data || r;
-            if (userObj && (userObj.id || userObj.user_id)) {
-              const name = userObj.name || userObj.nombre || userObj.email || `Usuario #${uid}`;
-              usuarioMap.set(Number(uid), name);
-              found = true;
-              break; // ¡Encontrado! Dejar de intentar otras rutas
-            }
-          } catch (err) {
-            // Silenciar error 404 en consola si falla este intento
-          }
-        }
-
-        // Si fallaron todas las rutas, poner nombre por defecto
-        if (!found) {
-          usuarioMap.set(Number(uid), `Usuario #${uid}`);
-        }
-      }
+    if (paginationDiv) {
+      paginationDiv.style.display = 'flex';
+      const from = meta.from || ((page - 1) * window.asignacionesLimit + 1);
+      const to = meta.to || (from + docs.length - 1);
+      const total = res.total || meta.total || 0;
+      document.getElementById('asig-pagi-info').textContent = `${from} - ${to} de ${total}`;
+      document.getElementById('btn-asig-prev').disabled = (page <= 1);
+      document.getElementById('btn-asig-next').disabled = (page >= window.asignacionesLastPage);
     }
-  } catch (e) {
-    console.debug('loadAsignaciones: error fetching users by id', e);
+
+    setupAsignacionesFilters();
+
+  } catch (error) {
+    console.error("Error loading assignments:", error);
+    container.innerHTML = '<div class="text-center p-8 text-red-500">Error al conectar con el servidor.</div>';
   }
-
-  let html = '<table class="data-table"><thead><tr>';
-  html += '<th>Vehículo</th><th>Ruta</th><th>Kilometraje</th><th>Fecha/Hora</th><th>Usuario</th><th>Acciones</th>';
-  html += '</tr></thead><tbody>';
-
-  asignaciones.forEach(a => {
-    // resolver placa
-    let placa = 'N/A';
-    if (a.vehiculo && a.vehiculo.placa) placa = a.vehiculo.placa;
-    else if (a.vehiculo && a.vehiculo.id && vehiculoMap.has(a.vehiculo.id)) placa = vehiculoMap.get(a.vehiculo.id);
-    else if (a.vehiculo_id && vehiculoMap.has(a.vehiculo_id)) placa = vehiculoMap.get(a.vehiculo_id);
-    else if (typeof a.vehiculo === 'number' && vehiculoMap.has(a.vehiculo)) placa = vehiculoMap.get(a.vehiculo);
-
-    // resolver ruta
-    let rutaNombre = 'N/A';
-    if (a.ruta && (a.ruta.nombre || a.ruta.name)) rutaNombre = a.ruta.nombre || a.ruta.name;
-    else if (a.ruta_id && rutaMap.has(a.ruta_id)) rutaNombre = rutaMap.get(a.ruta_id);
-    else if (a.ruta && a.ruta.id && rutaMap.has(a.ruta.id)) rutaNombre = rutaMap.get(a.ruta.id);
-    else if (typeof a.ruta === 'number' && rutaMap.has(a.ruta)) rutaNombre = rutaMap.get(a.ruta);
-
-    // resolver usuario
-    let usuarioNombre = 'N/A';
-    if (a.usuario && (a.usuario.name || a.usuario.nombre)) usuarioNombre = a.usuario.name || a.usuario.nombre;
-    else if (a.usuario_id && usuarioMap.has(a.usuario_id)) usuarioNombre = usuarioMap.get(a.usuario_id);
-    else if (a.usuario && a.usuario.id && usuarioMap.has(a.usuario.id)) usuarioNombre = usuarioMap.get(a.usuario.id);
-
-    html += `<tr>\n            <td>${placa || 'N/A'}</td>\n            <td>${rutaNombre || 'N/A'}</td>\n            <td>${a.kilometraje || 'N/A'}</td>\n            <td>${a.fecha_hora || 'N/A'}</td>\n            <td>${usuarioNombre || 'N/A'}</td>\n            <td>\n                <button class="btn-delete" onclick="deleteAsignacion(${a.id})">Eliminar</button>\n            </td>\n        </tr>`;
-  });
-
-  html += '</tbody></table>';
-  document.getElementById('asignaciones-table').innerHTML = html;
 }
 
-// Eliminar asignación
-window.deleteAsignacion = async function (id) {
-  showConfirm(
-    'Eliminar Asignación'
-    , '¿Estás seguro que deseas eliminar esta asignación?'
-    , async () => {
-      const result = await apiDelete(`/seguim-estado-veh/${id}`);
-      if (result) {
-        showNotification('success', '¡Éxito!', 'Asignación eliminada');
-        loadAsignaciones();
-      }
+// --- GESTIÓN (EDITAR / ANULAR) ---
+
+window.editAsignacion = async function (id) {
+  try {
+    const res = await apiGet(`/seguim-estado-veh/${id}`);
+    const data = res.data || res;
+    if (!data) return;
+
+    await openModalAsignacion();
+
+    document.getElementById('modal-asignacion-title').textContent = 'Editar Asignación';
+    document.getElementById('asignacion-id').value = data.id;
+    document.getElementById('asignacion-vehiculo').value = data.vehiculo_id;
+    document.getElementById('asignacion-conductor').value = data.conductor_id;
+    document.getElementById('asignacion-ruta').value = data.ruta_id;
+    document.getElementById('asignacion-kilometraje').value = data.kilometraje || '';
+    document.getElementById('asignacion-observaciones').value = data.observaciones || '';
+
+    if (data.fecha_hora) {
+      const dt = data.fecha_hora.split(' ');
+      document.getElementById('asignacion-fecha').value = dt[0];
+      document.getElementById('asignacion-hora').value = dt[1].substring(0, 5);
     }
-  );
+    if (data.fecha_hora_fin) {
+      document.getElementById('asignacion-hora-fin').value = data.fecha_hora_fin.split(' ')[1].substring(0, 5);
+    }
+
+    document.getElementById('asignacion-vehiculo').dispatchEvent(new Event('change'));
+    document.getElementById('asignacion-conductor').dispatchEvent(new Event('change'));
+
+  } catch (e) {
+    console.error("Error al cargar asignación:", e);
+    showNotification('error', 'Error', 'No se pudieron cargar los datos.');
+  }
 };
 
-// Resolver usuario actual (intenta cache local, luego endpoints comunes)
+window.openModalAnular = function (id) {
+  document.getElementById('anular-asignacion-id').value = id;
+  document.getElementById('anular-motivo').value = '';
+  document.getElementById('modal-anular-asignacion').style.display = 'flex';
+};
+
+window.confirmAnular = async function () {
+  const id = document.getElementById('anular-asignacion-id').value;
+  const motivo = document.getElementById('anular-motivo').value.trim();
+  if (!motivo) {
+    showNotification('warning', 'Motivo Requerido', 'Debe indicar la razón de la anulación.');
+    return;
+  }
+  try {
+    const res = await apiGet(`/seguim-estado-veh/${id}`);
+    const currentData = res.data || res;
+    const oldObs = currentData.observaciones || '';
+    const newObs = `[ANULADO: ${motivo}] ${oldObs}`.trim();
+    await apiPut(`/seguim-estado-veh/${id}`, { observaciones: newObs });
+    await apiDelete(`/seguim-estado-veh/${id}`);
+    showNotification('success', 'Despacho Anulado', 'El servicio ha sido cancelado con éxito.');
+    document.getElementById('modal-anular-asignacion').style.display = 'none';
+    loadAsignaciones(window.asignacionesCurrentPage);
+  } catch (e) {
+    console.error("Error al anular:", e);
+    showNotification('error', 'Error', 'No se pudo procesar la anulación.');
+  }
+};
+
+// --- RESTO DE LÓGICA ---
+
 async function resolveCurrentUser() {
   const possibleKeys = ['auth_user', 'authUser', 'user', 'usuario'];
   for (const k of possibleKeys) {
@@ -176,114 +208,133 @@ async function resolveCurrentUser() {
       if (obj && (obj.id || obj.name || obj.nombre)) return obj;
     } catch (e) { }
   }
-
-  const token = getToken();
-  if (token) {
-    const payload = decodeJwtPayload(token);
-    if (payload && (payload.sub || payload.id || payload.user_id)) {
-      return { id: payload.sub || payload.id || payload.user_id, name: payload.name || payload.nombre || null };
+  try {
+    const r = await apiGet('/auth/me');
+    const userObj = r?.data || r;
+    if (userObj && userObj.id) {
+      sessionStorage.setItem('auth_user', JSON.stringify(userObj));
+      return userObj;
     }
-  }
-
-  const candidatePaths = ['/user', '/me', '/auth/user', '/auth/me', '/users/me'];
-  for (const p of candidatePaths) {
-    try {
-      const r = await apiGet(p);
-      if (!r) continue;
-      const userObj = r.data || r;
-      if (userObj && (userObj.id || userObj.user_id)) return userObj;
-    } catch (e) { }
-  }
+  } catch (e) { }
   return null;
 }
 
-// Abrir modal para agregar asignación
 async function openModalAsignacion() {
   document.getElementById('form-asignacion').reset();
-
-  // Cargar vehículos
   const vehiculos = await apiGet('/vehiculos');
+  const novedadesResp = await apiGet('/novedades-vehiculos');
   const selectVeh = document.getElementById('asignacion-vehiculo');
   selectVeh.innerHTML = '<option value="">Seleccione</option>';
-  normalizeList(vehiculos).forEach(v => {
-    selectVeh.innerHTML += `<option value="${v.id}">${v.placa}</option>`;
+
+  const allVehiculos = normalizeList(vehiculos);
+  const allNovedades = normalizeList(novedadesResp);
+  const hoy = new Date();
+  const hoyStr = hoy.toISOString().split('T')[0];
+
+  const vList = allVehiculos.filter(v => {
+    const isActivo = v.estado !== false && v.estado !== 0 && String(v.estado) !== '0';
+    const isEnServicio = v.servicio === true || v.servicio === 1 || String(v.servicio) === '1';
+    const soatVigente = v.fecha_vencimiento_soat && new Date(v.fecha_vencimiento_soat) > hoy;
+    const tecnoVigente = v.fecha_vencimiento_tecno && new Date(v.fecha_vencimiento_tecno) > hoy;
+    const tieneDocSoat = !!v.documento_soat_id;
+    const tieneDocTecno = !!v.documento_tecno_id;
+    const hasNoveltyNow = allNovedades.some(n => {
+      if (n.vehiculo_id !== v.id || n.deleted_at) return false;
+      return hoyStr >= n.fecha_inicio && hoyStr <= (n.fecha_fin || '9999-12-31');
+    });
+    return isActivo && isEnServicio && soatVigente && tecnoVigente && tieneDocSoat && tieneDocTecno && !hasNoveltyNow;
+  });
+  vList.forEach(v => { selectVeh.innerHTML += `<option value="${v.id}">${v.placa}</option>`; });
+
+  const conductores = await apiGet('/conductores?include=persona');
+  const selectCond = document.getElementById('asignacion-conductor');
+  selectCond.innerHTML = '<option value="">Seleccione</option>';
+  normalizeList(conductores).filter(c => c.estado !== false && c.estado !== 0).forEach(c => {
+    const p = c.persona || {};
+    selectCond.innerHTML += `<option value="${c.id}">${p.name || ''} ${p.last_name || ''}</option>`;
   });
 
-  // Cargar rutas
   const rutas = await apiGet('/rutas');
   const selectRuta = document.getElementById('asignacion-ruta');
-  selectRuta.innerHTML = '<option value="">Seleccione</option>';
-  normalizeList(rutas).forEach(r => {
-    const label = r.nombre || r.name || `Ruta #${r.id}`;
-    selectRuta.innerHTML += `<option value="${r.id}">${label}</option>`;
-  });
+  if (selectRuta) {
+    selectRuta.innerHTML = '<option value="">Seleccione</option>';
+    normalizeList(rutas).forEach(r => { selectRuta.innerHTML += `<option value="${r.id}">${r.nombre || r.name}</option>`; });
+  }
 
-  // Fecha/hora por defecto
   const now = new Date();
   document.getElementById('asignacion-fecha').value = now.toISOString().split('T')[0];
   document.getElementById('asignacion-hora').value = now.toTimeString().slice(0, 5);
-
-  // Mostrar usuario actual
-  try {
-    const user = await resolveCurrentUser();
-    const infoEl = document.getElementById('asignacion-usuario-info');
-    if (infoEl && user && (user.name || user.nombre || user.email || user.id)) {
-      infoEl.textContent = `Asignando como: ${user.name || user.nombre || user.email || 'ID ' + user.id}`;
-      infoEl.style.display = 'block';
-    }
-  } catch (e) { }
+  document.getElementById('asignacion-hora-fin').value = new Date(now.getTime() + 2 * 3600000).toTimeString().slice(0, 5);
 
   document.getElementById('modal-asignacion').style.display = 'flex';
 }
 
-// Guardar asignación
-async function saveAsignacion(e) {
-  e.preventDefault();
-
-  let resolvedUserId = getUserId();
-
-  if (!resolvedUserId) {
-    showNotification('info', 'Obteniendo usuario', 'Intentando resolver usuario desde el servidor...');
-    const candidatePaths = ['/user', '/me', '/auth/user', '/auth/me', '/users/me'];
-    for (const p of candidatePaths) {
-      try {
-        const r = await apiGet(p);
-        if (!r) continue;
-        const userObj = r.data || r;
-        if (userObj && (userObj.id || userObj.user_id || userObj.sub)) {
-          resolvedUserId = parseInt(userObj.id || userObj.user_id || userObj.sub, 10);
-          if (!isNaN(resolvedUserId)) break;
-        }
-      } catch (err) { }
+async function checkDuplicateAsignacion(vehiculoId, conductorId, startStr, endStr) {
+  const currentId = document.getElementById('asignacion-id').value;
+  try {
+    const ns = new Date(startStr); const ne = new Date(endStr);
+    const filterC = JSON.stringify([{ column: 'conductor_id', operator: '=', value: conductorId }]);
+    const respC = await apiGet(`/seguim-estado-veh?filter=${encodeURIComponent(filterC)}`);
+    for (let d of normalizeList(respC)) {
+      if (String(d.id) === String(currentId)) continue;
+      if (ns < new Date(d.fecha_hora_fin) && ne > new Date(d.fecha_hora)) return { error: 'Conductor ocupado.' };
     }
-  }
-
-  if (!resolvedUserId) {
-    showNotification('error', 'Error', 'No se pudo obtener el ID del usuario. Abre la consola (F12) para más detalles.');
-    return;
-  }
-
-  const asignacionData = {
-    vehiculo_id: document.getElementById('asignacion-vehiculo').value
-    , ruta_id: document.getElementById('asignacion-ruta').value
-    , usuario_id: resolvedUserId
-    , kilometraje: document.getElementById('asignacion-kilometraje').value || null
-    , fecha_hora: document.getElementById('asignacion-fecha').value
-      ? document.getElementById('asignacion-fecha').value + ' ' + (document.getElementById('asignacion-hora').value || '00:00:00')
-      : null
-    , observaciones: document.getElementById('asignacion-observaciones').value || null
-  };
-
-  const result = await apiPost('/seguim-estado-veh', asignacionData);
-  if (result) {
-    showNotification('success', '¡Éxito!', 'Asignación creada exitosamente');
-    document.getElementById('modal-asignacion').style.display = 'none';
-    loadAsignaciones();
-  }
+    return null;
+  } catch (e) { return null; }
 }
 
-// Exponer al scope global
+async function saveAsignacion(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  if (btn) btn.disabled = true;
+  try {
+    const user = await resolveCurrentUser(); if (!user) return;
+    const v = document.getElementById('asignacion-vehiculo').value;
+    const c = document.getElementById('asignacion-conductor').value;
+    const f = document.getElementById('asignacion-fecha').value;
+    const h = document.getElementById('asignacion-hora').value;
+    const hf = document.getElementById('asignacion-hora-fin').value;
+    const data = {
+      vehiculo_id: v, conductor_id: c, ruta_id: document.getElementById('asignacion-ruta').value,
+      usuario_id: user.id, kilometraje: document.getElementById('asignacion-kilometraje').value,
+      fecha_hora: `${f} ${h}`, fecha_hora_fin: `${f} ${hf}`,
+      observaciones: document.getElementById('asignacion-observaciones').value
+    };
+    const id = document.getElementById('asignacion-id').value;
+    const res = id ? await apiPut(`/seguim-estado-veh/${id}`, data) : await apiPost('/seguim-estado-veh', data);
+    if (res) {
+      showNotification('success', '¡Éxito!', 'Guardado');
+      document.getElementById('modal-asignacion').style.display = 'none';
+      loadAsignaciones();
+    }
+  } finally { if (btn) btn.disabled = false; }
+}
+
+async function setupAsignacionesFilters() {
+  const sv = document.getElementById('filter-asig-vehiculo');
+  if (!sv || sv.options.length > 1) return;
+  const [vR, cR, rR] = await Promise.all([apiGet('/vehiculos'), apiGet('/conductores?include=persona'), apiGet('/rutas')]);
+  normalizeList(vR).forEach(v => { sv.innerHTML += `<option value="${v.id}">${v.placa}</option>`; });
+  normalizeList(cR).forEach(c => { document.getElementById('filter-asig-conductor').innerHTML += `<option value="${c.id}">${c.persona?.name || ''}</option>`; });
+  normalizeList(rR).forEach(r => { document.getElementById('filter-asig-ruta').innerHTML += `<option value="${r.id}">${r.nombre || r.name}</option>`; });
+}
+
+window.handleAsignacionesSearch = () => loadAsignaciones(1);
+window.clearAsignacionesSearch = () => {
+  ['filter-asig-vehiculo', 'filter-asig-conductor', 'filter-asig-ruta', 'filter-asig-fecha'].forEach(id => document.getElementById(id).value = '');
+  loadAsignaciones(1);
+};
+window.changeAsignacionesPage = (dir) => {
+  let p = window.asignacionesCurrentPage; loadAsignaciones(dir === 'next' ? p + 1 : p - 1);
+};
+
 window.loadAsignaciones = loadAsignaciones;
-window.openModalAsignacion = openModalAsignacion;
+window.openModalAsignacion = async function () {
+  document.getElementById('asignacion-id').value = '';
+  document.getElementById('modal-asignacion-title').textContent = 'Nueva Asignación';
+  await openModalAsignacion();
+};
 window.saveAsignacion = saveAsignacion;
-window.resolveCurrentUser = resolveCurrentUser;
+window.confirmAnular = confirmAnular;
+window.editAsignacion = editAsignacion;
+window.openModalAnular = openModalAnular;

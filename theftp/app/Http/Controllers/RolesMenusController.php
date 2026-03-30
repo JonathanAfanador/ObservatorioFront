@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreRolesMenusRequest;
+use App\Http\Requests\UpdateRolesMenusRequest;
+
 use App\Enums\Tablas;
-use App\Models\roles_menus;
+use App\Models\Roles_menus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class RolesMenusController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new roles_menus(), Tablas::ROLES_MENUS);
+        parent::__construct(new RolMenu(), Tablas::ROLES_MENUS);
     }
 
     /**
@@ -203,28 +205,10 @@ class RolesMenusController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreRolesMenusRequest $request)
     {
-        $rules = [
-            'rol_id'  => 'required|integer|exists:rol,id',
-            'menu_id' => 'required|integer|exists:menus,id',
-        ];
 
-        $messages = [
-            'rol_id.required'  => 'El campo rol_id es obligatorio.',
-            'rol_id.integer'   => 'El campo rol_id debe ser un número entero.',
-            'rol_id.exists'    => 'El rol especificado no existe.',
-            'menu_id.required' => 'El campo menu_id es obligatorio.',
-            'menu_id.integer'  => 'El campo menu_id debe ser un número entero.',
-            'menu_id.exists'   => 'El menú especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -252,28 +236,10 @@ class RolesMenusController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateRolesMenusRequest $request)
     {
-        $rules = [
-            'rol_id'  => 'required|integer|exists:rol,id',
-            'menu_id' => 'required|integer|exists:menus,id',
-        ];
 
-        $messages = [
-            'rol_id.required'  => 'El campo rol_id es obligatorio.',
-            'rol_id.integer'   => 'El campo rol_id debe ser un número entero.',
-            'rol_id.exists'    => 'El rol especificado no existe.',
-            'menu_id.required' => 'El campo menu_id es obligatorio.',
-            'menu_id.integer'  => 'El campo menu_id debe ser un número entero.',
-            'menu_id.exists'   => 'El menú especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**
