@@ -15,6 +15,11 @@ let informeAvailableFields = {
 let informeRestriccionesMap = new Map();
 let informeDocumentosMap = new Map();
 
+// --- ESTADO PAGINACIÓN ---
+let informeConductoresPage = 1;
+let informeVehiculosRutaPage = 1;
+const informePageSize = 10;
+
 function exportCSV(filename, rows) {
   if (!rows || !rows.length) return;
   const csvContent = rows.map(r => r.map(v => '"' + (v ?? '') + '"').join(',')).join('\n');
@@ -27,6 +32,26 @@ function exportCSV(filename, rows) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function renderPaginationHtml(idPrefix, totalItems, currentPage, pageSize, onPageChangeName) {
+  if (totalItems <= pageSize) return '';
+
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const start = (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, totalItems);
+
+  return `
+    <div class="pagination-footer" style="margin-top:1.5rem; display:flex; justify-content:space-between; align-items:center; padding-top:1rem; border-top:1px solid #e5e7eb;">
+        <div class="pagination-info" style="font-size:0.875rem; color:#6b7280;">
+            Mostrando <span style="font-weight:600; color:#111827;">${start} - ${end} de ${totalItems}</span> registros
+        </div>
+        <div class="pagination-controls" style="display:flex; gap:0.5rem;">
+            <button onclick="window.${onPageChangeName}('prev')" class="btn-secondary btn-sm" ${currentPage === 1 ? 'disabled' : ''}>Anterior</button>
+            <button onclick="window.${onPageChangeName}('next')" class="btn-secondary btn-sm" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente</button>
+        </div>
+    </div>
+  `;
 }
 
 function buildResumenConductores() {
@@ -265,11 +290,32 @@ function resolveDetalleInfo(maybeLicObj, wrapperObj) {
   return result;
 }
 
-function renderTablaConductores(filtroCategoria = 'todas') {
+function renderTablaConductores(filtroCategoria = 'todas', page = 1) {
   const {
     conductores
     , licencias
   } = informeConductoresCache;
+
+  // 1. Filtrar lista completa según categoría para cálculo de total y paginación
+  const filteredList = conductores.filter(c => {
+    if (filtroCategoria === 'todas') return true;
+    const licCond = licencias.filter(l => (l.conductor_id ?? l.conductorId ?? l.conductor?.id) == c.id);
+    if (licCond.length === 0) return false;
+    return licCond.some(l => {
+      const lic = l.licencia || l || {};
+      const catObj = lic.categoria || lic.categoria_licencia;
+      const cat = (catObj?.descripcion || catObj?.nombre || catObj?.codigo || lic.categoria || lic.categoria_licencia) || '—';
+      return cat === filtroCategoria;
+    });
+  });
+
+  const totalFiltered = filteredList.length;
+  informeConductoresPage = page; // Sync global state
+
+  // 2. Aplicar slice para la página actual
+  const startIdx = (page - 1) * informePageSize;
+  const pageSlice = filteredList.slice(startIdx, startIdx + informePageSize);
+
   const cols = ['Conductor', 'Identificación'];
   const colKeys = ['conductor', 'identificacion'];
   // Decidir columna de licencia: mostrar número si existe, sino mostrar ID
@@ -297,22 +343,29 @@ function renderTablaConductores(filtroCategoria = 'todas') {
   // Construir header
   let html = '<table class="data-table"><thead><tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
   let added = 0;
-  conductores.forEach(c => {
+
+  pageSlice.forEach(c => {
     const persona = c.persona || {};
     const firstName = (persona.name || persona.nombres || persona.nombre || '').trim();
     const lastName = (persona.last_name || persona.apellidos || persona.apellido || '').trim();
     const fullName = `${firstName || '—'} ${lastName || ''}`.trim();
     const idDisplay = persona.nui || persona.identificacion || persona.documento || persona.cc || persona.cedula || '—';
     const licCond = licencias.filter(l => (l.conductor_id ?? l.conductorId ?? l.conductor?.id) == c.id);
+
     if (licCond.length === 0) {
-      html += `<tr class="row-sin"><td>${fullName}</td><td>${idDisplay}</td><td colspan="${cols.length - 2}" class="text-center"><span class="badge badge-error">Sin licencia</span></td></tr>`;
-      added++;
+      if (filtroCategoria === 'todas') {
+        html += `<tr class="row-sin"><td>${fullName}</td><td>${idDisplay}</td><td colspan="${cols.length - 2}" class="text-center"><span class="badge badge-error">Sin licencia</span></td></tr>`;
+        added++;
+      }
     } else {
+      // Si hay licencia, filtrar sub-registros si el reporte muestra múltiples licencias por conductor
       licCond.forEach(l => {
         const lic = l.licencia || l || {};
         const numeroLic = extractNumeroLicencia(lic);
         const categoriaObj = lic.categoria || lic.categoria_licencia;
         const categoria = (categoriaObj?.descripcion || categoriaObj?.nombre || categoriaObj?.codigo || lic.categoria || lic.categoria_licencia) || '—';
+
+        if (filtroCategoria !== 'todas' && categoria !== filtroCategoria) return;
 
         // Resolver restricción, documento y fecha de expedición desde el catálogo si está disponible
         const info = resolveDetalleInfo(lic, l);
@@ -320,7 +373,6 @@ function renderTablaConductores(filtroCategoria = 'todas') {
         const documentoText = info.docText;
         const fechaExpStr = info.fechaExp;
 
-        if (filtroCategoria !== 'todas' && informeAvailableFields.categoria && filtroCategoria !== categoria) return;
         // Construir fila según columnas detectadas
         let row = `<td>${fullName}</td><td>${idDisplay}</td>`;
         if (informeAvailableFields.numero) row += `<td>${numeroLic}</td>`;
@@ -334,25 +386,42 @@ function renderTablaConductores(filtroCategoria = 'todas') {
       });
     }
   });
+
   if (added === 0) html += `<tr><td colspan="${cols.length}" class="text-center" style="font-weight:600; color:#64748b;">No hay registros (verifica filtros o que existan conductores)</td></tr>`;
   html += '</tbody></table>';
+
+  // Añadir controles de paginación
+  html += renderPaginationHtml('cond', totalFiltered, page, informePageSize, 'changeInformeConductoresPage');
+
   return html;
 }
 
 async function loadInformeConductores() {
-  // Incluir persona para nombres/documentos; intentar incluir categoría en licencias si la API lo soporta
-  const conductoresResp = await apiGet('/conductores?include=persona');
-  const licenciasResp = await apiGet('/conductores-licencias?include=licencia.categoria');
-  // Nuevo: traer catálogo de licencias completo para intentar extraer numero y fecha reales
-  const licenciasCatalogResp = await apiGet('/licencias?include=categoria,restriccion,documento');
+  const cont = document.getElementById('informe-result');
+  cont.innerHTML = '<div style="text-align:center; padding:2rem;"><p>Cargando datos del informe...</p></div>';
 
-  // Normalización flexible para distintos formatos de respuesta
+  // Usar Promise.all para cargar todo en paralelo
+  const [
+    conductoresResp,
+    licenciasResp,
+    licenciasCatalogResp,
+    restriccionesResp,
+    documentosResp,
+    categoriasResp
+  ] = await Promise.all([
+    apiGet('/conductores?include=persona'),
+    apiGet('/conductores-licencias?include=licencia.categoria'),
+    apiGet('/licencias?include=categoria,restriccion,documento'),
+    apiGet('/restriccion_lic'),
+    apiGet('/documentos'),
+    apiGet('/categorias_licencia')
+  ]);
+
   const normalizeList = (resp) => {
     if (!resp) return [];
     if (Array.isArray(resp)) return resp;
-    if (Array.isArray(resp.data)) return resp.data; // Laravel Resource
-    if (resp.data && Array.isArray(resp.data.data)) return resp.data.data; // Paginación
-    // Buscar primera propiedad que sea array
+    if (Array.isArray(resp.data)) return resp.data;
+    if (resp.data && Array.isArray(resp.data.data)) return resp.data.data;
     for (const k of Object.keys(resp)) {
       if (Array.isArray(resp[k])) return resp[k];
     }
@@ -363,38 +432,8 @@ async function loadInformeConductores() {
   const licenciasList = normalizeList(licenciasResp);
   const licenciasCatalogList = normalizeList(licenciasCatalogResp);
 
-  // Cargar restricciones y documentos para mostrar información más relevante en el informe
-  let restriccionesResp = null
-    , documentosResp = null;
-  try {
-    restriccionesResp = await apiGet('/restriccion_lic');
-  } catch (e) {
-    /* ignore */
-  }
-  try {
-    documentosResp = await apiGet('/documentos');
-  } catch (e) {
-    /* ignore */
-  }
   const restriccionesList = normalizeList(restriccionesResp);
   const documentosList = normalizeList(documentosResp);
-  // Rellenar mapas globales para que los helpers globales puedan acceder a ellos
-  informeRestriccionesMap.clear();
-  informeDocumentosMap.clear();
-  restriccionesList.forEach(r => {
-    if (r && (r.id || r.restriccion_lic_id)) informeRestriccionesMap.set(r.id || r.restriccion_lic_id, r);
-  });
-  documentosList.forEach(d => {
-    if (d && (d.id || d.documento_id)) informeDocumentosMap.set(d.id || d.documento_id, d);
-  });
-
-  // Intentar obtener catálogo de categorías directamente desde el API
-  let categoriasResp = null;
-  try {
-    categoriasResp = await apiGet('/categorias_licencia');
-  } catch (e) {
-    /* no fatal */
-  }
   const categoriasListFromApi = normalizeList(categoriasResp);
 
   informeConductoresCache.conductores = conductoresList;
@@ -644,20 +683,31 @@ async function loadInformeConductores() {
                 </select>
             </div>
             <div class="export-buttons">
-                <button id="btn-export-conductores" class="btn-export btn-export--primary"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M4 17.5C4 16.672 4.672 16 5.5 16h13c.828 0 1.5.672 1.5 1.5V18a2 2 0 01-2 2H6a2 2 0 01-2-2v-.5Z'/><path d='M12 3v11'/><path d='M8 10.5l4 3.5 4-3.5'/></svg> Exportar CSV</button>
+                <button id="btn-export-conductores" class="btn-primary"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' style="width:18px; height:18px;"><path d='M4 17.5C4 16.672 4.672 16 5.5 16h13c.828 0 1.5.672 1.5 1.5V18a2 2 0 01-2 2H6a2 2 0 01-2-2v-.5Z'/><path d='M12 3v11'/><path d='M8 10.5l4 3.5 4-3.5'/></svg> Exportar CSV</button>
             </div>
         </div>
     </div>`;
 
-  const tabla = `<div class="tabla-wrapper">${renderTablaConductores()}</div>`;
+  const tabla = `<div class="tabla-wrapper">${renderTablaConductores('todas', 1)}</div>`;
   const html = '<h3 class="informe-title">Informe: Conductores y Licencias</h3>' + controls + tabla;
-  const cont = document.getElementById('informe-result');
   cont.innerHTML = html;
+
+  // Manejo de paginación global conductores
+  window.changeInformeConductoresPage = (dir) => {
+    const categoria = document.getElementById('filtro-categoria-lic').value;
+    const totalItems = informeConductoresCache.conductores.length;
+    let newPage = informeConductoresPage;
+    if (dir === 'next') newPage++;
+    else if (dir === 'prev') newPage--;
+    else newPage = dir;
+
+    cont.querySelector('.tabla-wrapper').innerHTML = renderTablaConductores(categoria, newPage);
+  };
 
   // Solo filtrar por categoría si existe
   document.getElementById('filtro-categoria-lic').addEventListener('change', () => {
     const categoria = document.getElementById('filtro-categoria-lic').value;
-    cont.querySelector('table').outerHTML = renderTablaConductores(categoria);
+    cont.querySelector('.tabla-wrapper').innerHTML = renderTablaConductores(categoria, 1);
   });
   document.getElementById('btn-export-conductores').addEventListener('click', () => {
     const categoria = document.getElementById('filtro-categoria-lic').value;
@@ -733,16 +783,26 @@ async function loadInformeConductores() {
   });
 }
 
-function renderTablaVehiculosRutaDetalle(routeId = null) {
+function renderTablaVehiculosRutaDetalle(routeId = null, page = 1) {
   const asignaciones = informeVehiculosRutaCache.asignaciones || [];
+
+  // 1. Filtrar lista completa
+  const filtered = routeId && routeId !== 'todas' ? asignaciones.filter(a => (a.ruta && (a.ruta.id == routeId || a.ruta.id === Number(routeId)))) : asignaciones;
+  const totalItems = filtered.length;
+  informeVehiculosRutaPage = page;
+
+  // 2. Slice de datos
+  const startIdx = (page - 1) * informePageSize;
+  const pageSlice = filtered.slice(startIdx, startIdx + informePageSize);
+
   let html = '<table class="data-table"><thead><tr>';
   html += '<th>Ruta</th><th>Vehículo (Placa)</th><th>Tipo</th><th>Kilometraje</th><th>Fecha/Hora</th>';
   html += '</tr></thead><tbody>';
-  const filtered = routeId ? asignaciones.filter(a => (a.ruta && (a.ruta.id == routeId || a.ruta.id === Number(routeId)))) : asignaciones;
-  if (filtered.length === 0) {
-    html += '<tr><td colspan="5" class="text-center">No hay asignaciones registradas</td></n></tr>';
+
+  if (pageSlice.length === 0) {
+    html += '<tr><td colspan="5" class="text-center">No hay asignaciones registradas</td></tr>';
   } else {
-    filtered.forEach(a => {
+    pageSlice.forEach(a => {
       const vehiculo = a.vehiculo || {};
       const ruta = a.ruta || {};
       html += `<tr>
@@ -755,38 +815,46 @@ function renderTablaVehiculosRutaDetalle(routeId = null) {
     });
   }
   html += '</tbody></table>';
+
+  // Añadir controles de paginación
+  html += renderPaginationHtml('veh', totalItems, page, informePageSize, 'changeInformeVehiculosRutaPage');
+
   return html;
 }
 
 async function loadInformeVehiculosRuta() {
-  // Cargar asignaciones y recursos necesarios
-  const asignacionesResp = await apiGet('/seguim-estado-veh');
-  const rutasResp = await apiGet('/rutas');
-  const vehiculosResp = await apiGet('/vehiculos');
+  const cont = document.getElementById('informe-result');
+  cont.innerHTML = '<div style="text-align:center; padding:2rem;"><p>Cargando datos del informe...</p></div>';
+
+  // Paralelizar carga de asignaciones y recursos necesarios
+  const [
+    asignacionesResp,
+    rutasResp,
+    vehiculosResp,
+    tiposResp
+  ] = await Promise.all([
+    apiGet('/seguim-estado-veh?include=vehiculo,ruta'),
+    apiGet('/rutas'),
+    apiGet('/vehiculos'),
+    apiGet('/tipo-vehiculo')
+  ]);
 
   const asignacionesList = normalizeList(asignacionesResp);
   const rutasList = normalizeList(rutasResp);
   const vehiculosList = normalizeList(vehiculosResp);
+  const tiposVehList = normalizeList(tiposResp);
 
-  // Mapear objetos de vehículo/ruta a las asignaciones cuando la API devuelve solo IDs
-  // Construir mapas rápidos por id (usar llave string para evitar mismatch entre "1" y 1)
+  // Mapas de referencia para normalización
   const vehiculoMap = new Map();
   if (Array.isArray(vehiculosList)) vehiculosList.forEach(v => {
-    if (v && (v.id !== undefined && v.id !== null)) vehiculoMap.set(String(v.id), v);
-  });
-  const rutaMap = new Map();
-  if (Array.isArray(rutasList)) rutasList.forEach(r => {
-    if (r && (r.id !== undefined && r.id !== null)) rutaMap.set(String(r.id), r);
+    if (v && v.id) vehiculoMap.set(String(v.id), v);
   });
 
-  // Intentar cargar tipos de vehículo para mapear tipo_veh_id -> descripcion
-  let tiposVehList = [];
-  try {
-    const tiposResp = await apiGet('/tipo-vehiculo');
-    tiposVehList = normalizeList(tiposResp) || [];
-  } catch (e) {
-    console.debug('No se pudo cargar /tipo-vehiculo:', e);
-  }
+  const rutaMap = new Map();
+  if (Array.isArray(rutasList)) rutasList.forEach(r => {
+    if (r && r.id) rutaMap.set(String(r.id), r);
+  });
+
   const tipoMap = new Map();
   if (Array.isArray(tiposVehList)) tiposVehList.forEach(t => {
     if (t && (t.id !== undefined && t.id !== null)) tipoMap.set(String(t.id), t);
@@ -910,10 +978,21 @@ async function loadInformeVehiculosRuta() {
         </div>
     </div>`;
 
-  const tabla = `<div class="tabla-wrapper">${renderTablaVehiculosRutaDetalle()}</div>`;
+  const tabla = `<div class="tabla-wrapper">${renderTablaVehiculosRutaDetalle('todas', 1)}</div>`;
   const html = '<h3 class="informe-title">Informe: Vehículos por Ruta</h3>' + controls + tabla;
-  const cont = document.getElementById('informe-result');
   cont.innerHTML = html;
+
+  // Manejo de paginación global vehículos
+  window.changeInformeVehiculosRutaPage = (dir) => {
+    const routeVal = document.getElementById('filtro-ruta-veh').value;
+    const totalItems = informeVehiculosRutaCache.asignaciones.length;
+    let newPage = informeVehiculosRutaPage;
+    if (dir === 'next') newPage++;
+    else if (dir === 'prev') newPage--;
+    else newPage = dir;
+
+    cont.querySelector('.tabla-wrapper').innerHTML = renderTablaVehiculosRutaDetalle(routeVal, newPage);
+  };
 
   // Listener para cambio de ruta
   const filtroRutaEl = document.getElementById('filtro-ruta-veh');
@@ -921,8 +1000,7 @@ async function loadInformeVehiculosRuta() {
     const val = e.target.value;
     const tableWrap = cont.querySelector('.tabla-wrapper');
     if (!tableWrap) return;
-    if (val === 'todas') tableWrap.innerHTML = renderTablaVehiculosRutaDetalle();
-    else tableWrap.innerHTML = renderTablaVehiculosRutaDetalle(val);
+    tableWrap.innerHTML = renderTablaVehiculosRutaDetalle(val, 1);
   });
 
   // Exportar CSV (respeta filtro)

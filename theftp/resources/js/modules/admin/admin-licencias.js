@@ -46,8 +46,22 @@ const AdminLicencias = (function() {
     function render(data) {
         const columns = [
             { header: 'ID', key: 'id' },
+            { header: 'Número', key: 'numero' },
             { header: 'Categoría', render: (r) => r.categoria ? `${r.categoria.codigo} - ${r.categoria.descripcion}` : '-' },
-            { header: 'Restricción', render: (r) => r.restriccion ? r.restriccion.descripcion : 'Ninguna' },
+            { 
+                header: 'Vencimiento', 
+                render: (r) => {
+                    if (!r.fecha_vencimiento) return '-';
+                    const hoy = new Date();
+                    const venc = new Date(r.fecha_vencimiento);
+                    const diffDays = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+                    let color = 'text-green-600';
+                    if (diffDays <= 0) color = 'text-red-600 font-bold';
+                    else if (diffDays <= 30) color = 'text-yellow-600 font-bold';
+                    return `<span class="${color}">${r.fecha_vencimiento}</span>`;
+                }
+            },
+            { header: 'Organismo', key: 'organismo_transito' },
             { header: 'Doc. Soporte', render: (r) => r.documento ? `Doc #${r.documento.id}` : '-' },
             { header: 'Acciones', render: (r) => AdminBase.generateActionButtons(r, 'AdminLicencias') }
         ];
@@ -105,6 +119,10 @@ const AdminLicencias = (function() {
                 selCat.value = item.categoria_lic_id;
                 selRes.value = item.restriccion_lic_id;
                 selDoc.value = item.documento_id;
+                document.getElementById('licencia-numero').value = item.numero || '';
+                document.getElementById('licencia-fecha-expedicion').value = item.fecha_expedicion || '';
+                document.getElementById('licencia-fecha-vencimiento').value = item.fecha_vencimiento || '';
+                document.getElementById('licencia-organismo').value = item.organismo_transito || '';
             }
         }
     }
@@ -119,17 +137,29 @@ const AdminLicencias = (function() {
         const payload = {
             categoria_lic_id: document.getElementById('licencia-categoria').value,
             restriccion_lic_id: document.getElementById('licencia-restriccion').value,
-            documento_id: document.getElementById('licencia-documento').value
+            documento_id: document.getElementById('licencia-documento').value,
+            numero: document.getElementById('licencia-numero').value,
+            fecha_expedicion: document.getElementById('licencia-fecha-expedicion').value,
+            fecha_vencimiento: document.getElementById('licencia-fecha-vencimiento').value,
+            organismo_transito: document.getElementById('licencia-organismo').value,
+            estado: 'vigente'
         };
 
-        let res;
-        if (editingId) res = await AdminBase.apiCall(`/licencias/${editingId}`, 'PUT', payload);
-        else res = await AdminBase.apiCall('/licencias', 'POST', payload);
+        const btnSubmit = document.querySelector('#form-licencia button[type="submit"]');
+        if (btnSubmit && btnSubmit.disabled) return;
+        if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
 
-        if (res && res.status) {
-            AdminBase.showNotification('success', 'Éxito', 'Licencia guardada.');
-            closeModal();
-            load();
+        try {
+            let res;
+            if (editingId) res = await AdminBase.apiCall(`/licencias/${editingId}`, 'PUT', payload);
+            else res = await AdminBase.apiCall('/licencias', 'POST', payload);
+            if (res && res.status) {
+                AdminBase.showNotification('success', 'Éxito', 'Licencia guardada.');
+                closeModal();
+                load();
+            }
+        } finally {
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
         }
     }
 

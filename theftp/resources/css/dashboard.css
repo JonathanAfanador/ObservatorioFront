@@ -405,13 +405,7 @@
     gap: 1rem;
 }
 
-/* Mejoras de UX en inputs: mayor padding y tamaños consistentes */
-.form-group input,
-.form-group select,
-.form-group textarea {
-    padding: 0.75rem 1rem;
-    font-size: 0.95rem;
-}
+/* Mejoras de UX en inputs: padding y tamaños consistentes (regla única, antes duplicada) */
 
 /* Mostrar campos en una sola columna en pantallas pequeñas para claridad */
 @media (max-width: 720px) {
@@ -505,30 +499,140 @@
 }
 
 .btn-edit,
-.btn-delete {
-    padding: .75rem 1rem;
+.btn-delete,
+.btn-card,
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-violet {
+    padding: .5rem 1.1rem;
     font-size: .875rem;
     font-weight: 600;
     border: none;
-    border-radius: 10px;
+    border-radius: 9px;
     cursor: pointer;
-    transition: background .18s, transform .18s, box-shadow .18s;
-    display: flex;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: .55rem;
-    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    gap: .45rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
     color: #fff;
+    width: fit-content;
+    text-decoration: none;
 }
-.btn-edit { background:#fbbf24; }
-.btn-edit:hover { background:#f59e0b; }
-.btn-edit svg { stroke:#fff; }
-.btn-delete { background:#f87171; }
-.btn-delete:hover { background:#ef4444; }
-.btn-delete svg path { stroke-width:2.2; }
 
-.btn-edit:active, .btn-delete:active { transform:scale(.97); }
-@media (prefers-reduced-motion: no-preference){ .btn-edit:hover, .btn-delete:hover { box-shadow:0 4px 12px -2px rgba(0,0,0,.15); transform:translateY(-2px); } }
+/* Forzada la consistencia para botones secundarios en cards */
+.btn-card-secondary {
+    background-color: #0d9488; /* Teal por defecto */
+    padding: .5rem 1.1rem;
+    font-size: .875rem;
+    font-weight: 600;
+}
+
+/* Versión compacta para Tablas */
+.btn-sm {
+    padding: .3rem .75rem !important;
+    font-size: .75rem !important;
+    gap: .3rem !important;
+    border-radius: 6px !important;
+    width: auto !important; /* Evitar estiramiento */
+}
+
+.btn-sm svg {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+.btn-edit { 
+    background: #fbbf24; 
+    border-bottom: 2px solid #d97706;
+}
+
+.btn-edit:hover { 
+    background: #f59e0b; 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+}
+
+.btn-edit:active {
+    transform: translateY(1px);
+    border-bottom-width: 1px;
+}
+
+.btn-edit svg { stroke: #fff; stroke-width: 2.5px; }
+
+.btn-delete { 
+    background: #f87171; 
+    border-bottom: 2px solid #b91c1c;
+}
+
+.btn-delete:hover { 
+    background: #ef4444; 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+}
+
+.btn-primary {
+    background: #2563eb;
+    border-bottom: 2px solid #1e40af;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(29, 78, 216, 0.3);
+}
+
+.btn-primary:active, .btn-secondary:active, .btn-success:active, .btn-delete:active {
+    transform: translateY(1px);
+    border-bottom-width: 1px;
+}
+
+.btn-secondary {
+    background: #64748b;
+    border-bottom: 2px solid #334155;
+    color: #fff !important;
+}
+
+.btn-secondary:hover {
+    background: #475569;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(71, 85, 105, 0.3);
+}
+
+.btn-success {
+    background: #10b981;
+    border-bottom: 2px solid #065f46;
+}
+
+.btn-success:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3);
+}
+
+.btn-violet {
+    background: #8b5cf6;
+    border-bottom: 2px solid #6d28d9;
+}
+
+.btn-violet:hover {
+    background: #7c3aed;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
+}
+
+.btn-primary:active, 
+.btn-secondary:active, 
+.btn-success:active, 
+.btn-delete:active, 
+.btn-violet:active, 
+.btn-edit:active,
+.btn-card:active {
+    transform: translateY(1px);
+    border-bottom-width: 1px;
+}
 
 /* ===== Informes / Tablas ===== */
 .informe-controls { display:flex; flex-direction:column; gap:1rem; margin-bottom:1rem; }
@@ -738,6 +842,7 @@ table.data-table tbody tr:hover { background:#eef2ff; }
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    z-index: 99999 !important; /* Forzar que aparezca frente a los modales */
 }
 
 .notification {

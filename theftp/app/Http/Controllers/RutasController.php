@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreRutasRequest;
+use App\Http\Requests\UpdateRutasRequest;
+
 use App\Enums\Tablas;
-use App\Models\rutas;
+use App\Models\Ruta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 
 class RutasController extends Controller
 {
@@ -16,7 +18,7 @@ class RutasController extends Controller
     // Constructor
     public function __construct()
     {
-        parent::__construct(new rutas(), Tablas::RUTAS);
+        parent::__construct(new Ruta(), Tablas::RUTAS);
     }
 
     /**
@@ -114,7 +116,7 @@ class RutasController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreRutasRequest $request)
     {
 
         // ! Validación de archivos
@@ -124,24 +126,6 @@ class RutasController extends Controller
             return response()->json(['status' => false, 'errors' => ['file' => [$e->getMessage()]]] , 422);
         }
 
-        $rules = [
-            'name'          => 'required|string|max:255',
-            'empresa_id'    => 'required|integer|exists:empresas,id',
-        ];
-
-        $messages = [
-            'name.required'           => 'El campo nombre es obligatorio.',
-            'name.string'             => 'El campo nombre debe ser una cadena de texto.',
-            'name.max'                => 'El campo nombre no debe exceder 255 caracteres.',
-            'empresa_id.required'     => 'El campo empresa es obligatorio.',
-            'empresa_id.integer'      => 'El campo empresa debe ser un número entero.',
-            'empresa_id.exists'       => 'La empresa especificada no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
 
         // Almacenar el archivo localmente
         $file = Storage::disk('local')->put(self::FOLDER, $request->file('file'));
@@ -149,12 +133,12 @@ class RutasController extends Controller
 
         // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA ---
         $user = auth()->user();
-        if ($user && !in_array($user->rol_id, [1, 6])) {
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value])) {
             $request->merge(['empresa_id' => $user->empresa_id]);
         }
         // --------------------------------------------------------
 
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -182,7 +166,7 @@ class RutasController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateRutasRequest $request)
     {
         // 1. Validación de Archivo (AHORA OPCIONAL)
         if ($request->hasFile('file')) { // <--- AGREGAR ESTE IF
@@ -194,32 +178,13 @@ class RutasController extends Controller
         }
 
         // 2. Reglas de validación de texto
-        $rules = [
-            'name' => 'required|string|max:255',
-            'empresa_id' => 'required|integer|exists:empresas,id',
-        ];
-
-        $messages = [
-            'name.required' => 'El campo nombre es obligatorio.',
-            'name.string' => 'El campo nombre debe ser una cadena de texto.',
-            'name.max' => 'El campo nombre no debe exceder 255 caracteres.',
-            'empresa_id.required' => 'El campo empresa es obligatorio.',
-            'empresa_id.integer' => 'El campo empresa debe ser un número entero.',
-            'empresa_id.exists' => 'La empresa especificada no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
 
         // 3. Lógica de guardado de archivo (SOLO SI HAY ARCHIVO NUEVO)
         $file = $request->file('file');
         
         if ($file) {
             // Buscar registro actual para borrar archivo viejo
-            $data = rutas::find($id);
+            $data = Ruta::find($id);
             if ($data && $data->file_name) {
                 $previousFilePath = str_replace('/storage/', '', $data->file_name);
                 Storage::disk('local')->delete($previousFilePath);
@@ -232,12 +197,12 @@ class RutasController extends Controller
 
         // 4. INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (UPDATE)
         $user = auth()->user();
-        if ($user && !in_array($user->rol_id, [1, 6])) {
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value])) {
             $request->merge(['empresa_id' => $user->empresa_id]);
         }
         // -----------------------------------------------------------------
 
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
     /**
      * @OA\Delete(
@@ -309,7 +274,7 @@ class RutasController extends Controller
      */
     public function getFile(string $id){
 
-        $model = rutas::find($id);
+        $model = Ruta::find($id);
 
         if(!$model){
             return response()->json(['status' => false, 'message' => 'Registro no encontrado.'], 404);

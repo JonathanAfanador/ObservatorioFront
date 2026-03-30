@@ -8,6 +8,7 @@
 //      startInactivityTracker() en window, que app-ui.js invoca al montar la UI.
 
 import './modules/app/app-auth-utils.js'; // clearErrors, showValidationError, clearAuthStorage (shared)
+import './modules/app/app-permissions.js'; // hasPermission, canUpdate, canDelete (shared)
 import './modules/app/app-logout.js';     // handleLogout, startInactivityTracker (expuesta en window)
 import './modules/app/app-ui.js';         // Swiper, reloj, menú móvil, control UI por sesión
 import './modules/app/app-register.js';   // Formulario de registro + validaciones client-side

@@ -84,17 +84,24 @@ async function saveRole(e) {
     const desc = document.getElementById('role-desc').value;
     const payload = { descripcion: desc };
 
-    let result;
-    if (editingRoleId) {
-        result = await AdminBase.apiCall(`/rol/${editingRoleId}`, 'PUT', payload);
-    } else {
-        result = await AdminBase.apiCall('/rol', 'POST', payload);
-    }
+    const btnSubmit = document.querySelector('#form-role button[type="submit"]');
+    if (btnSubmit && btnSubmit.disabled) return;
+    if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
 
-    if (result && result.status) {
-        AdminBase.showNotification('success', 'Exito', 'Rol guardado.');
-        document.getElementById('modal-role').style.display = 'none';
-        loadRoles();
+    try {
+        let result;
+        if (editingRoleId) {
+            result = await AdminBase.apiCall(`/rol/${editingRoleId}`, 'PUT', payload);
+        } else {
+            result = await AdminBase.apiCall('/rol', 'POST', payload);
+        }
+        if (result && result.status) {
+            AdminBase.showNotification('success', 'Exito', 'Rol guardado.');
+            document.getElementById('modal-role').style.display = 'none';
+            loadRoles();
+        }
+    } finally {
+        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
     }
 }
 

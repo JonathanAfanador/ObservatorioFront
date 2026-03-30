@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSeguimEstadoVehRequest;
+use App\Http\Requests\UpdateSeguimEstadoVehRequest;
+
 use App\Enums\Tablas;
-use App\Models\seguim_estado_veh;
+use App\Models\SeguimientoEstadoVehiculo;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class SeguimEstadoVehController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new seguim_estado_veh(), Tablas::SEGUIM_ESTADO_VEH);
+        parent::__construct(new SeguimientoEstadoVehiculo(), Tablas::SEGUIM_ESTADO_VEH);
     }
 
     /**
@@ -111,35 +113,10 @@ class SeguimEstadoVehController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreSeguimEstadoVehRequest $request)
     {
-        $rules = [
-            'kilometraje' => 'nullable|integer|min:0',
-            'fecha_hora'  => 'nullable|date',
-            'observaciones' => 'nullable|string',
-            'usuario_id'  => 'required|integer|exists:users,id',
-            'vehiculo_id' => 'required|integer|exists:vehiculo,id',
-        ];
 
-        $messages = [
-            'kilometraje.integer' => 'El kilometraje debe ser un número entero.',
-            'kilometraje.min'     => 'El kilometraje no puede ser negativo.',
-            'fecha_hora.date'     => 'La fecha y hora no tiene un formato válido.',
-            'observaciones.string'=> 'Las observaciones deben ser un texto.',
-            'usuario_id.required' => 'El usuario es obligatorio.',
-            'usuario_id.integer'  => 'El identificador de usuario debe ser un número entero.',
-            'usuario_id.exists'   => 'El usuario seleccionado no existe.',
-            'vehiculo_id.required'=> 'El vehículo es obligatorio.',
-            'vehiculo_id.integer' => 'El identificador de vehículo debe ser un número entero.',
-            'vehiculo_id.exists'  => 'El vehículo seleccionado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -164,33 +141,10 @@ class SeguimEstadoVehController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateSeguimEstadoVehRequest $request)
     {
-        $rules = [
-            'kilometraje' => 'nullable|integer|min:0',
-            'fecha_hora'  => 'nullable|date',
-            'observaciones' => 'nullable|string',
-            'usuario_id'  => 'nullable|integer|exists:users,id',
-            'vehiculo_id' => 'nullable|integer|exists:vehiculo,id',
-        ];
 
-        $messages = [
-            'kilometraje.integer' => 'El kilometraje debe ser un número entero.',
-            'kilometraje.min'     => 'El kilometraje no puede ser negativo.',
-            'fecha_hora.date'     => 'La fecha y hora no tiene un formato válido.',
-            'observaciones.string'=> 'Las observaciones deben ser un texto.',
-            'usuario_id.integer'  => 'El identificador de usuario debe ser un número entero.',
-            'usuario_id.exists'   => 'El usuario seleccionado no existe.',
-            'vehiculo_id.integer' => 'El identificador de vehículo debe ser un número entero.',
-            'vehiculo_id.exists'  => 'El vehículo seleccionado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

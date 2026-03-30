@@ -8,7 +8,7 @@
  */
 
 use Illuminate\Support\Facades\Route;
-use App\Models\tipo_ident;
+use App\Models\TipoIdentificacion;
 use App\Http\Controllers\GeovisorController; 
 
 // ─────────────────────────────────────────────
@@ -24,7 +24,7 @@ Route::get('/login', function () {
 })->name('login');
 
 Route::get('/register', function () {
-    $tipos_ident = tipo_ident::whereNull('deleted_at')->get();
+    $tipos_ident = TipoIdentificacion::whereNull('deleted_at')->get();
     return view('auth.register', ['tipos_ident' => $tipos_ident]);
 })->name('register');
 
@@ -32,7 +32,7 @@ Route::get('/register', function () {
 //  Rutas del Dashboard 
 // ─────────────────────────────────────────────
 
-Route::prefix('dashboard')->name('dashboard.')->group(function () {
+Route::group(['prefix' => 'dashboard', 'middleware' => ['auth', 'dashboard_access'], 'as' => 'dashboard.'], function () {
     Route::view('/admin',      'dashboard.admin')->name('admin');
     Route::view('/secretaria', 'dashboard.secretaria')->name('secretaria');
     Route::view('/empresa',    'dashboard.empresa')->name('empresa');

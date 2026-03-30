@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreRestriccionLicRequest;
+use App\Http\Requests\UpdateRestriccionLicRequest;
+
 use App\Enums\Tablas;
-use App\Models\restriccion_lic;
+use App\Models\RestriccionLicencia;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class RestriccionLicController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new restriccion_lic(), Tablas::RESTRICCION_LIC);
+        parent::__construct(new RestriccionLicencia(), Tablas::RESTRICCION_LIC);
     }
 
     /**
@@ -199,24 +201,10 @@ class RestriccionLicController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreRestriccionLicRequest $request)
     {
-        $rules = [
-            'descripcion' => 'required|string|max:150',
-        ];
 
-        $messages = [
-            'descripcion.required' => 'El campo descripción es obligatorio.',
-            'descripcion.string'   => 'El campo descripción debe ser una cadena de texto.',
-            'descripcion.max'      => 'El campo descripción no debe exceder 150 caracteres.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -243,24 +231,10 @@ class RestriccionLicController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function update(string $id, UpdateRestriccionLicRequest $request)
     {
-        $rules = [
-            'descripcion' => 'required|string|max:150',
-        ];
 
-        $messages = [
-            'descripcion.required' => 'El campo descripción es obligatorio.',
-            'descripcion.string'   => 'El campo descripción debe ser una cadena de texto.',
-            'descripcion.max'      => 'El campo descripción no debe exceder 150 caracteres.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**
@@ -283,6 +257,11 @@ class RestriccionLicController extends Controller
      */
     public function destroy(string $id)
     {
+        $record = RestriccionLicencia::withTrashed()->findOrFail($id);
+        
+        // El usuario pidió "ponerla en estado inhabilitada o algo asi cuando se elimine"
+        $record->update(['estado' => false]);
+
         return parent::destroy($id);
     }
 

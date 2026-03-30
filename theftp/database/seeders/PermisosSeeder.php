@@ -69,8 +69,13 @@ class PermisosSeeder extends Seeder
 
                     // delete desactivado
                     $delete = false;
-                } elseif (in_array($roleId, [4,5])) {
-                    // Usuario UPC e Invitado: ver todas menos auditoria
+                } elseif (in_array($roleId, [4])) {
+                    // Usuario UPC: VER TODA LA AUDITORÍA, además de ver todo lo demás.
+                    $read = true; 
+                    // Si deben auditar, tal vez no puedan modificar o borrar registros operativos
+                    $create = $update = $delete = false;
+                } elseif (in_array($roleId, [5])) {
+                    // Invitado: ver todas menos auditoria
                     $read = ($tabla !== Tablas::AUDIT->value);
                     $create = $update = $delete = false;
                 } else {

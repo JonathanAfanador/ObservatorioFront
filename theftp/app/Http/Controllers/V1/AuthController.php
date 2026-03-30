@@ -10,11 +10,12 @@ namespace App\Http\Controllers\V1;
 use App\Enums\Genders;
 use App\Enums\Tablas;
 use App\Http\Controllers\Controller;
-use App\Models\cierre_sesion;
-use App\Models\inicio_sesion;
-use App\Models\personas;
+use App\Models\CierreSesion;
+use App\Models\InicioSesion;
+use App\Models\Persona;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,7 @@ class AuthController extends Controller{
     public function me(){
         $usuario = Auth::user();
 
-        $usuario->load(['persona', 'rol', 'persona.tipo_ident']);
+        $usuario->load(['persona', 'rol.permisos', 'persona.tipo_ident']);
 
         return $usuario;
     }
@@ -80,67 +81,16 @@ class AuthController extends Controller{
      *     )
      * )
      */
-    public function registro(Request $request){
+    public function registro(RegisterRequest $request){
 
-        $datos = $request->all();
-
-        // Validador
-        $validator = Validator::make($datos, [
-            'nui' => 'required|string|max:255|unique:personas,nui',
-            'name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'phone_number' => 'nullable|string|max:255',
-            'gender' => 'required|in:'.implode(',', Genders::getValues()),
-            'tipo_ident_id' => 'exists:tipo_ident,id',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|max:255',
-        ]);
-
-
-        // Mensajes de errores en español
-        $validator->setAttributeNames([
-            'nui' => 'número de identificación',
-            'name'=> 'nombre',
-            'last_name' => 'apellido',
-            'phone_number' => 'número de teléfono',
-            'gender' => 'género',
-            'tipo_ident_id' => 'tipo de identificación',
-            'email' => 'correo electrónico',
-            'password' => 'contraseña',
-        ]);
-
-        // Mensajes de error personalizados
-        $messages = [
-            'email.required' => 'El :attribute es obligatorio.',
-            'email.email' => 'El :attribute debe ser un correo electrónico válido.',
-            'email.unique' => 'El :attribute ya está en uso.',
-            'password.required' => 'La :attribute es obligatoria.',
-            'password.min' => 'La :attribute debe tener al menos :min caracteres.',
-            'password.max' => 'La :attribute no debe exceder los :max caracteres.',
-            'name.required' => 'El :attribute es obligatorio.',
-            'name.string' => 'El :attribute debe ser una cadena de texto.',
-            'name.max' => 'El :attribute no debe exceder los :max caracteres.',
-            'last_name.required' => 'El :attribute es obligatorio.',
-            'last_name.string' => 'El :attribute debe ser una cadena de texto.',
-            'last_name.max' => 'El :attribute no debe exceder los :max caracteres.',
-            'nui.required' => 'El :attribute es obligatorio.',
-            'nui.string' => 'El :attribute debe ser una cadena de texto.',
-            'nui.max' => 'El :attribute no debe exceder los :max caracteres.',
-            'nui.unique' => 'El :attribute ya está en uso.',
-        ];
-
-        $validator->setCustomMessages($messages);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+        $datos = $request->validated();
 
         try {
 
             DB::beginTransaction();
 
             //Crear la persona
-            $persona = new personas();
+            $persona = new Persona();
             $persona->nui = $datos['nui'];
             $persona->name = $datos['name'];
             $persona->last_name = $datos['last_name'];
@@ -196,33 +146,9 @@ class AuthController extends Controller{
      *     )
      * )
      */
-    public function login(Request $request){
+    public function login(LoginRequest $request){
 
-        $datos = $request->all();
-
-        $validator = Validator::make($datos, [
-            'email' => 'required|email',
-            'password' => 'required|string|min:6|max:255',
-        ]);
-
-        $validator->setAttributeNames([
-            'email' => 'correo electrónico',
-            'password' => 'contraseña',
-        ]);
-
-        $messages = [
-            'email.required' => 'El :attribute es obligatorio.',
-            'email.email' => 'El :attribute debe ser un correo electrónico válido.',
-            'password.required' => 'La :attribute es obligatoria.',
-            'password.min' => 'La :attribute debe tener al menos :min caracteres.',
-            'password.max' => 'La :attribute no debe exceder los :max caracteres.',
-        ];
-
-        $validator->setCustomMessages($messages);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+        $datos = $request->validated();
 
         // Validación de Usuario valido
         $usuario = User::where('email', $datos['email'])->first();
@@ -230,13 +156,6 @@ class AuthController extends Controller{
         if (!$usuario) {
             return response()->json(['message' => 'Credenciales incorrectas'], 401);
         }
-
-        inicio_sesion::create([
-            'direccion_ip' => $request->ip(),
-            'fecha_hora_inicio' => now(),
-            'fecha_ultima_actividad' => now(),
-            'usuario_id' => $usuario->id,
-        ]);
 
         // Validar si el usuario está inhabilitado
         if ($usuario->unable) {
@@ -250,13 +169,18 @@ class AuthController extends Controller{
 
         if(Auth::attempt(['email'=> $datos['email'],'password'=> $datos['password']])){
 
-            $tiempoExpiracion = 120; // 120 minutos
+            // --- CORRECCIÓN AUDITORÍA: InicioSesion se registra SOLO tras login exitoso ---
+            InicioSesion::create([
+                'direccion_ip' => $request->ip(),
+                'fecha_hora_inicio' => now(),
+                'fecha_ultima_actividad' => now(),
+                'usuario_id' => $usuario->id,
+            ]);
 
-            $tokenBearer = Auth::user()->createToken('token', ["*"], now()->addMinutes($tiempoExpiracion))->plainTextToken;
-
+            // Sanctum SPA: la sesión se establece automáticamente via cookie HttpOnly.
+            // Ya no se genera ni expone un token Bearer para evitar vectores de ataque XSS.
             return response()->json([
                 'message' => 'Inicio de sesión exitoso',
-                'token' => $tokenBearer
             ], 200);
 
         }
@@ -282,7 +206,7 @@ class AuthController extends Controller{
         // Revocar el token actual
         $user->currentAccessToken()->delete();
 
-        cierre_sesion::create([
+        CierreSesion::create([
             'direccion_ip' => $request->ip(),
             'fecha_hora_cierre' => now(),
             'usuario_id' => $user->id,
@@ -309,7 +233,7 @@ class AuthController extends Controller{
         // Revocar todos los tokens del usuario
         $user->tokens()->delete();
 
-        cierre_sesion::create([
+        CierreSesion::create([
             'direccion_ip' => $request->ip(),
             'fecha_hora_cierre' => now(),
             'usuario_id' => $user->id,

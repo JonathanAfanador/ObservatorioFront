@@ -142,23 +142,29 @@ const AdminEmpresas = (function() {
             tipo_empresa_id: document.getElementById('empresa-tipo').value
         };
 
-        // Validación simple
         if (!payload.tipo_empresa_id) {
             AdminBase.showNotification('warning', 'Falta información', 'Seleccione el tipo de empresa.');
             return;
         }
 
-        let res;
-        if (editingId) {
-            res = await AdminBase.apiCall(`/empresas/${editingId}`, 'PUT', payload);
-        } else {
-            res = await AdminBase.apiCall('/empresas', 'POST', payload);
-        }
+        const btnSubmit = document.querySelector('#form-empresa button[type="submit"]');
+        if (btnSubmit && btnSubmit.disabled) return;
+        if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
 
-        if (res && res.status) {
-            AdminBase.showNotification('success', 'Éxito', 'Empresa guardada correctamente.');
-            closeModal();
-            load();
+        try {
+            let res;
+            if (editingId) {
+                res = await AdminBase.apiCall(`/empresas/${editingId}`, 'PUT', payload);
+            } else {
+                res = await AdminBase.apiCall('/empresas', 'POST', payload);
+            }
+            if (res && res.status) {
+                AdminBase.showNotification('success', 'Éxito', 'Empresa guardada correctamente.');
+                closeModal();
+                load();
+            }
+        } finally {
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
         }
     }
 

@@ -235,19 +235,21 @@ async function approve(id, currentName, empresaId) {
         }
 
         let endpoint = '/rutas';
-        
-        if (editingId) {
-            endpoint += `/${editingId}`;
-            // Para rutas, el controlador usa POST directo para update, no necesitamos _method=PUT
-            // Ver en RutasController.php
-        }
+        if (editingId) endpoint += `/${editingId}`;
 
-        const res = await AdminBase.apiCall(endpoint, 'POST', formData);
+        const btnSubmit = document.querySelector('#form-ruta button[type="submit"]');
+        if (btnSubmit && btnSubmit.disabled) return;
+        if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
 
-        if (res && res.status) {
-            AdminBase.showNotification('success', 'Éxito', 'Ruta guardada.');
-            closeModal();
-            load();
+        try {
+            const res = await AdminBase.apiCall(endpoint, 'POST', formData);
+            if (res && res.status) {
+                AdminBase.showNotification('success', 'Éxito', 'Ruta guardada.');
+                closeModal();
+                load();
+            }
+        } finally {
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
         }
     }
 

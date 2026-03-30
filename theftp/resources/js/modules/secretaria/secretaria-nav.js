@@ -26,6 +26,14 @@ window.buildSecretariaMenu = function () {
             <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
             <span>Reporte Empresas</span>
         </a>
+        <a href="#licencias" class="nav-link" data-view="licencias">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            <span>Verificación Licencias</span>
+        </a>
+        <a href="#vehiculos" class="nav-link" data-view="vehiculos">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+            <span>Revisión Vehículos</span>
+        </a>
     `;
     setupNavigation();
 };
@@ -57,7 +65,9 @@ window.setupNavigation = function () {
                     'resumen': 'Panel de Supervisión',
                     'resoluciones': 'Gestión de Resoluciones',
                     'rutas': 'Validación de Rutas',
-                    'empresas': 'Supervisión de Empresas'
+                    'empresas': 'Supervisión de Empresas',
+                    'licencias': 'Auditoría de Licencias',
+                    'vehiculos': 'Revisión de Vehículos'
                 };
                 headerTitle.textContent = titles[view] || 'Dashboard';
             }
@@ -74,5 +84,7 @@ window.loadViewData = async function (view) {
         case 'resoluciones': loadResoluciones(); break;
         case 'rutas': loadRutasParaValidar(); break;
         case 'empresas': loadEmpresas(); break;
+        case 'licencias': loadLicenciasAudit(); break;
+        case 'vehiculos': loadVehiculosReview(); break;
     }
 };

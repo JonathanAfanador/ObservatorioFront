@@ -3,17 +3,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreBarriosRequest;
+use App\Http\Requests\UpdateBarriosRequest;
+
 use App\Enums\Tablas;
-use App\Models\barrios;
+use App\Models\Barrio;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class BarriosController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new barrios(), Tablas::BARRIOS);
+        parent::__construct(new Barrio(), Tablas::BARRIOS);
     }
 /**
  * @OA\Get(
@@ -200,25 +202,10 @@ class BarriosController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreBarriosRequest $request)
     {
-        $rules = [
-            'name'          => 'required|string|max:255',
-            'municipios_id' => 'required|integer|exists:municipios,id',
-        ];
 
-        $messages = [
-            'name.required'          => 'El campo nombre es obligatorio.',
-            'municipios_id.required' => 'El campo municipio es obligatorio.',
-            'municipios_id.exists'   => 'El municipio especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -246,25 +233,10 @@ class BarriosController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateBarriosRequest $request)
     {
-        $rules = [
-            'name'          => 'required|string|max:255',
-            'municipios_id' => 'required|integer|exists:municipios,id',
-        ];
 
-        $messages = [
-            'name.required'          => 'El campo nombre es obligatorio.',
-            'municipios_id.required' => 'El campo municipio es obligatorio.',
-            'municipios_id.exists'   => 'El municipio especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

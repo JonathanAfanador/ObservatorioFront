@@ -14,31 +14,51 @@ class DatabaseSeeder extends Seeder
     public function run(): void{
 
         $this->call([
-            DepartamentosSeeder::class,
-            MunicipiosSeeder::class,
-            BarriosSeeder::class,
-            TipoDocSeeder::class,
-            TipoEmpresaSeeder::class,
-            TipoIndentSeeder::class,
-            DocumentosSeeder::class,
-            RolesSeeder::class,
-            PersonasSeeder::class,
-            EmpresaSeeder::class,
-            UserSeeder::class,
-            PropietariosSeeder::class,
-            TipoVehiculoSeeder::class,
-            RestriccionLicSeeder::class,
-            CategoriasLicenciaSeeder::class,
-            RutasSeeder::class,
-            VehiculoSeeder::class,
-            ConductoresSeeder::class,
-            LicenciasSeeder::class,
-            PermisosSeeder::class,
-            MenusSeeder::class,
-            RolesMenusSeeder::class,
-            ConductoresLicenciasSeeder::class,
-            SeguimEstadoVehSeeder::class,
-            SeguimGpsSeeder::class,
+            // ─── Tablas base (sin dependencias) ───────────────────────────
+            DepartamentosSeeder::class,        // departamentos
+            MunicipiosSeeder::class,           // municipios   → departamentos
+            BarriosSeeder::class,              // barrios      → municipios
+            TipoDocSeeder::class,              // tipo_doc
+            TipoEmpresaSeeder::class,          // tipo_empresa
+            TipoIndentSeeder::class,           // tipo_ident
+            RolesSeeder::class,                // rol
+
+            // ─── Documentos (requiere tipo_doc) ───────────────────────────
+            DocumentosSeeder::class,           // documentos   → tipo_doc
+
+            // ─── Entidades principales ────────────────────────────────────
+            PersonasSeeder::class,             // personas     → tipo_ident
+            EmpresaSeeder::class,              // empresas     → tipo_empresa
+
+            // ─── Usuarios (requiere personas + rol + empresas) ────────────
+            UserSeeder::class,                 // users        → personas, rol, empresas
+            EmpresaUsuarioSeeder::class,       // empresa_usuario → empresas, users
+
+            // ─── Rutas (requiere empresas) ────────────────────────────────
+            RutasSeeder::class,                // rutas        → empresas
+
+            // ─── Propietarios y Vehículos ─────────────────────────────────
+            TipoVehiculoSeeder::class,         // tipo_vehiculo
+            PropietariosSeeder::class,         // propietarios → documentos
+            VehiculoSeeder::class,             // vehiculo     → propietarios, tipo_vehiculo
+
+            // ─── Conductores ──────────────────────────────────────────────
+            ConductoresSeeder::class,          // conductores  → personas
+
+            // ─── Licencias ────────────────────────────────────────────────
+            RestriccionLicSeeder::class,       // restriccion_lic
+            CategoriasLicenciaSeeder::class,   // categorias_licencia
+            LicenciasSeeder::class,            // licencias    → restriccion_lic, categorias_licencia, documentos
+            ConductoresLicenciasSeeder::class, // conductores_licencias → conductores, licencias
+
+            // ─── Permisos y Menús ─────────────────────────────────────────
+            PermisosSeeder::class,             // permisos
+            MenusSeeder::class,                // menus
+            RolesMenusSeeder::class,           // roles_menus  → rol, menus
+
+            // ─── Seguimiento (requiere vehiculo) ──────────────────────────
+            SeguimEstadoVehSeeder::class,      // seguim_estado_veh → vehiculo
+            SeguimGpsSeeder::class,            // seguim_gps → vehiculo
         ]);
 
     }

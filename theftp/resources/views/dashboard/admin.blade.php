@@ -553,6 +553,24 @@
                 <select id="licencia-restriccion" required class="w-full border-gray-300 rounded"></select>
             </div>
             <div class="form-group">
+                <label class="block text-sm font-medium">Número de Licencia</label>
+                <input type="text" id="licencia-numero" required class="w-full border-gray-300 rounded">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="block text-sm font-medium">Fecha Expedición</label>
+                    <input type="date" id="licencia-fecha-expedicion" required class="w-full border-gray-300 rounded">
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium">Fecha Vencimiento</label>
+                    <input type="date" id="licencia-fecha-vencimiento" required class="w-full border-gray-300 rounded">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="block text-sm font-medium">Organismo de Tránsito</label>
+                <input type="text" id="licencia-organismo" required class="w-full border-gray-300 rounded" placeholder="Ej: ST de Bogotá">
+            </div>
+            <div class="form-group">
                 <label class="block text-sm font-medium">Documento Asociado</label>
                 <select id="licencia-documento" required class="w-full border-gray-300 rounded"></select>
             </div>

@@ -125,6 +125,34 @@
         </div>
     </div>
 
+    {{-- Vista para auditoría y verificación de licencias por la Secretaría --}}
+    <div id="view-licencias" class="dashboard-view" style="display: none;">
+        <div class="content-card">
+            <h3 class="text-xl font-semibold mb-4">Auditoría de Licencias de Conducción</h3>
+            <p class="text-sm text-gray-600 mb-6">
+                Listado centralizado de licencias registradas por todas las empresas. Verifique la vigencia y autenticidad en RUNT antes de marcar como "Verificada".
+            </p>
+
+            <div id="licencias-audit-table" class="overflow-x-auto text-sm">
+                Cargando licencias para auditoría...
+            </div>
+        </div>
+    </div>
+
+    {{-- Vista para revisión de documentación vehicular (SOAT, Tecnomecánica) --}}
+    <div id="view-vehiculos" class="dashboard-view" style="display: none;">
+        <div class="content-card">
+            <h3 class="text-xl font-semibold mb-4">Revisión de Documentación Vehicular</h3>
+            <p class="text-sm text-gray-600 mb-6">
+                Revise los documentos SOAT y Tecnomecánica cargados por las empresas. Apruebe o rechace el servicio del vehículo según la documentación presentada.
+            </p>
+
+            <div id="vehiculos-review-table" class="overflow-x-auto text-sm">
+                Cargando vehículos para revisión...
+            </div>
+        </div>
+    </div>
+
     {{-- Carga del JavaScript específico para la lógica del dashboard de Secretaría de Tránsito --}}
     @vite('resources/js/dashboard-secretaria.js')
 

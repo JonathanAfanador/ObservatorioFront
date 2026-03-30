@@ -172,16 +172,16 @@ class User extends Authenticatable implements Auditable
 
     public function persona()
     {
-        return $this->belongsTo(personas::class, 'persona_id');
+        return $this->belongsTo(Persona::class, 'persona_id');
     }
 
     public function rol()
     {
-        return $this->belongsTo(rol::class, 'rol_id');
+        return $this->belongsTo(Rol::class, 'rol_id');
     }
 
     public function empresa()
     {
-        return $this->belongsTo(empresas::class, 'empresa_id');
+        return $this->belongsTo(Empresa::class, 'empresa_id');
     }
 }

@@ -212,24 +212,40 @@ const AdminConductores = (function() {
             return;
         }
 
+        // --- Anti doble-submit ---
+        const btnSubmit = document.querySelector('#form-conductor button[type="submit"]');
+        if (btnSubmit && btnSubmit.disabled) return; // Ya está en proceso
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Guardando...';
+        }
+
         // Payload según [cite: 472]
         const payload = {
             persona_id: parseInt(personaId)
         };
 
-        let response;
-        if (editingId) {
-            // PUT [cite: 483]
-            response = await AdminBase.apiCall(`/conductores/${editingId}`, 'PUT', payload);
-        } else {
-            // POST [cite: 467]
-            response = await AdminBase.apiCall('/conductores', 'POST', payload);
-        }
+        try {
+            let response;
+            if (editingId) {
+                // PUT [cite: 483]
+                response = await AdminBase.apiCall(`/conductores/${editingId}`, 'PUT', payload);
+            } else {
+                // POST [cite: 467]
+                response = await AdminBase.apiCall('/conductores', 'POST', payload);
+            }
 
-        if (response && response.status) {
-            AdminBase.showNotification('success', 'Éxito', 'Operación realizada correctamente.');
-            closeModal();
-            load(); // Recargar tabla
+            if (response && response.status) {
+                AdminBase.showNotification('success', 'Éxito', 'Operación realizada correctamente.');
+                closeModal();
+                load(); // Recargar tabla
+            }
+        } finally {
+            // Siempre rehabilitar el botón al terminar (éxito o error)
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Guardar';
+            }
         }
     }
 

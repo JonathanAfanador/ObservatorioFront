@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreDepartamentosRequest;
+use App\Http\Requests\UpdateDepartamentosRequest;
+
 use App\Enums\Tablas;
-use App\Models\departamentos;
+use App\Models\Departamento;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class DepartamentosController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new departamentos(), Tablas::DEPARTAMENTOS);
+        parent::__construct(new Departamento(), Tablas::DEPARTAMENTOS);
     }
 
     /**
@@ -200,24 +202,10 @@ class DepartamentosController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreDepartamentosRequest $request)
     {
-        $rules = [
-            'name'        => 'required|string|max:255',
-            'codigo_dane' => 'required|string|max:255',
-        ];
 
-        $messages = [
-            'name.required'        => 'El campo nombre es obligatorio.',
-            'codigo_dane.required' => 'El campo código DANE es obligatorio.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -245,24 +233,10 @@ class DepartamentosController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateDepartamentosRequest $request)
     {
-        $rules = [
-            'name'        => 'required|string|max:255',
-            'codigo_dane' => 'required|string|max:255',
-        ];
 
-        $messages = [
-            'name.required'        => 'El campo nombre es obligatorio.',
-            'codigo_dane.required' => 'El campo código DANE es obligatorio.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

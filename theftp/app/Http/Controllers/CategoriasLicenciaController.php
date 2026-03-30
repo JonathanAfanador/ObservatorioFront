@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCategoriasLicenciaRequest;
+use App\Http\Requests\UpdateCategoriasLicenciaRequest;
+
 use App\Enums\Tablas;
-use App\Models\categorias_licencia;
+use App\Models\CategoriaLicencia;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class CategoriasLicenciaController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new categorias_licencia(), Tablas::CATEGORIAS_LICENCIA);
+        parent::__construct(new CategoriaLicencia(), Tablas::CATEGORIAS_LICENCIA);
     }
 
     /**
@@ -203,27 +205,10 @@ class CategoriasLicenciaController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreCategoriasLicenciaRequest $request)
     {
-        $rules = [
-            'codigo'      => 'required|string|max:150',
-            'descripcion' => 'required|string',
-        ];
 
-        $messages = [
-            'codigo.required'      => 'El campo código es obligatorio.',
-            'codigo.string'        => 'El campo código debe ser una cadena de texto.',
-            'codigo.max'           => 'El campo código no debe exceder 150 caracteres.',
-            'descripcion.required' => 'El campo descripción es obligatorio.',
-            'descripcion.string'   => 'El campo descripción debe ser una cadena de texto.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -251,27 +236,10 @@ class CategoriasLicenciaController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateCategoriasLicenciaRequest $request)
     {
-        $rules = [
-            'codigo'      => 'required|string|max:150',
-            'descripcion' => 'required|string',
-        ];
 
-        $messages = [
-            'codigo.required'      => 'El campo código es obligatorio.',
-            'codigo.string'        => 'El campo código debe ser una cadena de texto.',
-            'codigo.max'           => 'El campo código no debe exceder 150 caracteres.',
-            'descripcion.required' => 'El campo descripción es obligatorio.',
-            'descripcion.string'   => 'El campo descripción debe ser una cadena de texto.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

@@ -3,16 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Tablas;
-use App\Models\empresas;
+use App\Models\Empresa;
+use App\Http\Requests\StoreEmpresaRequest;
+use App\Http\Requests\UpdateEmpresaRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class EmpresasController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new empresas(), Tablas::EMPRESAS);
+        parent::__construct(new Empresa(), Tablas::EMPRESAS);
+        $this->resourceClass = \App\Http\Resources\EmpresaResource::class;
     }
 
     /**
@@ -105,32 +107,9 @@ class EmpresasController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreEmpresaRequest $request)
     {
-        $rules = [
-            'nit'              => 'required|string|max:255',
-            'name'             => 'required|string|max:255',
-            'tipo_empresa_id'  => 'required|integer|exists:tipo_empresa,id',
-        ];
-
-        $messages = [
-            'nit.required'             => 'El campo NIT es obligatorio.',
-            'nit.string'               => 'El campo NIT debe ser una cadena de texto.',
-            'nit.max'                  => 'El campo NIT no debe exceder 255 caracteres.',
-            'name.required'            => 'El campo nombre es obligatorio.',
-            'name.string'              => 'El campo nombre debe ser una cadena de texto.',
-            'name.max'                 => 'El campo nombre no debe exceder 255 caracteres.',
-            'tipo_empresa_id.required' => 'El campo tipo de empresa es obligatorio.',
-            'tipo_empresa_id.integer'  => 'El campo tipo de empresa debe ser un número entero.',
-            'tipo_empresa_id.exists'   => 'El tipo de empresa especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -153,32 +132,9 @@ class EmpresasController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateEmpresaRequest $request)
     {
-        $rules = [
-            'nit'              => 'required|string|max:255',
-            'name'             => 'required|string|max:255',
-            'tipo_empresa_id'  => 'required|integer|exists:tipo_empresa,id',
-        ];
-
-        $messages = [
-            'nit.required'             => 'El campo NIT es obligatorio.',
-            'nit.string'               => 'El campo NIT debe ser una cadena de texto.',
-            'nit.max'                  => 'El campo NIT no debe exceder 255 caracteres.',
-            'name.required'            => 'El campo nombre es obligatorio.',
-            'name.string'              => 'El campo nombre debe ser una cadena de texto.',
-            'name.max'                 => 'El campo nombre no debe exceder 255 caracteres.',
-            'tipo_empresa_id.required' => 'El campo tipo de empresa es obligatorio.',
-            'tipo_empresa_id.integer'  => 'El campo tipo de empresa debe ser un número entero.',
-            'tipo_empresa_id.exists'   => 'El tipo de empresa especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

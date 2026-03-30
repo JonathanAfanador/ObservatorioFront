@@ -5,7 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\rol>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Rol>
  */
 class RolFactory extends Factory
 {

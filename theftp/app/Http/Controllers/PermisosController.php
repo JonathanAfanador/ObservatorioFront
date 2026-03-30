@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePermisosRequest;
+use App\Http\Requests\UpdatePermisosRequest;
+
 use App\Enums\Tablas;
-use App\Models\permisos;
+use App\Models\Permiso;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class PermisosController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new permisos(), Tablas::PERMISOS);
+        parent::__construct(new Permiso(), Tablas::PERMISOS);
     }
 
     /**
@@ -207,40 +209,10 @@ class PermisosController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StorePermisosRequest $request)
     {
-        $rules = [
-            'tabla'  => 'required|string|max:255',
-            'create' => 'required|boolean',
-            'read'   => 'required|boolean',
-            'update' => 'required|boolean',
-            'delete' => 'required|boolean',
-            'rol_id' => 'required|integer|exists:rol,id',
-        ];
 
-        $messages = [
-            'tabla.required'  => 'El campo tabla es obligatorio.',
-            'tabla.string'    => 'El campo tabla debe ser una cadena de texto.',
-            'tabla.max'       => 'El campo tabla no debe exceder 255 caracteres.',
-            'create.required' => 'El permiso de creación es obligatorio.',
-            'create.boolean'  => 'El permiso de creación debe ser verdadero o falso.',
-            'read.required'   => 'El permiso de lectura es obligatorio.',
-            'read.boolean'    => 'El permiso de lectura debe ser verdadero o falso.',
-            'update.required' => 'El permiso de actualización es obligatorio.',
-            'update.boolean'  => 'El permiso de actualización debe ser verdadero o falso.',
-            'delete.required' => 'El permiso de eliminación es obligatorio.',
-            'delete.boolean'  => 'El permiso de eliminación debe ser verdadero o falso.',
-            'rol_id.required' => 'El campo rol_id es obligatorio.',
-            'rol_id.integer'  => 'El campo rol_id debe ser un número entero.',
-            'rol_id.exists'   => 'El rol especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -272,40 +244,10 @@ class PermisosController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdatePermisosRequest $request)
     {
-        $rules = [
-            'tabla'  => 'required|string|max:255',
-            'create' => 'required|boolean',
-            'read'   => 'required|boolean',
-            'update' => 'required|boolean',
-            'delete' => 'required|boolean',
-            'rol_id' => 'required|integer|exists:rol,id',
-        ];
 
-        $messages = [
-            'tabla.required'  => 'El campo tabla es obligatorio.',
-            'tabla.string'    => 'El campo tabla debe ser una cadena de texto.',
-            'tabla.max'       => 'El campo tabla no debe exceder 255 caracteres.',
-            'create.required' => 'El permiso de creación es obligatorio.',
-            'create.boolean'  => 'El permiso de creación debe ser verdadero o falso.',
-            'read.required'   => 'El permiso de lectura es obligatorio.',
-            'read.boolean'    => 'El permiso de lectura debe ser verdadero o falso.',
-            'update.required' => 'El permiso de actualización es obligatorio.',
-            'update.boolean'  => 'El permiso de actualización debe ser verdadero o falso.',
-            'delete.required' => 'El permiso de eliminación es obligatorio.',
-            'delete.boolean'  => 'El permiso de eliminación debe ser verdadero o falso.',
-            'rol_id.required' => 'El campo rol_id es obligatorio.',
-            'rol_id.integer'  => 'El campo rol_id debe ser un número entero.',
-            'rol_id.exists'   => 'El rol especificado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

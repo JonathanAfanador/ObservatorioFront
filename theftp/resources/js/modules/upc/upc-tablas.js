@@ -49,15 +49,35 @@ window.renderConductoresTable = function () {
     const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
     const tablaData = dashboardDataStore.conductores
-        .map(c => ({
-            id: c.id,
-            persona: c.persona,
-            nombres: c.persona ? c.persona.name : 'N/A',
-            apellidos: c.persona ? c.persona.last_name : 'N/A',
-            tipo_ident: c.persona && c.persona.tipo_ident ? c.persona.tipo_ident.descripcion : 'N/A',
-            nui: c.persona ? c.persona.nui : 'N/A',
-            gender: c.persona ? c.persona.gender : 'N/A'
-        }))
+        .map(c => {
+            let licStatus = 'Sin Licencia';
+            let licColor = 'text-gray-400';
+            
+            if (c.licencias && c.licencias.length > 0) {
+                const lic = c.licencias[0].licencia || {};
+                const fv = lic.fecha_vencimiento;
+                if (fv) {
+                    const diff = Math.ceil((new Date(fv) - new Date()) / (1000 * 60 * 60 * 24));
+                    if (diff <= 0) { licStatus = 'VENCIDA'; licColor = 'text-red-600 font-bold'; }
+                    else if (diff <= 30) { licStatus = 'POR VENCER'; licColor = 'text-yellow-600 font-bold'; }
+                    else { licStatus = 'VIGENTE'; licColor = 'text-green-600 font-bold'; }
+                } else {
+                    licStatus = 'Registrada (Sin fecha)';
+                    licColor = 'text-blue-600';
+                }
+            }
+
+            return {
+                id: c.id,
+                persona: c.persona,
+                nombres: c.persona ? c.persona.name : 'N/A',
+                apellidos: c.persona ? c.persona.last_name : 'N/A',
+                tipo_ident: c.persona && c.persona.tipo_ident ? c.persona.tipo_ident.descripcion : 'N/A',
+                nui: c.persona ? c.persona.nui : 'N/A',
+                licStatus,
+                licColor
+            };
+        })
         .filter(c =>
             c.nombres.toLowerCase().includes(searchTerm) ||
             c.apellidos.toLowerCase().includes(searchTerm) ||
@@ -70,9 +90,11 @@ window.renderConductoresTable = function () {
             { label: '#', render: (_, i) => i + 1 },
             { key: 'nombres', label: 'Nombres' },
             { key: 'apellidos', label: 'Apellidos' },
-            { key: 'tipo_ident', label: 'Tipo de Identificación' },
             { key: 'nui', label: 'Identificación' },
-            { key: 'gender', label: 'Género' }
+            { 
+                label: 'Estado Licencia', 
+                render: (row) => `<span class="${row.licColor}">${row.licStatus}</span>` 
+            }
         ],
         'No se encontraron conductores con ese filtro.'
     );
@@ -82,7 +104,7 @@ window.loadConductores = async function () {
     const el = document.getElementById('conductores-table');
     el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando conductores...</p></div>';
     try {
-        const response = await apiGet('/api/conductores?include=persona,persona.tipo_ident&limit=100');
+        const response = await apiGet('/api/conductores?include=persona,persona.tipo_ident,licencias.licencia&limit=100');
         dashboardDataStore.conductores = response.data.data;
         renderConductoresTable();
     } catch (error) {

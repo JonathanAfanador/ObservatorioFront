@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreConductoresLicenciaRequest;
+use App\Http\Requests\UpdateConductoresLicenciaRequest;
+
 use App\Enums\Tablas;
-use App\Models\conductores_licencias;
+use App\Models\ConductorLicencia;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class ConductoresLicenciaController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new conductores_licencias(), Tablas::CONDUCTORES_LICENCIAS);
+        parent::__construct(new ConductorLicencia(), Tablas::CONDUCTORES_LICENCIAS);
     }
 
     /**
@@ -105,28 +107,10 @@ class ConductoresLicenciaController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreConductoresLicenciaRequest $request)
     {
-        $rules = [
-            'licencia_id' => 'required|integer|exists:licencias,id',
-            'conductor_id'=> 'required|integer|exists:conductores,id',
-        ];
 
-        $messages = [
-            'licencia_id.required' => 'La licencia es obligatoria.',
-            'licencia_id.integer'  => 'El identificador de licencia debe ser un número entero.',
-            'licencia_id.exists'   => 'La licencia seleccionada no existe.',
-            'conductor_id.required'=> 'El conductor es obligatorio.',
-            'conductor_id.integer' => 'El identificador de conductor debe ser un número entero.',
-            'conductor_id.exists'  => 'El conductor seleccionado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -149,28 +133,10 @@ class ConductoresLicenciaController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateConductoresLicenciaRequest $request)
     {
-        $rules = [
-            'licencia_id' => 'required|integer|exists:licencias,id',
-            'conductor_id'=> 'required|integer|exists:conductores,id',
-        ];
 
-        $messages = [
-            'licencia_id.required' => 'La licencia es obligatoria.',
-            'licencia_id.integer'  => 'El identificador de licencia debe ser un número entero.',
-            'licencia_id.exists'   => 'La licencia seleccionada no existe.',
-            'conductor_id.required'=> 'El conductor es obligatorio.',
-            'conductor_id.integer' => 'El identificador de conductor debe ser un número entero.',
-            'conductor_id.exists'  => 'El conductor seleccionado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

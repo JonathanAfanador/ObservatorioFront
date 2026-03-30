@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSeguimGpsRequest;
+use App\Http\Requests\UpdateSeguimGpsRequest;
+
 use App\Enums\Tablas;
-use App\Models\seguim_gps;
+use App\Models\SeguimientoGps;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class SeguimGpsController extends Controller
 {
     // Constructor
     public function __construct()
     {
-        parent::__construct(new seguim_gps(), Tablas::SEGUIM_GPS);
+        parent::__construct(new SeguimientoGps(), Tablas::SEGUIM_GPS);
     }
 
     /**
@@ -110,32 +112,10 @@ class SeguimGpsController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreSeguimGpsRequest $request)
     {
-        $rules = [
-            'latitud'     => 'nullable|numeric|between:-90,90',
-            'longitud'    => 'nullable|numeric|between:-180,180',
-            'fecha_hora'  => 'nullable|date',
-            'vehiculo_id' => 'required|integer|exists:vehiculo,id',
-        ];
 
-        $messages = [
-            'latitud.numeric'     => 'La latitud debe ser numérica.',
-            'latitud.between'     => 'La latitud debe estar entre -90 y 90.',
-            'longitud.numeric'    => 'La longitud debe ser numérica.',
-            'longitud.between'    => 'La longitud debe estar entre -180 y 180.',
-            'fecha_hora.date'     => 'La fecha y hora no tiene un formato válido.',
-            'vehiculo_id.required'=> 'El vehículo es obligatorio.',
-            'vehiculo_id.integer' => 'El identificador de vehículo debe ser un número entero.',
-            'vehiculo_id.exists'  => 'El vehículo seleccionado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::store($request);
+        return parent::baseStore($request);
     }
 
     /**
@@ -159,31 +139,10 @@ class SeguimGpsController extends Controller
      *     @OA\Response(response=500, description="Error interno del servidor")
      * )
      */
-    public function edit(string $id, Request $request)
+    public function edit(string $id, UpdateSeguimGpsRequest $request)
     {
-        $rules = [
-            'latitud'     => 'nullable|numeric|between:-90,90',
-            'longitud'    => 'nullable|numeric|between:-180,180',
-            'fecha_hora'  => 'nullable|date',
-            'vehiculo_id' => 'nullable|integer|exists:vehiculo,id',
-        ];
 
-        $messages = [
-            'latitud.numeric'     => 'La latitud debe ser numérica.',
-            'latitud.between'     => 'La latitud debe estar entre -90 y 90.',
-            'longitud.numeric'    => 'La longitud debe ser numérica.',
-            'longitud.between'    => 'La longitud debe estar entre -180 y 180.',
-            'fecha_hora.date'     => 'La fecha y hora no tiene un formato válido.',
-            'vehiculo_id.integer' => 'El identificador de vehículo debe ser un número entero.',
-            'vehiculo_id.exists'  => 'El vehículo seleccionado no existe.',
-        ];
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        return parent::update($id, $request);
+        return parent::baseUpdate($id, $request);
     }
 
     /**

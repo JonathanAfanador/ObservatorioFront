@@ -59,3 +59,14 @@ export function getCookie(name) {
     if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
     return null;
 }
+
+/**
+ * Devuelve el token de sesión (legacy compatibility)
+ */
+export function getToken() {
+    return sessionStorage.getItem('auth_token') || '';
+}
+
+// Exponer al scope global para evitar ReferenceError
+window.getToken = getToken;
+
