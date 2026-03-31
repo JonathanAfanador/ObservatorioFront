@@ -1,245 +1,200 @@
-// ==========================
-// 5. GESTIÓN DE RUTAS
-// ==========================
+import MapCore from '../../services/MapCore';
+
+let empresaMapCore = null;
+
 async function loadRutas() {
-  const container = document.getElementById('rutas-table');
-  container.innerHTML = '<p class="text-center py-4 text-gray-500">Cargando rutas de la empresa...</p>';
+    const container = document.getElementById('empresa-rutas-map-container');
+    if (!container) return;
 
-  let endpoint = '/rutas?include=empresa';
+    // Remover estado de carga si existe (limpiar el container HTML)
+    container.innerHTML = '<div id="empresa-rutas-map" style="width: 100%; height: 600px; border-radius: 8px; z-index: 1;"></div>';
 
-  // FILTRO AUTOMÁTICO: Si tengo empresa ID, solo traigo las mías
-  if (myEmpresaId) {
-    const filtro = encodeURIComponent(JSON.stringify([{
-      "column": "empresa_id"
-      , "operator": "="
-      , "value": myEmpresaId
-    }]));
-    endpoint += `&filter=${filtro}`;
-  }
+    // Para evitar conflictos con hojas de estilo, asegurarse de invalidar y limpiar cuando Leaflet se reutiliza.
+    if (empresaMapCore) {
+        empresaMapCore.map.remove();
+        empresaMapCore = null;
+    }
 
-  const response = await apiGet(endpoint);
-  const rutas = normalizeList(response);
+    empresaMapCore = new MapCore('empresa-rutas-map', {
+        useNativeLayerControl: true, // Deja que el panel interactivo cambie las capas
+        onFeatureClick: (name, props, sourceName) => {
+            // Un popup nativo o una notificación visual
+            if (window.showNotification) {
+                window.showNotification('info', name, `Elemento de: ${sourceName}`);
+            }
+        }
+    });
 
-  if (rutas.length === 0) {
-    container.innerHTML = '<div class="text-center py-8 bg-gray-50 rounded text-gray-500">No tienes rutas registradas.</div>';
-    return;
-  }
+    // Filtro ELIMINADO: TenantScope ahora protege automáticamente la ruta a nivel de Backend.
+    // Al llamar a /rutas, el servidor detecta quién es el usuario y le devuelve
+    // únicamente las rutas asignadas a su empresa en la tabla pivote, y traemos los 'paraderos' de BD.
+    const endpoint = '/rutas?include=empresas,paraderos'; 
 
-  let html = '<div class="rutas-grid">';
-  rutas.forEach(r => {
-    const codigo = r.codigo || r.code || '';
-    const nombre = r.nombre || r.name || '';
-    const descripcion = r.descripcion || r.description || '';
-    const empresa = (r.empresa && (r.empresa.nombre || r.empresa.name)) || r.empresa_nombre || r.empresa_id || '';
-    const fileName = r.file_name || r.fileName || '';
-    const extension = fileName ? fileName.split('.').pop().toUpperCase() : '';
-    const created = r.created_at ? new Date(r.created_at).toLocaleDateString() : '';
+    try {
+        const response = await apiGet(endpoint);
+        const rutas = typeof normalizeList === 'function' ? normalizeList(response) : (response.data || response);
 
-    html += `<div class="ruta-card">
-            <div class="ruta-card-header">
-                ${codigo ? `<span class="ruta-code">${codigo}</span>` : ''}
-                <span class="ruta-ext ${extension ? '' : 'ruta-ext-empty'}">${extension || 'FILE'}</span>
-            </div>
-            <h4 class="ruta-name">${nombre || 'Sin Nombre'}</h4>
-            ${descripcion ? `<p class="ruta-desc">${descripcion}</p>` : ''}
-            <div class="ruta-meta">
-                <span><strong>Empresa:</strong> ${empresa || 'No asociada'}</span>
-                <span><strong>Creada:</strong> ${created || '—'}</span>
-            </div>
-            <div class="ruta-actions">
-                <div class="ruta-actions-row">
-                    ${window.canUpdate('rutas') ? `
-                    <button class="ruta-btn ruta-btn--edit" aria-label="Editar ruta" data-id="${r.id}" data-action="edit" title="Editar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 20h4l10.142-10.142a1.5 1.5 0 000-2.121L15.263 4.857a1.5 1.5 0 00-2.121 0L3 15.999V20Z" />
-                            <path d="M13.5 6.5l4 4" />
-                        </svg>
-                        Editar
-                    </button>
-                    ` : ''}
-                    ${window.canDelete('rutas') ? `
-                    <button class="ruta-btn ruta-btn--delete" aria-label="Eliminar ruta" data-id="${r.id}" data-action="delete" title="Eliminar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 7h12" />
-                            <path d="M10 11v6" />
-                            <path d="M14 11v6" />
-                            <path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
-                            <path d="M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12" />
-                        </svg>
-                        Eliminar
-                    </button>
-                    ` : ''}
+        empresaMapCore.clearAllOverlays();
+
+        const uniqueRutas = Array.from(new Map(rutas.map(item => [item.id, item])).values());
+
+        if (uniqueRutas.length === 0) {
+            if (window.showNotification) window.showNotification('info', 'Rutas', 'No tienes rutas asignadas actualmente.');
+            return;
+        }
+
+        if (window.showNotification) window.showNotification('success', 'Rutas Encontradas', 'Descargando y decodificando mapas espaciales...', 3000);
+
+        const csrfToken = getCookie('XSRF-TOKEN');
+        const fetchOptions = {
+            headers: csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {},
+            credentials: 'same-origin'
+        };
+
+        let index = 0;
+        let successCount = 0;
+
+        for (const r of uniqueRutas) {
+            // 1. Cargar el trazo (LineString) primario si tiene archivo
+            if (r.file_name) {
+                const label = r.name || r.nombre || `Ruta ${r.id}`;
+                try {
+                    await empresaMapCore.loadKmz(`/api/rutas/${r.id}/file`, label, index, fetchOptions);
+                    r.status_kml = 'ok';
+                    successCount++;
+                } catch(e) {
+                    console.warn(`[Visor Rutas] No se pudo cargar Trazado KMZ para "${label}":`, e.message);
+                    r.status_kml = 'error';
+                }
+            } else {
+                r.status_kml = 'empty';
+            }
+
+            // 2. Inyectar Paraderos directamente desde la Base de Datos usando MapCore
+            const dbParaderos = r.paraderos?.data || r.paraderos; // Manejar wrapping de Laravel Resources
+            
+            if (Array.isArray(dbParaderos) && dbParaderos.length > 0) {
+                const puntosGeoJson = {
+                    type: "FeatureCollection",
+                    features: dbParaderos.map(p => ({
+                        type: "Feature",
+                        properties: { 
+                            name: p.name || `Paradero #${p.id}`,
+                            description: p.description || 'Punto de parada oficial'
+                        },
+                        geometry: { 
+                            type: "Point", 
+                            coordinates: [parseFloat(p.lng), parseFloat(p.lat)] 
+                        }
+                    }))
+                };
+                try {
+                    const labelParaderos = `🛑 Paraderos: ${r.nombre || r.name}`;
+                    empresaMapCore.addGeoJsonFeature(puntosGeoJson, labelParaderos, index + 100);
+                    successCount++; 
+                } catch(e) {
+                    console.error('[Visor Rutas] Error pintando paraderos:', e);
+                }
+            }
+
+            index++;
+        }
+
+        if (successCount > 0) {
+            empresaMapCore.fitAllOverlays();
+        } else {
+            console.warn('[Visor Rutas] Las rutas encontradas no tienen archivos válidos para trazar en el mapa.');
+        }
+
+        // --- RENDERIZAR MÓDULO INFORMATIVO ---
+        const resumenContainer = document.getElementById('empresa-rutas-resumen');
+        if (resumenContainer) {
+            let html = `
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b;">Líneas Autorizadas (${uniqueRutas.length})</h3>
+                    <p style="font-size: 0.875rem; color: #64748b;">Desglose de las rutas de transporte público colectivo que operan bajo el aval de la empresa.</p>
                 </div>
-                ${fileName ? `<button class="ruta-btn ruta-btn--download" aria-label="Descargar ruta" data-id="${r.id}" data-action="download" title="Descargar archivo">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 17.5C4 16.672 4.672 16 5.5 16h13c.828 0 1.5.672 1.5 1.5V18a2 2 0 01-2 2H6a2 2 0 01-2-2v-.5Z" />
-                        <path d="M12 3v11" />
-                        <path d="M8 10.5l4 3.5 4-3.5" />
-                    </svg>
-                    Descargar
-                </button>` : ''}
-            </div>
-        </div>`;
-  });
-  html += '</div>';
-  container.innerHTML = html;
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+            `;
+            
+            uniqueRutas.forEach(r => {
+                const nombre = r.name || r.nombre || `Ruta ${r.id}`;
+                const safeNombre = nombre.replace(/[&<>"']/g, function(m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] });
+                const estatus = r.status_kml === 'ok' 
+                    ? `<span style="display:inline-flex; align-items:center; color:#16a34a; font-size:0.75rem; font-weight:600;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Mapa Cartográfico Activo</span>`
+                    : (r.status_kml === 'error' ? `<span style="color:#dc2626; font-size:0.75rem; font-weight:600;">⚠️ Error en archivo geográfico</span>` : `<span style="color:#f59e0b; font-size:0.75rem; font-weight:600;">⏳ Pendiente por Secretaría</span>`);
+                
+                html += `
+                <div class="ruta-asignada-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <h4 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin: 0.25rem 0;">${safeNombre}</h4>
+                        </div>
+                        <div style="background-color: #f1f5f9; padding: 0.5rem; border-radius: 0.5rem;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        </div>
+                    </div>
+                    <div style="margin-top: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+                        ${estatus}
+                    </div>
+                </div>`;
+            });
+            
+            html += `</div>`;
+            resumenContainer.innerHTML = html;
+        }
 
-  // Delegar acciones de descarga/eliminación
-  container.querySelectorAll('.ruta-actions button').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = e.currentTarget.getAttribute('data-id');
-      const action = e.currentTarget.getAttribute('data-action');
-      if (action === 'delete') {
-        deleteRuta(parseInt(id, 10));
-      } else if (action === 'download') {
-        downloadRuta(id);
-      } else if (action === 'edit') {
-        openEditRuta(id);
-      }
-    });
-  });
+    } catch (err) {
+        console.error('Error cargando supervisor GIS:', err);
+        if (window.showNotification) window.showNotification('error', 'Error Geográfico', 'No se pudieron recuperar los trazos de ruta.');
+    }
 }
 
-// Descargar archivo de ruta usando fetch con Authorization
-async function downloadRuta(id) {
-  try {
-    const csrfToken = getCookie('XSRF-TOKEN');
-    const resp = await fetch(`/api/rutas/${id}/file`, {
-      headers: csrfToken ? {
-        'X-XSRF-TOKEN': csrfToken
-      } : {},
-      credentials: 'same-origin'
-    });
-    if (!resp.ok) {
-      showNotification('error', 'Descarga falló', 'Servidor retornó error');
-      return;
-    }
-    const blob = await resp.blob();
-    // Intentar obtener nombre del header Content-Disposition
-    let fileName = 'ruta';
-    const cd = resp.headers.get('Content-Disposition');
-    if (cd) {
-      const match = cd.match(/filename="?([^";]+)"?/);
-      if (match) fileName = match[1];
-    }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  } catch (err) {
-    showNotification('error', 'Descarga falló', 'No se pudo descargar el archivo');
-  }
+// Necesitamos invalidar el tamaño del mapa cuando se mueva la pestaña
+// para que Leaflet renderice todos los tiles si estaba "display: none"
+const originalShowView = window.showView;
+if (typeof window.showView === 'function') {
+    window.showView = function(viewId) {
+        originalShowView(viewId);
+        if (viewId === 'rutas' && empresaMapCore) {
+            empresaMapCore.invalidateSize();
+        }
+    };
 }
 
-// Abrir modal en modo edición
-async function openEditRuta(id) {
-  try {
-    const dataResp = await apiGet(`/rutas/${id}`);
-    const ruta = dataResp?.data || dataResp; // según formato de apiGet
-    if (!ruta) {
-      showNotification('error', 'No encontrada', 'No se pudo cargar la ruta');
-      return;
-    }
-    openModalRuta(); // inicializa
-    document.getElementById('ruta-edit-id').value = id;
-    document.getElementById('ruta-nombre').value = ruta.name || ruta.nombre || '';
-    document.getElementById('ruta-modal-title').textContent = 'Editar Ruta';
-    document.getElementById('ruta-submit-btn').textContent = 'Actualizar';
-    const currentFileEl = document.getElementById('ruta-current-file');
-    currentFileEl.style.display = 'block';
-    currentFileEl.textContent = `Archivo actual: ${(ruta.file_name || '').split('/').pop()}`;
-    document.getElementById('ruta-file-help').textContent = 'Seleccione el nuevo archivo (obligatorio para actualizar).';
-  } catch (err) {
-    showNotification('error', 'Error', 'No se pudo abrir la edición');
-  }
-}
-
-// Eliminar ruta
-window.deleteRuta = async function (id) {
-  showConfirm(
-    'Eliminar Ruta'
-    , '¿Estás seguro que deseas eliminar esta ruta?'
-    , async () => {
-      const result = await apiDelete(`/rutas/${id}`);
-      if (result) {
-        showNotification('success', '¡Éxito!', 'Ruta eliminada');
-        loadRutas();
-      }
-    }
-  );
-};
-
-// Abrir modal para agregar ruta
-function openModalRuta() {
-  const form = document.getElementById('form-ruta');
-  form.reset();
-
-  // INYECCIÓN AUTOMÁTICA DE EMPRESA
-  const hiddenEmpresa = document.getElementById('ruta-empresa-id');
-  if (hiddenEmpresa) {
-    if (window.myEmpresaId) {
-      hiddenEmpresa.value = window.myEmpresaId;
-    } else {
-      console.error("No hay ID de empresa para asignar a la ruta.");
-    }
-  }
-
-  document.getElementById('ruta-edit-id').value = '';
-  document.getElementById('ruta-modal-title').textContent = 'Agregar Ruta';
-  document.getElementById('ruta-submit-btn').textContent = 'Guardar';
-  document.getElementById('ruta-current-file').style.display = 'none';
-  document.getElementById('modal-ruta').style.display = 'flex';
-}
-
-// Guardar ruta
-async function saveRuta(e) {
-  e.preventDefault();
-  const nombre = document.getElementById('ruta-nombre').value.trim();
-  const fileInput = document.getElementById('ruta-file');
-  const editId = document.getElementById('ruta-edit-id').value;
-
-  const empresaId = window.myEmpresaId || document.getElementById('ruta-empresa-id').value;
-
-  if (!nombre) return showNotification('warning', 'Requerido', 'Nombre de ruta obligatorio.');
-  if (!editId && (!fileInput || fileInput.files.length === 0)) return showNotification('warning', 'Requerido', 'Archivo obligatorio.');
-  if (!empresaId) return showNotification('error', 'Error', 'No se identificó la empresa.');
-
-  const formData = new FormData();
-  formData.append('name', nombre);
-  formData.append('empresa_id', empresaId);
-  if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
-
-  const btnSubmit = e.target.querySelector('button[type="submit"]') || document.getElementById('ruta-submit-btn');
-  if (btnSubmit && btnSubmit.disabled) return;
-  if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
-
-  try {
-    let result;
-    if (editId) {
-      result = await apiPostFile(`/rutas/${editId}`, formData);
-    } else {
-      result = await apiPostFile('/rutas', formData);
-    }
-
-    if (result && result.status !== false) {
-      showNotification('success', 'Éxito', 'Ruta guardada.');
-      document.getElementById('modal-ruta').style.display = 'none';
-      loadRutas();
-    } else {
-      showNotification('error', 'Error', 'No se pudo guardar.');
-    }
-  } finally {
-    if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
-  }
-}
-
-// Exponer al scope global
+// Solo exponemos loadRutas y downloadRuta, ¡Ya no hay CRUD!
 window.loadRutas = loadRutas;
-window.downloadRuta = downloadRuta;
-window.openEditRuta = openEditRuta;
-window.openModalRuta = openModalRuta;
-window.saveRuta = saveRuta;
+
+window.downloadRuta = async function(id) {
+    try {
+        const csrfToken = window.getCookie ? window.getCookie('XSRF-TOKEN') : null;
+        const resp = await fetch(`/api/rutas/${id}/file`, {
+            headers: csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {},
+            credentials: 'same-origin'
+        });
+        if (!resp.ok) {
+            if(window.showNotification) window.showNotification('error', 'Descarga fallida', 'El archivo original no está disponible.');
+            return;
+        }
+        const blob = await resp.blob();
+        let fileName = `Ruta_${id}_Geodata`;
+        const cd = resp.headers.get('Content-Disposition');
+        if (cd) {
+            const match = cd.match(/filename="?([^";]+)"?/);
+            if (match) fileName = match[1];
+        } else {
+            // Adivinar extensión por tipo MIME (usualmente application/vnd.google-earth.kmz o kml)
+            fileName += blob.type.includes('kml') ? '.kml' : '.kmz';
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        if(window.showNotification) window.showNotification('error', 'Error Geográfico', 'No se pudo descargar el archivo.');
+    }
+};

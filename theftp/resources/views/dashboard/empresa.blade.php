@@ -31,7 +31,8 @@
 
     <div id="view-rutas" class="dashboard-view" style="display:none;">
         @include('dashboard.empresa.partials.view-rutas')
-        @include('dashboard.empresa.modals.modal-ruta')
+        {{-- Modal de ruta deshabilitado, la entidad empresarial es solo lectora de rutas --}}
+        {{-- @include('dashboard.empresa.modals.modal-ruta') --}}
     </div>
 
     <div id="view-asignaciones" class="dashboard-view" style="display:none;">
