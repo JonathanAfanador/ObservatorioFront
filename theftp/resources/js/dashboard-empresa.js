@@ -3,6 +3,8 @@
 // Cada módulo expone sus funciones al scope global (window) para que puedan
 // comunicarse entre sí, dado que Vite procesa cada import como ES module scope.
 
+import '../css/modules/empresa.css';             // Estilos específicos del panel de empresa
+
 import './modules/empresa/empresa-base.js';      // Utilidades globales: API, notificaciones, confirm
 import './modules/empresa/empresa-nav.js';         // Menú lateral y navegación entre vistas
 import './modules/empresa/empresa-dashboard.js';   // Vista resumen / panel de control

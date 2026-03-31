@@ -1,0 +1,148 @@
+/* REPARACIÓN DEFINITIVA: Sistema de Tarjetas de Licencias */
+
+/* 1. Contenedor de la tarjeta: Permitir que los tooltips se vean */
+.licencia-card {
+    overflow: visible !important;
+    position: relative !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.licencia-card:hover { 
+    z-index: 50 !important; 
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 2. Header con Grilla: Los elementos NUNCA se tocarán */
+.licencia-card-header { 
+    display: grid !important;
+    grid-template-columns: auto 1fr auto !important; /* Avatar | Nombre | Estado */
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 1.25rem !important;
+    overflow: visible !important;
+}
+
+/* 3. Área del Título: Control estricto del espacio */
+.licencia-card-title { 
+    min-width: 0 !important; /* Vital para que el truncado funcione en grillas */
+}
+
+.licencia-card-title h4 { 
+    margin: 0 !important;
+    padding: 0 !important;
+    font-weight: 700 !important;
+    color: #1f2937 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+    font-size: 1rem !important;
+}
+
+.licencia-badge {
+    font-size: 0.75rem !important;
+    color: #6b7280 !important;
+}
+
+/* 4. Estado: Sin flotación, dentro de su celda de la grilla */
+.licencia-estado { 
+    position: static !important;
+    flex-shrink: 0 !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+}
+
+/* 5. TOOLTIP PREMIUM (Optimizado para no cortarse) */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 0; /* Alineado a la izquierda del elemento para evitar salirse */
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    background: rgba(31, 41, 55, 0.95);
+    backdrop-filter: blur(4px);
+    color: white;
+    font-size: 0.7rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+[data-tooltip]:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-4px);
+}
+
+/* Avatar interactivo */
+.licencia-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #a78bfa;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+/* --- DASHBOARD PREMIUM: OBSERVATORIO AI HUB --- */
+.enterprise-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    border-radius: 16px !important;
+    transition: all 0.2s ease !important;
+}
+
+.enterprise-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    border-color: #cbd5e1 !important;
+}
+
+.enterprise-title {
+    color: #0f172a;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+
+.chart-container {
+    position: relative;
+    height: 260px;
+    width: 100%;
+}
+
+.analysis-insight-item {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1rem;
+    border-left: 4px solid #4f46e5;
+    margin-bottom: 1rem;
+}
+
+.card-footer-action {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
