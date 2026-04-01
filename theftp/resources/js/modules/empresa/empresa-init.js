@@ -440,8 +440,17 @@ function applyPermissionsToUI() {
 window.initDashboard = initDashboard;
 window.setupEventListeners = setupEventListeners;
 
+// Inicialización segura
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initDashboard);
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!window.isDashboardInitialized) {
+        window.isDashboardInitialized = true;
+        initDashboard();
+    }
+  });
 } else {
-  initDashboard();
+    if (!window.isDashboardInitialized) {
+        window.isDashboardInitialized = true;
+        initDashboard();
+    }
 }
