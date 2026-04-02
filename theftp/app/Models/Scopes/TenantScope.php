@@ -26,8 +26,15 @@ class TenantScope implements Scope
             // 3. Si es Empresa o cualquier otro, filtramos estrictamente por su 'empresa_id'
             // Omitimos la operación si el usuario increíblemente no tiene una empresa asignada.
             if ($user->empresa_id) {
-                // Filtra Automáticamente la base de datos!
-                $builder->where($model->getTable() . '.empresa_id', $user->empresa_id);
+                // EXCEPCIÓN: La tabla Rutas usa una relación Muchos a Muchos (Pivote)
+                if ($model instanceof \App\Models\Ruta) {
+                    $builder->whereHas('empresas', function ($q) use ($user) {
+                        $q->where('empresas.id', $user->empresa_id);
+                    });
+                } else {
+                    // Resto de los modelos fluyen normal
+                    $builder->where($model->getTable() . '.empresa_id', $user->empresa_id);
+                }
             } else {
                 // Si el usuario no es Admin y NO tiene empresa_id, bloqueamos radicalmente
                 // forzando un ID que retorne vacío para no exponer data de otros.

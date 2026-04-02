@@ -43,8 +43,8 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'throttle:5,1']], funct
     });
 });
 
-// Rutas protegidas por Sanctum y Throttle estándar (60 requests por minuto)
-Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'throttle:60,1']], function (){
+// Rutas protegidas por Sanctum y Throttle estándar (200 requests por minuto)
+Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'throttle:200,1']], function (){
     // -- Auth Routes
     Route::prefix('auth')->group(function (){
         Route::post('/logout', [AuthController::class, 'logout']);

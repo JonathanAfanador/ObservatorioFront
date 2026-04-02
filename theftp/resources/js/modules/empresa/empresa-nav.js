@@ -91,8 +91,11 @@ function buildEmpresaMenu() {
 }
 
 // Navegación entre vistas
+let lastView = null;
 function navigateTo(viewName) {
-  console.log('Navegando a:', viewName); // Debug
+  if (lastView === viewName) return; // Evitar disparos dobles
+  console.log('Navegando a:', viewName); 
+  lastView = viewName;
 
   // Ocultar todas las vistas
   document.querySelectorAll('.dashboard-view').forEach(v => v.style.display = 'none');

@@ -25,7 +25,7 @@ async function loadDashboard() {
       apiGet('/conductores'),
       apiGet('/conductores-licencias?include=licencia.categoria'),
       apiGet('/vehiculos?include=tipo'),
-      apiGet('/rutas'),
+      apiGet('/rutas?include=paraderos'),
       apiGet(`/empresas/${window.myEmpresaId}`)
     ]);
 
@@ -52,9 +52,11 @@ async function loadDashboard() {
     renderCharts(analysis);
     renderOperationalInsights(analysis);
     renderAlertsTimeline(analysis.alerts);
+    renderRouteWidgets(rawData.rutas); // <-- Nuevo Renderizador visual
 
     // Mostrar con transición sobria
     if (analysisContainer) {
+      document.getElementById('dashboard-routes-widgets').style.display = 'grid';
       analysisContainer.style.display = 'grid';
       analysisContainer.style.opacity = '0';
       setTimeout(() => {
@@ -125,8 +127,8 @@ function runOperationalAnalysis(data) {
   if (stats.healthScore < 70 || stats.complianceData[2] > 3) stats.riskLevel = 'Crítico';
   else if (stats.healthScore < 90) stats.riskLevel = 'Atención';
 
-  // Generar Insights Técnicos
-  generateTechnicalInsights(stats, next6Months);
+  // Generar Insights Técnicos (incluyendo analítica de rutas)
+  generateTechnicalInsights(stats, next6Months, data.rutas);
 
   return stats;
 }
@@ -159,9 +161,9 @@ function processDateForStats(venc, stats, now, next30Days, next6Months, name, mo
 }
 
 /**
- * Generador de Hallazgos Técnicos (Inferencia de Datos)
+ * Generador de Hallazgos Técnicos (Inferencia de Datos e IA)
  */
-function generateTechnicalInsights(s, months) {
+function generateTechnicalInsights(s, months, rutas = []) {
   const peakMonthIdx = s.projectionData.indexOf(Math.max(...s.projectionData));
   const peakMonth = months[peakMonthIdx].label;
   const totalFleet = s.totalVehiculos + s.totalConductores;
@@ -187,7 +189,9 @@ function generateTechnicalInsights(s, months) {
     });
   }
 
-  if (s.insights.length === 1) {
+  // Se eliminó la inyección de texto de rutas aquí; ahora se renderiza de forma visual en renderRouteWidgets()
+
+  if (s.insights.length === 0) {
     s.insights.push({
       title: 'RESUMEN DE FLOTA',
       text: `Se analizaron exitosamente **${s.totalVehiculos} vehículos** y **${s.totalConductores} conductores**. El sistema de alerta está monitoreando todas las vigencias actuales.`
@@ -355,3 +359,71 @@ function renderAlertsTimeline(alerts) {
 }
 
 window.loadDashboard = loadDashboard;
+
+/**
+ * Renderizador de Visual de Inteligencia Logística (Módulo Rutas)
+ */
+function renderRouteWidgets(rutas) {
+  const container = document.getElementById('dashboard-routes-widgets');
+  if (!container || !rutas || rutas.length === 0) return;
+
+  // Cálculos
+  const digitalizadas = rutas.filter(r => r.file_name && (r.file_name.toLowerCase().endsWith('.kmz') || r.file_name.toLowerCase().endsWith('.kml')));
+  const modPercentage = Math.round((digitalizadas.length / rutas.length) * 100);
+  const faltantes = rutas.length - digitalizadas.length;
+
+  let totalParaderos = 0;
+  let maxRuta = 'Ninguna';
+  let maxCount = 0;
+
+  rutas.forEach(r => {
+      const arr = (r.paraderos && r.paraderos.data) ? r.paraderos.data : r.paraderos;
+      const count = Array.isArray(arr) ? arr.length : 0;
+      totalParaderos += count;
+      if (count > maxCount) {
+          maxCount = count;
+          maxRuta = r.name || r.nombre || `Ruta ${r.id}`;
+      }
+  });
+
+  const percentColor = modPercentage === 100 ? '#10b981' : (modPercentage > 50 ? '#3b82f6' : '#f59e0b');
+
+  // Construcción del Layout Visual (Flexbox y CSS Moderno)
+  container.innerHTML = `
+    <!-- Widget A: Cobertura -->
+    <div class="enterprise-card" style="padding: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <div style="flex:1;">
+            <div style="font-size: 0.70rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Cobertura Cartográfica</div>
+            <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0; line-height: 1;">${modPercentage}% Mapeo Activo</h3>
+            <p style="font-size: 0.8rem; color: #475569; margin-top: 0.5rem;">
+                ${modPercentage === 100 
+                  ? 'Todas las rutas tienen trazado operativo.' 
+                  : `<strong style="color:#ef4444">${faltantes} rutas</strong> en espera de trazado oficial por Tránsito.`}
+            </p>
+        </div>
+        <div style="width: 70px; height: 70px; position:relative; margin-left:1rem;">
+            <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f1f5f9" stroke-width="3.5" />
+              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${percentColor}" stroke-linecap="round" stroke-width="4.5" stroke-dasharray="${modPercentage}, 100" />
+            </svg>
+            <div style="position: absolute; inset:0; display:flex; align-items:center; justify-content:center; color:${percentColor}">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget B: Densidad Logística -->
+    <div class="enterprise-card" style="padding: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <div style="flex:1;">
+            <div style="font-size: 0.70rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Densidad Logística</div>
+            <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0; line-height: 1;">${totalParaderos} Paradas de Red</h3>
+            <p style="font-size: 0.8rem; color: #475569; margin-top: 0.5rem;">
+                La <strong style="color:#0f172a;">${maxRuta}</strong> concentra la mayor carga estructural con <strong style="color:#0f172a;">${maxCount}</strong> estaciones conectadas.
+            </p>
+        </div>
+        <div style="width: 50px; height: 50px; background-color: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-left:1rem;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+        </div>
+    </div>
+  `;
+}

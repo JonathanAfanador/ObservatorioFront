@@ -97,7 +97,13 @@ class Ruta extends Model implements Auditable
     ];
 
     // Relación con el modelo empresas
-    public function empresa(){
-        return $this->belongsTo(Empresa::class, 'empresa_id');
+    // Relación MUCHOS A MUCHOS con el modelo empresas (Tabla pivot: empresa_ruta)
+    public function empresas(){
+        return $this->belongsToMany(Empresa::class, 'empresa_ruta', 'ruta_id', 'empresa_id')->withTimestamps();
+    }
+
+    // Relación con los paraderos de la ruta
+    public function paraderos() {
+        return $this->hasMany(Paradero::class, 'ruta_id');
     }
 }
