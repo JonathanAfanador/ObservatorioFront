@@ -47,6 +47,11 @@
             </div>
         </div>
 
+        <!-- Nivel 2.5: Inteligencia Logística de Rutas -->
+        <div id="dashboard-routes-widgets" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8" style="display: none;">
+            <!-- Widgets Inyectados por JS -->
+        </div>
+
         <!-- Nivel 3: Gestión Predictiva -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8" id="dashboard-analytics-container" style="display: none;">
             <!-- Análisis de Datos e Hallazgos -->

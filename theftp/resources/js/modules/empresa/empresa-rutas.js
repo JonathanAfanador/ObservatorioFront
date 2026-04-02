@@ -54,14 +54,18 @@ async function loadRutas() {
         let index = 0;
         let successCount = 0;
 
+        // --- PASO 1: Cargar todos los trazados (Rutas) primero ---
         for (const r of uniqueRutas) {
-            // 1. Cargar el trazo (LineString) primario si tiene archivo
-            if (r.file_name) {
-                const label = r.name || r.nombre || `Ruta ${r.id}`;
+            if (r.file_name && (r.file_name.toLowerCase().endsWith('.kmz') || r.file_name.toLowerCase().endsWith('.kml'))) {
+                const label = `Ruta Asignada: ${r.name || r.nombre || 'Ruta ' + r.id}`;
                 try {
-                    await empresaMapCore.loadKmz(`/api/rutas/${r.id}/file`, label, index, fetchOptions);
-                    r.status_kml = 'ok';
-                    successCount++;
+                    const featureLayer = await empresaMapCore.loadKmz(`/api/rutas/${r.id}/file`, label, index, fetchOptions, { onlyLines: true });
+                    if (featureLayer) {
+                        r.status_kml = 'ok';
+                        successCount++;
+                    } else {
+                        r.status_kml = 'empty';
+                    }
                 } catch(e) {
                     console.warn(`[Visor Rutas] No se pudo cargar Trazado KMZ para "${label}":`, e.message);
                     r.status_kml = 'error';
@@ -69,10 +73,13 @@ async function loadRutas() {
             } else {
                 r.status_kml = 'empty';
             }
+            index++;
+        }
 
-            // 2. Inyectar Paraderos directamente desde la Base de Datos usando MapCore
-            const dbParaderos = r.paraderos?.data || r.paraderos; // Manejar wrapping de Laravel Resources
-            
+        // --- PASO 2: Cargar todos los paraderos después ---
+        index = 0; // Reiniciar index para colores si se desea o seguir
+        for (const r of uniqueRutas) {
+            const dbParaderos = r.paraderos?.data || r.paraderos; 
             if (Array.isArray(dbParaderos) && dbParaderos.length > 0) {
                 const puntosGeoJson = {
                     type: "FeatureCollection",
@@ -89,16 +96,18 @@ async function loadRutas() {
                     }))
                 };
                 try {
-                    const labelParaderos = `🛑 Paraderos: ${r.nombre || r.name}`;
-                    empresaMapCore.addGeoJsonFeature(puntosGeoJson, labelParaderos, index + 100);
+                    const labelParaderos = `Paraderos: ${r.nombre || r.name}`;
+                    empresaMapCore.addGeoJsonFeature(puntosGeoJson, labelParaderos, index + 20); // Diferente color range
                     successCount++; 
                 } catch(e) {
                     console.error('[Visor Rutas] Error pintando paraderos:', e);
                 }
             }
-
             index++;
         }
+
+        // --- PASO 3: Organizar visualmente el control de capas ---
+        empresaMapCore.organizeLayerControl();
 
         if (successCount > 0) {
             empresaMapCore.fitAllOverlays();
@@ -120,9 +129,21 @@ async function loadRutas() {
             uniqueRutas.forEach(r => {
                 const nombre = r.name || r.nombre || `Ruta ${r.id}`;
                 const safeNombre = nombre.replace(/[&<>"']/g, function(m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] });
-                const estatus = r.status_kml === 'ok' 
-                    ? `<span style="display:inline-flex; align-items:center; color:#16a34a; font-size:0.75rem; font-weight:600;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Mapa Cartográfico Activo</span>`
-                    : (r.status_kml === 'error' ? `<span style="color:#dc2626; font-size:0.75rem; font-weight:600;">⚠️ Error en archivo geográfico</span>` : `<span style="color:#f59e0b; font-size:0.75rem; font-weight:600;">⏳ Pendiente por Secretaría</span>`);
+                
+                let estatus = '';
+                if (r.status_kml === 'ok') {
+                    estatus = `<span style="display:inline-flex; align-items:center; color:#16a34a; font-size:0.75rem; font-weight:600;">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Mapa Cartográfico Activo
+                               </span>`;
+                } else if (r.status_kml === 'error') {
+                    estatus = `<span style="display:inline-flex; align-items:center; color:#dc2626; font-size:0.75rem; font-weight:600;">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Archivo Inválido
+                               </span>`;
+                } else {
+                    estatus = `<span style="display:inline-flex; align-items:center; color:#f59e0b; font-size:0.75rem; font-weight:600;">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Pendiente por Trazado
+                               </span>`;
+                }
                 
                 html += `
                 <div class="ruta-asignada-card">
