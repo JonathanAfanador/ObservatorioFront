@@ -25,9 +25,13 @@ window.loadStats = async function () {
             apiCall(`/documentos?filter=${filtroRes}&limit=1`)
         ]);
 
-        if (empresas) document.getElementById('stat-empresas').innerText = empresas.total || 0;
-        if (rutas) document.getElementById('stat-rutas').innerText = rutas.total || 0;
-        if (resoluciones) document.getElementById('stat-resoluciones').innerText = resoluciones.total || 0;
+        const elEmpresas = document.getElementById('stat-empresas');
+        const elRutas = document.getElementById('stat-rutas');
+        const elResoluciones = document.getElementById('stat-resoluciones');
+
+        if (elEmpresas && empresas) elEmpresas.innerText = empresas.total || 0;
+        if (elRutas && rutas) elRutas.innerText = rutas.total || 0;
+        if (elResoluciones && resoluciones) elResoluciones.innerText = resoluciones.total || 0;
     } catch (e) {
         console.error('Error stats:', e);
     }

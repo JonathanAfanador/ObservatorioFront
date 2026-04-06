@@ -32,6 +32,7 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VehiculoController;
 use App\Http\Controllers\NovedadVehiculoController;
 use App\Http\Controllers\AuditoriaController;
+use App\Http\Controllers\Api\DashboardSecretariaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
 use App\Http\Middleware\ForceJsonResponse;
@@ -237,6 +238,11 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'thrott
         Route::post('/documentos/{id}', [DocumentosController::class, 'edit']);
         Route::delete('/documentos/{id}', [DocumentosController::class, 'destroy']);
         Route::post('/documentos/{id}/rehabilitate', [DocumentosController::class, 'restore']);
+
+        // Dashboard Inteligente (Secretaría)
+        Route::prefix('secretaria')->group(function () {
+            Route::get('/dashboard-stats', [DashboardSecretariaController::class, 'getStats']);
+        });
     });
 
     // ==============================================

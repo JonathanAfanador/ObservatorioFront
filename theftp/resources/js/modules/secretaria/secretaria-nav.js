@@ -80,7 +80,7 @@ window.setupNavigation = function () {
 // --- Dispatcher: carga datos según la vista activa ---
 window.loadViewData = async function (view) {
     switch (view) {
-        case 'resumen': loadStats(); break;
+        case 'resumen': initDashboard(); break;
         case 'resoluciones': loadResoluciones(); break;
         case 'rutas': loadRutasParaValidar(); break;
         case 'empresas': loadEmpresas(); break;

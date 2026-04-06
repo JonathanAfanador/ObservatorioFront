@@ -1,5 +1,7 @@
 <x-layouts.dashboard>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     {{-- Estilos específicos Premium Institucional (Gobierno / Autoridad) --}}
     <style>
         /* Estilo base para pequeñas etiquetas de estado */
@@ -101,26 +103,105 @@
     {{-- Contenedor global donde se inyectan notificaciones flotantes (éxito, error, etc.) --}}
     <div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
-    {{-- Vista principal de resumen del panel de supervisión de tránsito --}}
+    {{-- Vista principal de resumen (Dashboard Inteligente) --}}
     <div id="view-resumen" class="dashboard-view">
-        <h2 class="text-2xl font-bold mb-4">Panel de Supervisión - Tránsito</h2>
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Supervisión de Tránsito</h2>
+                <p class="text-slate-500 font-medium mt-1">Panel de Inteligencia de Datos & Control de Cumplimiento</p>
+            </div>
+            <div id="dashboard-status-indicator" class="flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-full">
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-600"></span>
+                </span>
+                <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-widest">Sincronizado en tiempo real</span>
+            </div>
+        </div>
 
-        {{-- Tarjetas de estadísticas generales (empresas, rutas, resoluciones) --}}
+        {{-- Nivel 1: KPIs Rápidos (Métricas Críticas de la Autoridad) --}}
         <div class="stat-grid">
-            <div class="stat-box">
-                <h3>Empresas Supervisadas</h3>
-                {{-- Número total de empresas supervisadas cargado por JavaScript --}}
+            <div class="stat-box" style="border-left: 4px solid #4f46e5;">
+                <div class="flex justify-between items-center w-full mb-1">
+                    <h3>Flota Vehicular</h3>
+                    <svg class="w-5 h-5 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-7h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                </div>
+                <div id="stat-vehiculos" class="stat-number">0</div>
+                <p id="stat-vehiculos-label" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">Cargando...</p>
+            </div>
+            <div class="stat-box" style="border-left: 4px solid #10b981;">
+                <div class="flex justify-between items-center w-full mb-1">
+                    <h3>Empresas Operadoras</h3>
+                    <svg class="w-5 h-5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
                 <div id="stat-empresas" class="stat-number">0</div>
+                <p id="stat-empresas-label" class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-2">Supervisión Activa</p>
             </div>
-            <div class="stat-box">
-                <h3>Rutas Totales</h3>
-                {{-- Total de rutas registradas en el sistema --}}
-                <div id="stat-rutas" class="stat-number">0</div>
+            <div class="stat-box" style="border-left: 4px solid #6366f1;">
+                <div class="flex justify-between items-center w-full mb-1">
+                    <h3>Licencias Verificadas</h3>
+                    <svg class="w-5 h-5 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </div>
+                <div id="stat-licencias" class="stat-number">0</div>
+                <p id="stat-licencias-label" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">Auditoría Permanente</p>
             </div>
-            <div class="stat-box">
-                <h3>Resoluciones Emitidas</h3>
-                {{-- Cantidad de resoluciones cargadas y visibles para supervisión --}}
-                <div id="stat-resoluciones" class="stat-number">0</div>
+            <div class="stat-box" style="border-left: 4px solid #f97316;">
+                <div class="flex justify-between items-center w-full mb-1">
+                    <h3>Alertas Críticas</h3>
+                    <svg class="w-5 h-5 text-orange-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <div id="stat-alertas" class="stat-number">0</div>
+                <p id="stat-alertas-label" class="text-[9px] font-bold text-orange-600 uppercase tracking-widest mt-2">Acción Requerida</p>
+            </div>
+        </div>
+
+        {{-- Nivel 2: Analítica Operativa & Rankings --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {{-- Grafico 1: Estado Legal Flota Global --}}
+            <div class="content-card" style="margin-bottom: 0;">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Salud de la Flota Global</h3>
+                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                </div>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="chart-flota-health"></canvas>
+                </div>
+                <div id="flota-health-legend" class="flex justify-center gap-4 mt-4 text-[10px] font-bold text-slate-500 uppercase">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+
+            {{-- Grafico 2: Top 5 Cumplimiento Documental --}}
+            <div class="content-card" style="margin-bottom: 0;">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Top 5 Cumplimiento (Empresas)</h3>
+                    <span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Rank Mensual</span>
+                </div>
+                <div class="p-4 flex-grow flex flex-col justify-center min-h-[300px]">
+                    <canvas id="chart-empresas-ranking"></canvas>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-4 text-center">Basado en verificaciones legales exitosas.</p>
+            </div>
+
+            {{-- Nivel 3: Alertas e Insights de la Autoridad --}}
+            <div class="content-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Vencimientos Críticos</h3>
+                </div>
+                
+                <div id="secretaria-recent-alerts" class="flex-grow flex flex-col gap-3 overflow-y-auto pr-2" style="max-height: 250px;">
+                    <div class="flex items-center justify-center h-full text-slate-400 text-xs italic">Cargando alertas de supervisión...</div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supervisión Preventiva</span>
+                    <button onclick="showView('vehiculos')" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors uppercase tracking-widest">Ver Flota →</button>
+                </div>
             </div>
         </div>
     </div>
@@ -639,7 +720,16 @@
         </div>
     </div>
 
-    {{-- Carga del JavaScript específico para la lógica del dashboard de Secretaría de Tránsito --}}
-    @vite('resources/js/dashboard-secretaria.js')
+    {{-- Carga de todos los módulos de lógica de la Secretaría de Tránsito --}}
+    @vite([
+        'resources/js/modules/secretaria/secretaria-base.js',
+        'resources/js/modules/secretaria/secretaria-nav.js',
+        'resources/js/modules/secretaria/secretaria-empresas.js',
+        'resources/js/modules/secretaria/secretaria-rutas.js',
+        'resources/js/modules/secretaria/secretaria-licencias.js',
+        'resources/js/modules/secretaria/secretaria-vehiculos.js',
+        'resources/js/modules/secretaria/secretaria-resoluciones.js',
+        'resources/js/dashboard-secretaria.js'
+    ])
 
 </x-layouts.dashboard>
