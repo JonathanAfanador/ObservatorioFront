@@ -45,6 +45,7 @@ abstract class Controller{
     // Contructor que recibe un Model con el que trabajara el controlador
     protected $model;
     protected $table = "";
+    protected $resourceClass;
     protected $MAX_SIZE_FILES_IN_MB;
     protected $MIMETYPES_ALLOWED;
 

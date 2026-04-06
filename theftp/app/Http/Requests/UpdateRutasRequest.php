@@ -17,6 +17,8 @@ class UpdateRutasRequest extends FormRequest
 
             'name' => 'required|string|max:255',
             'empresa_id' => 'required|integer|exists:empresas,id',
+            'file_name' => 'nullable|string',
+            'estado' => 'nullable|boolean',
         ];
     }
 

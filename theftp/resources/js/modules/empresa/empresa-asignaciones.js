@@ -258,7 +258,11 @@ async function openModalAsignacion() {
   const selectRuta = document.getElementById('asignacion-ruta');
   if (selectRuta) {
     selectRuta.innerHTML = '<option value="">Seleccione</option>';
-    normalizeList(rutas).forEach(r => { selectRuta.innerHTML += `<option value="${r.id}">${r.nombre || r.name}</option>`; });
+    normalizeList(rutas)
+      .filter(r => r.estado !== false) // IMPORTANTE: Solo rutas activas para nuevas asignaciones
+      .forEach(r => { 
+        selectRuta.innerHTML += `<option value="${r.id}">${r.nombre || r.name}</option>`; 
+      });
   }
 
   const now = new Date();
@@ -316,7 +320,14 @@ async function setupAsignacionesFilters() {
   const [vR, cR, rR] = await Promise.all([apiGet('/vehiculos'), apiGet('/conductores?include=persona'), apiGet('/rutas')]);
   normalizeList(vR).forEach(v => { sv.innerHTML += `<option value="${v.id}">${v.placa}</option>`; });
   normalizeList(cR).forEach(c => { document.getElementById('filter-asig-conductor').innerHTML += `<option value="${c.id}">${c.persona?.name || ''}</option>`; });
-  normalizeList(rR).forEach(r => { document.getElementById('filter-asig-ruta').innerHTML += `<option value="${r.id}">${r.nombre || r.name}</option>`; });
+  
+  const sr = document.getElementById('filter-asig-ruta');
+  if (sr) {
+    normalizeList(rR).forEach(r => { 
+      const label = r.estado === false ? `[INACTIVA] ${r.nombre || r.name}` : (r.nombre || r.name);
+      sr.innerHTML += `<option value="${r.id}">${label}</option>`; 
+    });
+  }
 }
 
 window.handleAsignacionesSearch = () => loadAsignaciones(1);

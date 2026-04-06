@@ -20,6 +20,7 @@ use App\Http\Controllers\RestriccionLicController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\RolesMenusController;
 use App\Http\Controllers\RutasController;
+use App\Http\Controllers\ParaderosController;
 use App\Http\Controllers\SeguimGpsController;
 use App\Http\Controllers\SeguimEstadoVehController;
 use App\Http\Controllers\MenusController;
@@ -35,8 +36,16 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\AuthController;
 use App\Http\Middleware\ForceJsonResponse;
 
-// Registro y Login (Protegidos fuertemente contra Fuerza Bruta - 5 requests por minuto)
-Route::group(['middleware' => [ForceJsonResponse::class, 'throttle:5,1']], function (){
+// Rutas Públicas (Geovisor y Consultas Ciudadanas)
+Route::group(['middleware' => [ForceJsonResponse::class, 'throttle:100,1']], function (){
+    Route::prefix('public')->group(function (){
+        Route::get('/geovisor/rutas', [RutasController::class, 'publicGeovisor']);
+        Route::get('/geovisor/osrm-route', [\App\Http\Controllers\GeovisorController::class, 'proxyOsrmRoute']);
+    });
+});
+
+// Registro y Login (Ajustado para desarrollo - 60 requests por minuto)
+Route::group(['middleware' => [ForceJsonResponse::class, 'throttle:60,1']], function (){
     Route::prefix('auth')->group(function (){
         Route::post('/register', [AuthController::class, 'registro']);
         Route::post('/login', [AuthController::class, 'login']);
@@ -181,6 +190,10 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'thrott
         Route::patch('/rutas/{id}', [RutasController::class, 'patch']);
         Route::delete('/rutas/{id}', [RutasController::class, 'destroy']);
         Route::post('/rutas/{id}/rehabilitate', [RutasController::class, 'restore']);
+
+        // Paraderos (La Secretaría gestiona paraderos en masa o unitarios)
+        Route::apiResource('paraderos', ParaderosController::class);
+        Route::post('/rutas/{id}/paraderos/bulk', [ParaderosController::class, 'bulkStore']);
 
         // Conductores (La Empresa 3 puede afiliar a sus conductores)
         Route::post('/conductores', [ConductoresController::class, 'store']);

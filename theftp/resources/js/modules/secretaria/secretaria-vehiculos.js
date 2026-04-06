@@ -98,8 +98,8 @@ window.loadVehiculosReview = async function () {
                                 Aprobar
                             </button>
                         ` : `
-                            <button class="btn-secondary" onclick="rechazarServicioVehiculo(${v.id})" style="padding: 2px 8px; font-size: 0.7rem;">
-                                Rechazar
+                            <button class="btn-secondary" onclick="rechazarServicioVehiculo(${v.id}, '${v.placa || ''}')" style="padding: 2px 8px; font-size: 0.7rem;">
+                                Inmovilizar
                             </button>
                         `}
                     </td>
@@ -131,18 +131,38 @@ window.aprobarServicioVehiculo = async function (vehiculoId) {
     }
 };
 
-window.rechazarServicioVehiculo = async function (vehiculoId) {
-    if (!confirm('¿Rechazar este vehículo? Se le retirará la aprobación de servicio.')) return;
+window.rechazarServicioVehiculo = async function (vehiculoId, placa) {
+    // Abrir Modal
+    document.getElementById('vehiculo-id-rechazo').value = vehiculoId;
+    document.getElementById('placa-rechazo').textContent = placa || 'N/A';
+    document.getElementById('motivo-rechazo').value = '';
+    document.getElementById('detalle-rechazo').value = '';
+    document.getElementById('modal-rechazo-vehiculo').style.display = 'flex';
+};
+
+// --- Procesar formulario de Rechazo (Inmovilización) ---
+document.getElementById('form-rechazo-vehiculo')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const vehiculoId = document.getElementById('vehiculo-id-rechazo').value;
+    const motivoSelect = document.getElementById('motivo-rechazo').value;
+    const detalle = document.getElementById('detalle-rechazo').value;
+    
+    const textoMotivo = `[AUTORIDAD] ${motivoSelect} - ${detalle}`;
 
     try {
-        const res = await apiCall(`/vehiculos/${vehiculoId}`, 'PUT', {
-            servicio: false
+        const res = await window.apiPut(`/vehiculos/${vehiculoId}`, {
+            servicio: false,
+            estado: 'Inmovilizado',
+            motivo_estado: textoMotivo
         });
+
         if (res) {
-            showNotification('success', 'Actualizado', 'Vehículo retirado de servicio.');
+            showNotification('success', 'Vehículo Inmovilizado', 'Se ha revocado la autorización de rodamiento para este vehículo.');
+            document.getElementById('modal-rechazo-vehiculo').style.display = 'none';
             loadVehiculosReview();
         }
     } catch (e) {
-        showNotification('error', 'Error', 'No se pudo rechazar el vehículo: ' + e.message);
+        showNotification('error', 'Error en Auditoría', 'No se pudo inmovilizar el vehículo: ' + e.message);
     }
-};
+});
