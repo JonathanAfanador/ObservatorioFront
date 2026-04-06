@@ -58,8 +58,17 @@ async function loadRutas() {
         for (const r of uniqueRutas) {
             if (r.file_name && (r.file_name.toLowerCase().endsWith('.kmz') || r.file_name.toLowerCase().endsWith('.kml'))) {
                 const label = `Ruta Asignada: ${r.name || r.nombre || 'Ruta ' + r.id}`;
+                
+                // Determinar la URL correcta del archivo
+                let fileUrl = r.file_name;
+                // Soporte para rutas antiguas o relativas
+                if (fileUrl && !fileUrl.startsWith('/') && !fileUrl.startsWith('http')) {
+                    fileUrl = `/storage/rutas/${fileUrl}`;
+                }
+
                 try {
-                    const featureLayer = await empresaMapCore.loadKmz(`/api/rutas/${r.id}/file`, label, index, fetchOptions, { onlyLines: true });
+                    // Usar la URL directa del archivo en lugar de un endpoint de API inexistente
+                    const featureLayer = await empresaMapCore.loadKmz(fileUrl, label, index, fetchOptions, { onlyLines: true });
                     if (featureLayer) {
                         r.status_kml = 'ok';
                         successCount++;
@@ -67,7 +76,7 @@ async function loadRutas() {
                         r.status_kml = 'empty';
                     }
                 } catch(e) {
-                    console.warn(`[Visor Rutas] No se pudo cargar Trazado KMZ para "${label}":`, e.message);
+                    console.warn(`[Visor Rutas] No se pudo cargar Trazado KMZ para "${label}" en ${fileUrl}:`, e.message);
                     r.status_kml = 'error';
                 }
             } else {
@@ -129,6 +138,10 @@ async function loadRutas() {
             uniqueRutas.forEach(r => {
                 const nombre = r.name || r.nombre || `Ruta ${r.id}`;
                 const safeNombre = nombre.replace(/[&<>"']/g, function(m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] });
+                const isActiva = r.estado !== false;
+                
+                const cardStyle = isActiva ? "" : "filter: grayscale(1); opacity: 0.7; background-color: #f8fafc; border: 1px solid #e2e8f0;";
+                const statusBadge = isActiva ? "" : `<span style="background: #64748b; color: white; font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px; display: inline-block;">NO OPERATIVA</span>`;
                 
                 let estatus = '';
                 if (r.status_kml === 'ok') {
@@ -146,9 +159,10 @@ async function loadRutas() {
                 }
                 
                 html += `
-                <div class="ruta-asignada-card">
+                <div class="ruta-asignada-card" style="${cardStyle}">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
+                            ${statusBadge}
                             <h4 style="font-size: 1.125rem; font-weight: 700; color: #0f172a; margin: 0.25rem 0;">${safeNombre}</h4>
                         </div>
                         <div style="background-color: #f1f5f9; padding: 0.5rem; border-radius: 0.5rem;">
@@ -156,7 +170,7 @@ async function loadRutas() {
                         </div>
                     </div>
                     <div style="margin-top: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
-                        ${estatus}
+                        ${isActiva ? estatus : '<span style="color:#64748b; font-size:0.75rem; font-weight:600;">Inactivada por Secretaría</span>'}
                     </div>
                 </div>`;
             });

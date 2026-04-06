@@ -50,3 +50,21 @@ Route::get('/geovisor', [GeovisorController::class, 'index'])
 Route::get('/geovisor/kmz/{filename}', [GeovisorController::class, 'serveKmz'])
      ->name('geovisor.kmz')
      ->where('filename', '[a-zA-Z0-9_\-\.]+'); // Regex: evita path traversal 
+
+Route::get('/storage/rutas/{filename}', function ($filename) {
+    // 1. Buscar en Laravel 11 disk default (private)
+    $path = storage_path('app/private/rutas/' . $filename);
+    if (!file_exists($path)) {
+        // 2. Fallback Laravel <= 10 default
+        $path = storage_path('app/rutas/' . $filename);
+        if (!file_exists($path)) {
+            // 3. Fallback disk(public)
+            $path = storage_path('app/public/rutas/' . $filename);
+            if(!file_exists($path)) abort(404);
+        }
+    }
+    return response()->file($path, [
+        'Content-Type' => 'application/vnd.google-earth.kmz',
+        'Access-Control-Allow-Origin' => '*',
+    ]);
+})->where('filename', '.*');

@@ -93,7 +93,11 @@ class Ruta extends Model implements Auditable
     protected $fillable = [
         'name',
         'file_name',
-        'empresa_id',
+        'estado',
+    ];
+
+    protected $casts = [
+        'estado' => 'boolean',
     ];
 
     // Relación con el modelo empresas

@@ -6,6 +6,7 @@ use App\Http\Requests\StoreSeguimEstadoVehRequest;
 use App\Http\Requests\UpdateSeguimEstadoVehRequest;
 
 use App\Enums\Tablas;
+use App\Models\Ruta;
 use App\Models\SeguimientoEstadoVehiculo;
 use Illuminate\Http\Request;
 
@@ -115,6 +116,15 @@ class SeguimEstadoVehController extends Controller
      */
     public function store(StoreSeguimEstadoVehRequest $request)
     {
+        if ($request->has('ruta_id')) {
+            $ruta = Ruta::find($request->ruta_id);
+            if ($ruta && $ruta->estado === false) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "No se puede asignar el vehículo a la ruta [{$ruta->name}] porque se encuentra INACTIVA."
+                ], 422);
+            }
+        }
 
         return parent::baseStore($request);
     }
@@ -143,6 +153,15 @@ class SeguimEstadoVehController extends Controller
      */
     public function edit(string $id, UpdateSeguimEstadoVehRequest $request)
     {
+        if ($request->has('ruta_id')) {
+            $ruta = Ruta::find($request->ruta_id);
+            if ($ruta && $ruta->estado === false) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "No se puede actualizar la asignación a la ruta [{$ruta->name}] porque se encuentra INACTIVA."
+                ], 422);
+            }
+        }
 
         return parent::baseUpdate($id, $request);
     }

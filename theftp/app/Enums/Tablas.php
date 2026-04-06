@@ -20,6 +20,7 @@ enum Tablas: string {
     case ROL = 'rol';
     case ROLES_MENUS = 'roles_menus';
     case RUTAS = 'rutas';
+    case PARADEROS = 'paraderos';
     case SEGUIM_ESTADO_VEH = 'seguim_estado_veh';
     case SEGUIM_GPS = 'seguim_gps';
     case NOVEDADES_CONDUCTORES = 'novedades_conductores';

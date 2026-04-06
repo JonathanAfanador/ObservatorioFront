@@ -1,41 +1,56 @@
 <x-layouts.dashboard>
 
-    {{-- Estilos específicos para este panel de supervisión (badges, tarjetas y estadísticas) --}}
+    {{-- Estilos específicos Premium Institucional (Gobierno / Autoridad) --}}
     <style>
         /* Estilo base para pequeñas etiquetas de estado */
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        /* Etiqueta de estado "correcto" o "vigente" */
-        .badge-success { background-color: #dcfce7; color: #166534; }
-        /* Etiqueta de estado "pendiente" o de advertencia */
-        .badge-warning { background-color: #fef3c7; color: #92400e; }
-        /* Tarjeta genérica de contenido con fondo blanco y sombra suave */
-        .content-card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
-        /* Contenedor de estadísticas en formato de grid (3 columnas) */
-        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
-        /* Caja individual de estadística con fondo gris claro y borde sutil */
-        .stat-box { background: #f8fafc; padding: 1.5rem; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
+        .badge { padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block; letter-spacing: 0.05em; text-transform: uppercase; }
+        .badge-success { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .badge-warning { background-color: #fefce8; color: #854d0e; border: 1px solid #fef08a; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        
+        /* Tarjeta Genérica Corporativa */
+        .content-card { 
+            background: #ffffff; 
+            padding: 2rem; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); 
+            border: 1px solid #f1f5f9;
+            margin-bottom: 2rem; 
+        }
+        
+        /* Contenedor de estadísticas - Grid moderno */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        
+        /* Caja individual de estadística */
+        .stat-box { 
+            background: linear-gradient(to bottom right, #ffffff, #f8fafc); 
+            padding: 2rem; 
+            border-radius: 16px; 
+            border: 1px solid #e2e8f0; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; align-items: start; gap: 0.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-box:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .stat-box h3 { font-size: 0.875rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+        
         /* Número grande de la estadística principal */
-        .stat-number { font-size: 2rem; font-weight: bold; color: #2563eb; }
-        /* Utilidad para fondos degradados: azul */
-        .stat-number { font-size: 2rem; font-weight: bold; color: #2563eb; }
-        .bg-gradient-to-br.from-blue-500.to-blue-700 { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-        /* Utilidad para fondos degradados: morado */
-        .bg-gradient-to-br.from-purple-500.to-purple-700 { background: linear-gradient(135deg, #a855f7, #7e22ce); }
-        /* Utilidad para fondos degradados: verde esmeralda */
-        .bg-gradient-to-br.from-emerald-500.to-emerald-700 { background: linear-gradient(135deg, #10b981, #047857); }
-        /* Utilidad para texto blanco sobre fondos oscuros o degradados */
-        .text-white { color: #fff; }
-        /* Borde redondeado grande para tarjetas y contenedores */
-        .rounded-xl { border-radius: 0.75rem; }
-        /* Sombra más marcada para dar relieve */
-        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        /* Espaciado interno estándar (24px) */
-        .p-6 { padding: 1.5rem; }
-        /* Tamaño de fuente grande (títulos de estadísticas) */
-        .p-6 { padding: 1.5rem; }
-        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
-        /* Utilidad para tipografía en negrita */
-        .font-bold { font-weight: 700; }
+        .stat-number { font-size: 2.5rem; font-weight: 800; color: #1e293b; line-height: 1; }
+        
+        /* Tabla DataGrid Premium */
+        .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .modern-table th { background: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 1rem; border-bottom: 2px solid #e2e8f0; text-align: left; letter-spacing: 0.05em; }
+        .modern-table td { padding: 1rem; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
+        .modern-table tr:hover td { background-color: #f8fafc; }
+        
+        /* Títulos */
+        .text-2xl { font-size: 1.5rem; color: #0f172a; font-weight: 800; letter-spacing: -0.025em; }
+        .text-xl { font-size: 1.25rem; color: #1e293b; font-weight: 700; letter-spacing: -0.015em; }
+        
+        /* Base de Scrollbars Finos */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 
     {{-- Contenedor global donde se inyectan notificaciones flotantes (éxito, error, etc.) --}}
@@ -99,17 +114,115 @@
         </div>
     </div>
 
-    {{-- Vista de validación de rutas reportadas por las empresas --}}
+    {{-- Vista MAESTRA de Rutas (Dueño del Mapa y Lógica Espacial) --}}
     <div id="view-rutas" class="dashboard-view" style="display: none;">
-        <div class="content-card">
-            <h3 class="text-xl font-semibold mb-4">Validación de Rutas</h3>
-            <p class="text-sm text-gray-600 mb-4">
-                Revise las rutas registradas por las empresas. Al hacer clic en "Aprobar", se marcará la ruta como verificada visiblemente para la empresa.
-            </p>
+        <div class="content-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; min-height: 700px;">
+            <!-- Header Inteligente -->
+            <div style="padding: 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc;">
+                <div>
+                    <h3 class="font-bold text-slate-800" style="font-size: 1.25rem;">Gestor Maestro Cartográfico</h3>
+                    <p class="text-sm text-slate-500 mt-1">
+                        Cargue, oficialice y asigne las rutas operativas a las empresas. Todos los cambios impactarán en tiempo real a los ciudadanos (Landing/App) y Empresas.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <!-- Botón para subir nuevo trazado (abre modal) -->
+                    <button onclick="document.getElementById('modal-secretaria-ruta').style.display='flex'" class="btn-primary" style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Cargar / Oficializar KMZ
+                    </button>
+                </div>
+            </div>
 
-            {{-- Tabla dinámica con el listado de rutas pendientes o validadas --}}
-            <div id="rutas-validation-table" class="overflow-x-auto">
-                Cargando rutas...
+            <!-- Cuerpo del Mapa y Panel Lateral -->
+            <div style="display: flex; flex: 1;">
+                <!-- Panel izquierdo: Listado de Rutas Maestras -->
+                <div style="width: 350px; background: white; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column;">
+                    <div style="padding: 1rem; border-bottom: 1px solid #e2e8f0;">
+                        <input type="text" id="secretaria-rutas-search" placeholder="Buscar ruta..." class="w-full border-gray-300 rounded-md shadow-sm text-sm" onkeyup="filterRutasList(this.value)">
+                    </div>
+                    <div id="secretaria-rutas-list" style="overflow-y: auto; flex: 1; padding: 0.5rem;">
+                        <div class="p-4 text-center text-gray-500 text-sm">Cargando rutas maestras...</div>
+                    </div>
+                </div>
+
+                <!-- Visor GIS (Mapa) -->
+                <div style="flex: 1; position: relative;" id="secretaria-rutas-map-container">
+                    <div id="secretaria-rutas-map" style="width: 100%; height: 100%; min-height: 500px; z-index: 1;"></div>
+                    <div style="position: absolute; bottom: 20px; right: 20px; z-index: 1000; background: white; padding: 0.75rem 1rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                        <span class="text-xs font-bold text-slate-800 uppercase tracking-widest">Motor Observatorio GIS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- MODAL: Crear/Editar Ruta y Subir Archivo --}}
+        <div id="modal-secretaria-ruta" class="modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+            <div class="modal-content" style="background:#fff; border-radius:12px; width:100%; max-width:600px; max-height:90vh; display:flex; flex-direction:column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                    <h2 class="text-xl font-bold text-slate-800">Oficializar Ruta (KMZ)</h2>
+                    <button type="button" onclick="document.getElementById('modal-secretaria-ruta').style.display='none'" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem; overflow-y: auto;">
+                    <form id="form-secretaria-ruta" class="flex flex-col gap-5">
+                        <input type="hidden" id="ruta-id">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Nombre Oficial de la Ruta</label>
+                            <input type="text" id="ruta-nombre" class="w-full border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="Ej: Ruta 101 - Centro / Norte" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Asignar a Empresa Operadora</label>
+                            <select id="ruta-empresas" class="w-full border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2" required>
+                                <option value="">Seleccione una empresa...</option>
+                                <!-- Llenado dinámico -->
+                            </select>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 1.5rem; text-align: center;">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Archivo Satelital (KMZ/KML)</label>
+                            <input type="file" id="ruta-file" accept=".kml,.kmz" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer mx-auto">
+                            <p class="text-xs text-slate-500 mt-3">El sistema extraerá automáticamente el recorrido de la línea y cualquier punto marcado como "Paradero" o "Station".</p>
+                        </div>
+                        <div class="flex justify-end gap-3 mt-4">
+                            <button type="button" class="btn-secondary" onclick="document.getElementById('modal-secretaria-ruta').style.display='none'">Cancelar</button>
+                            <button type="submit" class="btn-primary shadow-md">Oficializar y Procesar Red</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {{-- MODAL: Gestión y Carga Masiva de Paraderos (Bulk) --}}
+        <div id="modal-secretaria-paraderos" class="modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+            <div class="modal-content" style="background:#fff; border-radius:12px; width:100%; max-width:600px; max-height:90vh; display:flex; flex-direction:column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <span>Gestión de Paraderos Oficiales</span>
+                    </h2>
+                    <button type="button" onclick="document.getElementById('modal-secretaria-paraderos').style.display='none'" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem; overflow-y: auto;">
+                    <div class="mb-4">
+                        <p class="text-sm text-slate-600">Ruta Seleccionada: <strong id="paradero-ruta-name" class="text-indigo-700"></strong></p>
+                    </div>
+
+                    <form id="form-secretaria-paraderos" class="flex flex-col gap-5">
+                        <input type="hidden" id="paradero-ruta-id">
+                        
+                        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 1.5rem; text-align: center;">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Subir Archivo de Marcadores (KMZ/KML)</label>
+                            <input type="file" id="paradero-file" accept=".kml,.kmz" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer mx-auto">
+                            <p class="text-xs text-slate-500 mt-3">El sistema extraerá cada PUNTO del archivo, lo sincronizará a la red y reemplazará los anteriores. Esta operación guardará las latitudes y longitudes exactas en la BD.</p>
+                        </div>
+                        
+                        <div class="flex justify-end gap-3 mt-2">
+                            <button type="button" class="btn-secondary" onclick="document.getElementById('modal-secretaria-paraderos').style.display='none'">Cancelar</button>
+                            <button type="submit" class="btn-primary shadow-md">Procesar Nodos GPS</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -142,13 +255,48 @@
     {{-- Vista para revisión de documentación vehicular (SOAT, Tecnomecánica) --}}
     <div id="view-vehiculos" class="dashboard-view" style="display: none;">
         <div class="content-card">
-            <h3 class="text-xl font-semibold mb-4">Revisión de Documentación Vehicular</h3>
+            <h3 class="text-xl font-semibold mb-4">Auditoría Clínica de Vehículos</h3>
             <p class="text-sm text-gray-600 mb-6">
-                Revise los documentos SOAT y Tecnomecánica cargados por las empresas. Apruebe o rechace el servicio del vehículo según la documentación presentada.
+                Como Autoridad, puede visualizar la vigencia documental (SOAT y Tecno) exigida a las empresas operadoras. Aquellos vehículos que no cumplan la normativa técnica deberán ser <span class="font-bold text-red-600">Inmovilizados (Vetados)</span> impidiendo su uso operativo.
             </p>
 
             <div id="vehiculos-review-table" class="overflow-x-auto text-sm">
                 Cargando vehículos para revisión...
+            </div>
+        </div>
+
+        {{-- MODAL: Inmovilizar y Rechazar Vehículo --}}
+        <div id="modal-rechazo-vehiculo" class="modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+            <div class="modal-content" style="background:#fff; border-radius:12px; width:100%; max-width:500px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <h2 class="text-xl font-bold text-red-700 flex items-center gap-2 mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Inmovilizar Vehículo Oficialmente
+                </h2>
+                <div class="bg-red-50 text-red-800 text-sm p-3 rounded-md mb-4 border border-red-200">
+                    Está a punto de revocar el permiso de operación del vehículo <strong id="placa-rechazo"></strong>. La empresa no podrá despachar este bus hasta que subsane la irregularidad.
+                </div>
+                
+                <form id="form-rechazo-vehiculo" class="flex flex-col gap-4">
+                    <input type="hidden" id="vehiculo-id-rechazo">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Motivo Legal / Técnico de la Suspensión</label>
+                        <select id="motivo-rechazo" class="w-full border-slate-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 text-sm py-2 mb-3" required>
+                            <option value="">Seleccione el causal dictaminado...</option>
+                            <option value="SOAT Inválido o Vencido">SOAT Inválido, Vencido o No Coincidente</option>
+                            <option value="Tecnomecánica Vencida">Revisión Técnico Mecánica Vencida</option>
+                            <option value="Documentación Falsa">Presunción de Documentación Falsa / Adulterada</option>
+                            <option value="Rechazo Administrativo Directo">Rechazo Administrativo Directo por Infracción</option>
+                            <option value="Otro motivo de inmovilización">Otro motivo normativo...</option>
+                        </select>
+                        <textarea id="detalle-rechazo" rows="3" class="w-full border-slate-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Añade un comentario (visible para la empresa) o la resolución asociada..."></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-2">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('modal-rechazo-vehiculo').style.display='none'">Abortar</button>
+                        <button type="submit" class="bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
+                            Proceder con Inmovilización
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

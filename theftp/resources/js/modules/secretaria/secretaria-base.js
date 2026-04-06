@@ -70,7 +70,14 @@ window.apiCall = async function (endpoint, method = 'GET', body = null, isFile =
     }
 
     try {
-        const url = `/api${endpoint}`;
+        let url = `/api${endpoint}`;
+
+        // Cache-busting para peticiones GET (evita errores 404 por datos obsoletos)
+        if (method.toUpperCase() === 'GET') {
+            const sep = url.includes('?') ? '&' : '?';
+            url += `${sep}_t=${new Date().getTime()}`;
+        }
+
         const res = await fetch(url, config);
 
         // Manejo de token expirado o sesión no iniciada
@@ -109,3 +116,39 @@ window.apiCall = async function (endpoint, method = 'GET', body = null, isFile =
         return null;
     }
 };
+
+window.normalizeList = function (resp) {
+  if (!resp) return [];
+  if (Array.isArray(resp)) return resp;
+  // Estructura { data: [...] }
+  if (Array.isArray(resp.data)) return resp.data;
+  // Estructura { data: { data: [...] } }
+  if (resp.data && Array.isArray(resp.data.data)) return resp.data.data;
+  // Estructura paginada { current_page, data: [...] }
+  if (resp.current_page && Array.isArray(resp.data)) return resp.data;
+  // Buscar el primer array de objetos dentro del objeto
+  const values = Object.values(resp);
+  for (const v of values) {
+    if (Array.isArray(v) && v.length && typeof v[0] === 'object') {
+      return v;
+    }
+  }
+  return [];
+};
+
+window.getSafeData = function (obj, path, defaultValue = 'N/A') {
+  const keys = path.split('.');
+  let result = obj;
+  for (const key of keys) {
+    result = result?.[key];
+    if (result === null || result === undefined) {
+      return defaultValue;
+    }
+  }
+  return result || defaultValue;
+};
+
+// Backwards compatibility con la nueva arquitectura
+window.apiGet = async function (path) { return window.apiCall(path, 'GET'); };
+window.apiPost = async function (path, data) { return window.apiCall(path, 'POST', data); };
+window.apiPut = async function (path, data) { return window.apiCall(path, 'PUT', data); };

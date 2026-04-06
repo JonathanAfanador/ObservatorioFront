@@ -175,7 +175,9 @@ async function loadVehiculos() {
     // Solo asignaciones ACTIVAS (sin fecha de fin)
     if (a.vehiculo_id && !a.fecha_hora_fin) {
       const ruta = a.ruta || {};
-      vehiculoRutaMap[a.vehiculo_id] = ruta.nombre || ruta.name || ruta.descripcion || 'Ruta';
+      const rutaNombre = ruta.nombre || ruta.name || ruta.descripcion || 'Ruta';
+      const statusBadge = ruta.estado === false ? ' [INACTIVA]' : '';
+      vehiculoRutaMap[a.vehiculo_id] = rutaNombre + statusBadge;
     }
   });
 

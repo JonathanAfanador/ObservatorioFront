@@ -120,9 +120,9 @@ class VehiculoController extends Controller
 
         // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA ---
         // Asignación forzosa de la empresa actual al registro que se va a crear.
-        // Solo un administrador (Rol 1 o 6) puede asignar manualmente el empresa_id.
+        // Solo un administrador (Rol 1 o 6) o Secretaría (Rol 2) puede asignar manualmente el empresa_id.
         $user = auth()->user();
-        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value])) {
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value, \App\Enums\RolesEnum::SECRETARIA->value])) {
             $request->merge(['empresa_id' => $user->empresa_id]);
         }
         // --------------------------------------------------------
@@ -160,7 +160,7 @@ class VehiculoController extends Controller
 
         // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (UPDATE) ---
         $user = auth()->user();
-        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value])) {
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value, \App\Enums\RolesEnum::SECRETARIA->value])) {
             $request->merge(['empresa_id' => $user->empresa_id]);
         }
         // -----------------------------------------------------------------

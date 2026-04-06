@@ -18,8 +18,8 @@ class TenantScope implements Scope
         if (Auth::check()) {
             $user = Auth::user();
 
-            // 2. Si es Admin (Rol 1) o SubAdmin (Rol 6), lo dejamos ver TODO (no aplicamos filtro)
-            if (in_array($user->rol_id, [1, 6])) {
+            // 2. Si es Admin (Rol 1), SubAdmin (Rol 6), o Secretaría (Rol 2), lo dejamos ver TODO
+            if (in_array($user->rol_id, [1, 2, 6])) {
                 return;
             }
 
