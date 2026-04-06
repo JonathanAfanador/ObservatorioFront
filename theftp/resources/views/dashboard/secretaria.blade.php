@@ -51,6 +51,21 @@
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Estilos específicos para el Visor de PDF */
+        #modal-view-pdf .modal-content {
+            width: 95%;
+            height: 90vh;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+        }
+        #modal-view-pdf iframe {
+            flex: 1;
+            border: none;
+            width: 100%;
+            border-radius: 0 0 8px 8px;
+        }
     </style>
 
     {{-- Contenedor global donde se inyectan notificaciones flotantes (éxito, error, etc.) --}}
@@ -83,34 +98,70 @@
     {{-- Vista para gestión de resoluciones: subida de PDF y listado histórico --}}
     <div id="view-resoluciones" class="dashboard-view" style="display: none;">
         <div class="content-card">
-            <h3 class="text-xl font-semibold mb-4">Subir Nueva Resolución</h3>
-            {{-- Formulario para registrar una nueva resolución con detalle y archivo PDF --}}
-            <form id="form-resolucion" class="flex flex-col gap-4">
+            <div class="flex justify-between items-center mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Detalle / Número de Resolución</label>
-                    <input type="text" id="res-obs" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Ej: Resolución No. 005 - Aprobación tarifas" required>
+                    <h3 class="text-xl font-semibold">Gestión de Resoluciones</h3>
+                    <p class="text-sm text-gray-500 mt-1">Historial oficial de actos administrativos y circulares.</p>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Empresa Destino</label>
-                    <select id="res-empresa" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-white">
-                        <option value="">Cargando empresas...</option>
-                    </select>
-                    <small class="text-gray-500 text-xs">Seleccione la empresa a la que aplica. Deje en "General" para que sea visible para todas.</small>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Archivo PDF</label>
-                    {{-- Campo para adjuntar el documento oficial de la resolución --}}
-                    <input type="file" id="res-file" accept="application/pdf" class="mt-1 block w-full" required>
-                </div>
-                {{-- Botón para enviar el formulario y subir el documento --}}
-                <button type="submit" class="btn-primary self-start">Subir Documento</button>
-            </form>
-        </div>
+                {{-- Botón para abrir modal de carga --}}
+                <button onclick="document.getElementById('modal-upload-resolucion').style.display='flex'" class="btn-primary flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Nueva Resolución
+                </button>
+            </div>
 
-        <div class="content-card">
-            <h3 class="text-xl font-semibold mb-4">Historial de Resoluciones</h3>
             {{-- Aquí se renderiza dinámicamente la lista de resoluciones ya registradas --}}
             <div id="lista-resoluciones">Cargando...</div>
+        </div>
+
+        {{-- MODAL: Subir Nueva Resolución --}}
+        <div id="modal-upload-resolucion" class="modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+            <div class="modal-content" style="background:#fff; border-radius:12px; width:100%; max-width:550px; display:flex; flex-direction:column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                    <h2 class="text-xl font-bold text-slate-800">Nueva Resolución Oficial</h2>
+                    <button type="button" onclick="document.getElementById('modal-upload-resolucion').style.display='none'" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem;">
+                    <form id="form-resolucion" class="flex flex-col gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Detalle / Número de Resolución</label>
+                            <input type="text" id="res-obs" class="w-full border-gray-300 rounded-md shadow-sm text-sm" placeholder="Ej: Resolución No. 005 - Aprobación tarifas" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Empresa Destino</label>
+                            <select id="res-empresa" class="w-full border-gray-300 rounded-md shadow-sm bg-white text-sm py-2">
+                                <option value="">-- General (Para todas) --</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Si es para una empresa específica, selecciónela aquí. Si no, quedará disponible para todas.</p>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 1.5rem; text-align: center;">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Archivo PDF Oficial</label>
+                            <input type="file" id="res-file" accept="application/pdf" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer mx-auto" required>
+                            <p class="text-xs text-slate-500 mt-2">Máximo 10MB. Solo formato PDF.</p>
+                        </div>
+                        <div class="flex justify-end gap-3 mt-4">
+                            <button type="button" class="btn-secondary" onclick="document.getElementById('modal-upload-resolucion').style.display='none'">Cancelar</button>
+                            <button type="submit" class="btn-primary shadow-md">Subir y Publicar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- MODAL: Visor de PDF Interno --}}
+        <div id="modal-view-pdf" class="modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+            <div class="modal-content" style="background:#fff; border-radius:12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <div class="modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                    <h2 id="pdf-viewer-title" class="text-lg font-bold text-slate-800">Vista Previa de Documento</h2>
+                    <button type="button" onclick="closePdfViewer()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        Cerrar
+                    </button>
+                </div>
+                <iframe id="pdf-viewer-frame" src="about:blank"></iframe>
+            </div>
         </div>
     </div>
 
@@ -227,13 +278,41 @@
         </div>
     </div>
 
-    {{-- Vista para reportes agregados por empresa (capacidad, flota, etc.) --}}
+    {{-- Vista para reportes detallados por empresa (auditoría de flota y rutas) --}}
     <div id="view-empresas" class="dashboard-view" style="display: none;">
         <div class="content-card">
-            <h3 class="text-xl font-semibold mb-4">Reporte de Capacidad por Empresa</h3>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold">Reporte de empresas</h3>
+                    <p class="text-sm text-gray-500 mt-1">Supervisión integral de flota vehicular y rutas asignadas.</p>
+                </div>
+                {{-- Buscador dinámico y Botón de Reporte --}}
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <div class="relative w-full md:w-72">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </span>
+                        <input type="text" id="search-empresas-audit" 
+                            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                            placeholder="Buscar por NIT o Nombre..."
+                            onkeyup="filterEmpresasTable(this.value)">
+                    </div>
+                    <button onclick="downloadGeneralReport()" 
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Descargar Reporte
+                    </button>
+                </div>
+            </div>
+
             {{-- Contenedor donde se pintan los datos resumidos por empresa --}}
-            <div id="empresas-report-table">
-                Cargando datos...
+            <div class="overflow-x-auto shadow-sm rounded-xl border border-slate-100">
+                <div id="empresas-report-table" class="min-w-full">
+                    <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+                        <svg class="w-12 h-12 mb-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <p>Generando reporte de auditoría...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
