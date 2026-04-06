@@ -66,6 +66,36 @@
             width: 100%;
             border-radius: 0 0 8px 8px;
         }
+
+        /* --- ESTILOS DE AUDITORÍA (Diseño Minimalista Unificado) --- */
+        .audit-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .audit-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .audit-badge.verified { background: #f0fdf4; color: #166534; }
+        .audit-badge.verified::before { background: #22c55e; }
+        
+        .audit-badge.pending { background: #fffbeb; color: #92400e; }
+        .audit-badge.pending::before { background: #f59e0b; }
+        
+        .audit-badge.rejected { background: #fdf2f2; color: #991b1b; }
+        .audit-badge.rejected::before { background: #ef4444; }
     </style>
 
     {{-- Contenedor global donde se inyectan notificaciones flotantes (éxito, error, etc.) --}}
@@ -320,13 +350,30 @@
     {{-- Vista para auditoría y verificación de licencias por la Secretaría --}}
     <div id="view-licencias" class="dashboard-view" style="display: none;">
         <div class="content-card">
-            <h3 class="text-xl font-semibold mb-4">Auditoría de Licencias de Conducción</h3>
-            <p class="text-sm text-gray-600 mb-6">
-                Listado centralizado de licencias registradas por todas las empresas. Verifique la vigencia y autenticidad en RUNT antes de marcar como "Verificada".
-            </p>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold">Verificación de licencias</h3>
+                    <p class="text-sm text-gray-500 mt-1">Auditoría de conductores y categorías habilitadas (C1/C2).</p>
+                </div>
+                {{-- Buscador de Licencias --}}
+                <div class="relative w-full md:w-72">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </span>
+                    <input type="text" id="search-licencias-audit" 
+                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                        placeholder="Buscar por Conductor o Nro..."
+                        onkeyup="filterLicenciasAudit(this.value)">
+                </div>
+            </div>
 
-            <div id="licencias-audit-table" class="overflow-x-auto text-sm">
-                Cargando licencias para auditoría...
+            <div class="overflow-x-auto shadow-sm rounded-xl border border-slate-100">
+                <div id="licencias-audit-table" class="min-w-full">
+                    <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+                        <svg class="w-12 h-12 mb-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        <p>Sincronizando licencias de conductores...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -376,6 +423,130 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL: Verificación Detallada de Licencia (Auditoría) --}}
+    <div id="modal-verificar-licencia" class="modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+        <!-- Estilos para Modo Enfoque (Locales) -->
+        <style>
+            .audit-modal-focused #licencia-audit-details, 
+            .audit-modal-focused .modal-header,
+            .audit-modal-focused #audit-verdict-footer { 
+                display: none !important; 
+            }
+            .audit-modal-focused .modal-content { 
+                height: 98vh !important; 
+                width: 98vw !important; 
+                max-width: none !important; 
+                max-height: none !important;
+            }
+            .btn-focus-active {
+                background-color: #4f46e5 !important;
+                color: white !important;
+            }
+        </style>
+
+        <div class="modal-content transition-all duration-300" style="background:#fff; border-radius:16px; width:98%; max-width:1450px; height:92vh; max-height:1000px; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.45); border: 1px solid #e2e8f0;">
+            <!-- HEADER: Título y Cierre -->
+            <div class="modal-header px-6 py-3 border-b border-gray-100 flex justify-between items-center bg-white flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Centro de Auditoría: Documentación de Conductor</h3>
+                </div>
+                <button type="button" class="text-slate-300 hover:text-slate-600 transition-colors text-2xl leading-none" onclick="closeModalVerificarLicencia()">&times;</button>
+            </div>
+
+            <!-- BARRA DE INFORMACIÓN SUPERIOR (HORIZONTAL) -->
+            <div id="licencia-audit-details" class="px-6 py-3 bg-slate-50/80 border-b border-gray-100 flex flex-wrap items-center gap-x-8 gap-y-2 flex-shrink-0">
+                <!-- Se llena dinámicamente con píldoras de información -->
+            </div>
+
+            <!-- CUERPO PRINCIPAL (100% ANCHO PARA EL PDF) -->
+            <div class="modal-body p-0 overflow-hidden flex flex-col flex-grow min-h-0 bg-slate-200/50">
+                <!-- Pestañas Integradas (Minimizadas) -->
+                <div class="flex bg-white/80 backdrop-blur-sm border-b border-slate-200 px-6 gap-6 flex-shrink-0">
+                    <button onclick="switchLicenciaTab('documento')" id="tab-doc" class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest border-b-2 border-indigo-600 text-indigo-600 transition-all">Documento Soporte (PDF)</button>
+                    <button onclick="switchLicenciaTab('historial')" id="tab-hist" class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-indigo-600 transition-all">Historial de Novedades</button>
+                    
+                    <div class="ml-auto flex items-center gap-2">
+                        <!-- BOTÓN MODO ENFOQUE -->
+                        <button onclick="toggleAuditFocus()" id="btn-focus-mode" class="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-slate-200 text-slate-400 font-bold text-[9px] hover:border-indigo-300 hover:text-indigo-600 transition-all">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                            MODO ENFOQUE
+                        </button>
+
+                        <a id="btn-download-licencia" href="#" target="_blank" class="text-indigo-600 text-[10px] font-bold flex items-center gap-1.5 hover:bg-indigo-50 px-3 py-1 rounded-lg transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V3"></path></svg>
+                            DESCARGAR PDF
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Visor PDF (Ancho Completo) -->
+                <div id="licencia-pane-documento" class="flex-grow flex flex-col h-full relative">
+                    <!-- BOTÓN SALIR MODO ENFOQUE (Solo visible en focus) -->
+                    <button onclick="toggleAuditFocus()" class="absolute top-4 right-8 z-[60] bg-slate-800/80 text-white p-2 px-4 rounded-full text-[10px] font-bold shadow-2xl backdrop-blur-md hover:bg-slate-900 transition-all hidden group-[.audit-modal-focused]:flex items-center gap-2" id="btn-exit-focus">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        SALIR DEL MODO ENFOQUE
+                    </button>
+
+                    <div id="licencia-pdf-viewer" class="flex-grow w-full h-full bg-slate-300 shadow-inner">
+                        <!-- Iframe se inyecta aquí -->
+                    </div>
+                </div>
+
+                <!-- Historial (Ancho Completo si se activa) -->
+                <div id="licencia-pane-historial" class="flex-grow p-8 overflow-y-auto hidden bg-white">
+                    <div class="max-w-4xl mx-auto">
+                        <h4 class="font-bold text-slate-800 mb-6 text-sm uppercase tracking-widest flex items-center gap-2">
+                             <span class="w-2 h-6 bg-amber-400 rounded-full"></span>
+                             Reportes de Inactividad y Novedades (Empresa)
+                        </h4>
+                        <div id="licencia-novedades-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Lista de novedades -->
+                        </div>
+                    </div>
+                </div>
+            </div><!-- End .modal-body -->
+
+            <!-- FOOTER: Dictamen de Auditoría (Compacto y siempre visible) -->
+            <div id="audit-verdict-footer" class="bg-indigo-50 border-t border-indigo-100 p-3 px-6 flex flex-col md:flex-row items-center justify-between gap-4 z-50 shadow-[0_-15px_30px_rgba(79,70,229,0.12)] shrink-0">
+                <div class="flex flex-col md:flex-row items-center gap-4 flex-grow">
+                    <div class="flex items-center gap-3 bg-white p-2 px-4 rounded-xl shadow-sm border border-indigo-100 shrink-0">
+                        <label class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mr-2 border-r pr-3">Veredicto</label>
+                        <div class="flex items-center gap-5">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="radio" name="audit-status" value="aprobado" checked class="w-4 h-4 text-indigo-600 focus:ring-indigo-500" onchange="toggleAuditRejection(false)">
+                                <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">APROBAR (VERIFICADO)</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="radio" name="audit-status" value="rechazado" class="w-4 h-4 text-red-600 focus:ring-red-500" onchange="toggleAuditRejection(true)">
+                                <span class="text-xs font-bold text-red-600 group-hover:text-red-700 transition-colors">RECHAZAR / INACTIVAR</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="audit-rejection-box" style="display: none;" class="flex-grow animate-in fade-in slide-in-from-bottom-2">
+                        <textarea id="audit-rejection-reason" rows="1" 
+                            class="w-full text-xs border-red-200 rounded-lg focus:ring-red-500 focus:border-red-500 placeholder-red-300 bg-white shadow-inner py-2"
+                            placeholder="Describa el motivo obligatorio para la inactivación automática..."></textarea>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 w-full md:w-auto shrink-0 border-l pl-6 border-indigo-100 ml-2">
+                    <button type="button" onclick="closeModalVerificarLicencia()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">
+                        Cancelar
+                    </button>
+                    <button onclick="submitVerificacionLicencia()" id="btn-submit-verificacion"
+                        class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center gap-2 uppercase tracking-widest">
+                        <span>Finalizar Auditoría</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

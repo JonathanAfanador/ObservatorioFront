@@ -246,10 +246,16 @@ async function openModalAsignacion() {
   });
   vList.forEach(v => { selectVeh.innerHTML += `<option value="${v.id}">${v.placa}</option>`; });
 
-  const conductores = await apiGet('/conductores?include=persona');
+  const conductores = await apiGet('/conductores?include=persona,licencias');
   const selectCond = document.getElementById('asignacion-conductor');
   selectCond.innerHTML = '<option value="">Seleccione</option>';
-  normalizeList(conductores).filter(c => c.estado !== false && c.estado !== 0).forEach(c => {
+  
+  normalizeList(conductores).filter(c => {
+    const isActivo = c.estado !== false && c.estado !== 0 && String(c.estado) !== '0';
+    // Seguridad: Debe tener al menos una licencia VERIFICADA por la secretaría
+    const tieneLicenciaVerificada = (c.licencias || []).some(lic => lic.verificado_secretaria === true || lic.verificado_secretaria === 1);
+    return isActivo && tieneLicenciaVerificada;
+  }).forEach(c => {
     const p = c.persona || {};
     selectCond.innerHTML += `<option value="${c.id}">${p.name || ''} ${p.last_name || ''}</option>`;
   });
@@ -317,9 +323,17 @@ async function saveAsignacion(e) {
 async function setupAsignacionesFilters() {
   const sv = document.getElementById('filter-asig-vehiculo');
   if (!sv || sv.options.length > 1) return;
-  const [vR, cR, rR] = await Promise.all([apiGet('/vehiculos'), apiGet('/conductores?include=persona'), apiGet('/rutas')]);
+  const [vR, cR, rR] = await Promise.all([apiGet('/vehiculos'), apiGet('/conductores?include=persona,licencias'), apiGet('/rutas')]);
   normalizeList(vR).forEach(v => { sv.innerHTML += `<option value="${v.id}">${v.placa}</option>`; });
-  normalizeList(cR).forEach(c => { document.getElementById('filter-asig-conductor').innerHTML += `<option value="${c.id}">${c.persona?.name || ''}</option>`; });
+  
+  // Filtro de búsqueda: Solo mostrar los que están habilitados (Activos + Verificados)
+  normalizeList(cR).filter(c => {
+    const isActivo = c.estado !== false && c.estado !== 0 && String(c.estado) !== '0';
+    const tieneLicenciaVerificada = (c.licencias || []).some(lic => lic.verificado_secretaria === true || lic.verificado_secretaria === 1);
+    return isActivo && tieneLicenciaVerificada;
+  }).forEach(c => { 
+    document.getElementById('filter-asig-conductor').innerHTML += `<option value="${c.id}">${c.persona?.name || ''} ${c.persona?.last_name || ''}</option>`; 
+  });
   
   const sr = document.getElementById('filter-asig-ruta');
   if (sr) {

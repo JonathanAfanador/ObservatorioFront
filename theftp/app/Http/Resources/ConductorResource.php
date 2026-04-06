@@ -4,6 +4,8 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\LicenciaResource;
+use App\Http\Resources\PersonaResource;
 
 class ConductorResource extends JsonResource
 {
@@ -19,6 +21,8 @@ class ConductorResource extends JsonResource
             'licencia_id' => $this->licencia_id,
             'persona_id' => $this->persona_id,
             'empresa_id' => $this->empresa_id,
+            'estado' => (bool)$this->estado,
+            'motivo_estado' => $this->motivo_estado,
             
             // Fechas formateadas
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
@@ -27,6 +31,7 @@ class ConductorResource extends JsonResource
             
             // Relaciones
             'persona' => new PersonaResource($this->whenLoaded('persona')),
+            'licencias' => LicenciaResource::collection($this->whenLoaded('licencias')),
         ];
     }
 }

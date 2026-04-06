@@ -113,4 +113,12 @@ class Conductor extends Model implements Auditable
     {
         return $this->hasMany(NovedadConductor::class, 'conductor_id')->orderBy('fecha_inicio', 'desc');
     }
+
+    // Relación con el modelo licencias a través de la tabla pivote conductores_licencias
+    public function licencias()
+    {
+        return $this->belongsToMany(Licencia::class, 'conductores_licencias', 'conductor_id', 'licencia_id')
+                    ->withTimestamps()
+                    ->whereNull('conductores_licencias.deleted_at');
+    }
 }
