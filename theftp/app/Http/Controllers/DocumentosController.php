@@ -236,8 +236,8 @@ class DocumentosController extends Controller{
         }
 
 
-        // Almacenar el archivo localmente
-        $file = Storage::disk('local')->put(self::FOLDER, $request->file('file'));
+        // Almacenar el archivo en el disco público
+        $file = Storage::disk('public')->put(self::FOLDER, $request->file('file'));
         $request->merge(['url' => Storage::url($file)]);
 
         return parent::baseStore($request);
@@ -307,12 +307,12 @@ class DocumentosController extends Controller{
             return;
         }
 
-        // Obtener la ruta del archivo anterior
+        // Obtener la ruta del archivo anterior y eliminarlo del disco público
         $previousFilePath = str_replace('/storage/', '', $documento->url);
-        Storage::disk('local')->delete($previousFilePath);
+        Storage::disk('public')->delete($previousFilePath);
 
-        // Almacenar el nuevo archivo
-        $newFilePath = Storage::disk('local')->put(self::FOLDER, $file);
+        // Almacenar el nuevo archivo en el disco público
+        $newFilePath = Storage::disk('public')->put(self::FOLDER, $file);
         $request->merge(['url' => Storage::url($newFilePath)]);
 
         // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (UPDATE) ---
@@ -418,10 +418,10 @@ class DocumentosController extends Controller{
         }
 
         $filePath = str_replace('/storage/', '', $model->url);
-        if (!Storage::disk('local')->exists($filePath)) {
+        if (!Storage::disk('public')->exists($filePath)) {
             return response()->json(['status' => false, 'message' => 'Archivo no encontrado en el servidor.'], 404);
         }
 
-        return response()->download(storage_path('app/private/' . $filePath));
+        return response()->download(storage_path('app/public/' . $filePath));
     }
 }

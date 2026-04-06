@@ -381,48 +381,136 @@
     {{-- Vista para revisión de documentación vehicular (SOAT, Tecnomecánica) --}}
     <div id="view-vehiculos" class="dashboard-view" style="display: none;">
         <div class="content-card">
-            <h3 class="text-xl font-semibold mb-4">Auditoría Clínica de Vehículos</h3>
-            <p class="text-sm text-gray-600 mb-6">
-                Como Autoridad, puede visualizar la vigencia documental (SOAT y Tecno) exigida a las empresas operadoras. Aquellos vehículos que no cumplan la normativa técnica deberán ser <span class="font-bold text-red-600">Inmovilizados (Vetados)</span> impidiendo su uso operativo.
-            </p>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold">Auditoría Clínica de Vehículos</h3>
+                    <p class="text-sm text-gray-500 mt-1">Supervisión de vigencia documental y estado legal de la flota.</p>
+                </div>
+                {{-- Buscador de Vehículos --}}
+                <div class="relative w-full md:w-72">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </span>
+                    <input type="text" id="search-vehiculos-review" 
+                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                        placeholder="Buscar por Placa o NIT..."
+                        onkeyup="filterVehiculosReview(this.value)">
+                </div>
+            </div>
 
-            <div id="vehiculos-review-table" class="overflow-x-auto text-sm">
-                Cargando vehículos para revisión...
+            <div id="vehiculos-review-table" class="overflow-x-auto text-sm shadow-sm rounded-xl border border-slate-100">
+                <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+                    <svg class="w-12 h-12 mb-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+                    <p>Sincronizando flota vehicular...</p>
+                </div>
             </div>
         </div>
 
-        {{-- MODAL: Inmovilizar y Rechazar Vehículo --}}
-        <div id="modal-rechazo-vehiculo" class="modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
-            <div class="modal-content" style="background:#fff; border-radius:12px; width:100%; max-width:500px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-                <h2 class="text-xl font-bold text-red-700 flex items-center gap-2 mb-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Inmovilizar Vehículo Oficialmente
-                </h2>
-                <div class="bg-red-50 text-red-800 text-sm p-3 rounded-md mb-4 border border-red-200">
-                    Está a punto de revocar el permiso de operación del vehículo <strong id="placa-rechazo"></strong>. La empresa no podrá despachar este bus hasta que subsane la irregularidad.
-                </div>
+        {{-- MODAL: Centro de Auditoría Vehicular (Veredicto Único) --}}
+        <div id="modal-auditoria-vehiculo" class="modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+            <div class="modal-content transition-all duration-300" style="background:#fff; border-radius:16px; width:98%; max-width:1450px; height:92vh; max-height:1000px; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.45); border: 1px solid #e2e8f0;">
                 
-                <form id="form-rechazo-vehiculo" class="flex flex-col gap-4">
-                    <input type="hidden" id="vehiculo-id-rechazo">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Motivo Legal / Técnico de la Suspensión</label>
-                        <select id="motivo-rechazo" class="w-full border-slate-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 text-sm py-2 mb-3" required>
-                            <option value="">Seleccione el causal dictaminado...</option>
-                            <option value="SOAT Inválido o Vencido">SOAT Inválido, Vencido o No Coincidente</option>
-                            <option value="Tecnomecánica Vencida">Revisión Técnico Mecánica Vencida</option>
-                            <option value="Documentación Falsa">Presunción de Documentación Falsa / Adulterada</option>
-                            <option value="Rechazo Administrativo Directo">Rechazo Administrativo Directo por Infracción</option>
-                            <option value="Otro motivo de inmovilización">Otro motivo normativo...</option>
-                        </select>
-                        <textarea id="detalle-rechazo" rows="3" class="w-full border-slate-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Añade un comentario (visible para la empresa) o la resolución asociada..."></textarea>
+                <!-- HEADER -->
+                <div class="modal-header px-6 py-3 border-b border-gray-100 flex justify-between items-center bg-white flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Centro de Auditoría: <span id="placa-audit">---</span></h3>
                     </div>
-                    <div class="flex justify-end gap-3 mt-2">
-                        <button type="button" class="btn-secondary" onclick="document.getElementById('modal-rechazo-vehiculo').style.display='none'">Abortar</button>
-                        <button type="submit" class="bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
-                            Proceder con Inmovilización
-                        </button>
+                    <button type="button" class="text-slate-300 hover:text-slate-600 transition-colors text-2xl leading-none" onclick="document.getElementById('modal-auditoria-vehiculo').style.display='none'">&times;</button>
+                </div>
+
+                <!-- TABS -->
+                <div class="flex bg-white border-b border-slate-200 px-6 gap-6 flex-shrink-0">
+                    <button onclick="switchVehiculoTab('documentos')" id="tab-veh-doc" class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest border-b-2 border-indigo-600 text-indigo-600 transition-all">Documentación (SOAT / TECNO)</button>
+                    <button onclick="switchVehiculoTab('historial')" id="tab-veh-hist" class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-indigo-600 transition-all">Historial de Novedades</button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body flex-grow overflow-hidden flex bg-slate-50">
+                    <!-- PANEL DOCUMENTOS -->
+                    <div id="pane-veh-doc" class="flex-grow flex h-full">
+                        <!-- Columna SOAT -->
+                        <div class="w-1/2 border-r border-slate-200 flex flex-col">
+                            <div class="p-3 bg-white border-b border-slate-100 flex justify-between items-center">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Documento SOAT</span>
+                                <div id="soat-actions" class="flex gap-2"></div>
+                            </div>
+                            <div id="soat-viewer-container" class="flex-grow bg-slate-200">
+                                <div class="h-full flex items-center justify-center text-slate-400 text-xs">Cargando visor...</div>
+                            </div>
+                        </div>
+                        <!-- Columna TECNO -->
+                        <div class="w-1/2 flex flex-col">
+                            <div class="p-3 bg-white border-b border-slate-100 flex justify-between items-center">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tecnomecánica</span>
+                                <div id="tecno-actions" class="flex gap-2"></div>
+                            </div>
+                            <div id="tecno-viewer-container" class="flex-grow bg-slate-200">
+                                <div class="h-full flex items-center justify-center text-slate-400 text-xs">Cargando visor...</div>
+                            </div>
+                        </div>
                     </div>
-                </form>
+
+                    <!-- PANEL HISTORIAL -->
+                    <div id="pane-veh-hist" class="flex-grow hidden p-8 overflow-y-auto bg-white">
+                        <div class="max-w-4xl mx-auto">
+                            <h4 class="font-bold text-slate-800 mb-6 text-sm uppercase tracking-widest flex items-center gap-2">
+                                <span class="w-2 h-6 bg-red-400 rounded-full"></span>
+                                Historial Operativo e Inmovilizaciones
+                            </h4>
+                            <div id="vehiculo-novedades-list" class="grid grid-cols-1 gap-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FOOTER: VEREDICTO ÚNICO -->
+                <div class="bg-indigo-50 border-t border-indigo-100 p-4 px-6 flex flex-col md:flex-row items-center justify-between gap-4 z-50 shadow-[0_-15px_30px_rgba(79,70,229,0.12)] shrink-0">
+                    <form id="form-auditoria-vehiculo" class="w-full flex flex-col md:flex-row items-center gap-4">
+                        <input type="hidden" id="vehiculo-id-audit">
+                        
+                        <div class="flex items-center gap-3 bg-white p-2 px-4 rounded-xl shadow-sm border border-indigo-100 shrink-0">
+                            <label class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mr-2 border-r pr-3">Decisión Legal</label>
+                            <div class="flex items-center gap-5">
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <input type="radio" name="veh-audit-status" value="aprobado" checked class="w-4 h-4 text-indigo-600 focus:ring-indigo-500" onchange="toggleVehRejection(false)">
+                                    <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">Habilitar Servicio</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <input type="radio" name="veh-audit-status" value="rechazado" class="w-4 h-4 text-red-600 focus:ring-red-500" onchange="toggleVehRejection(true)">
+                                    <span class="text-xs font-bold text-red-600 group-hover:text-red-700 transition-colors uppercase">Inmovilizar</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="veh-rejection-box" style="display: none;" class="flex-grow animate-in fade-in slide-in-from-bottom-2">
+                            <div class="flex gap-2 w-full">
+                                <select id="veh-motivo-rechazo" class="text-xs border-red-200 rounded-lg focus:ring-red-500 focus:border-red-500 bg-white py-2 px-3">
+                                    <option value="">Causal de inmovilización...</option>
+                                    <option value="SOAT Vencido/Inválido">SOAT Vencido o Inválido</option>
+                                    <option value="Tecnomecánica Vencida">Tecnomecánica Vencida</option>
+                                    <option value="Documentación Inconsistente">Inconsistencia en Documentos</option>
+                                    <option value="Rechazo Administrativo">Rechazo Administrativo</option>
+                                </select>
+                                <textarea id="veh-detalle-rechazo" rows="1" 
+                                    class="flex-grow text-xs border-red-200 rounded-lg focus:ring-red-500 focus:border-red-500 placeholder-red-300 bg-white py-2"
+                                    placeholder="Detalles adicionales obligatorios..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 w-full md:w-auto shrink-0 border-l pl-6 border-indigo-100 ml-2">
+                            <button type="button" onclick="document.getElementById('modal-auditoria-vehiculo').style.display='none'" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">
+                                Cancelar
+                            </button>
+                            <button type="submit" id="btn-submit-audit-veh"
+                                class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center gap-2 uppercase tracking-widest">
+                                <span>Aplicar Dictamen</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

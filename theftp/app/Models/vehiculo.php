@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Scopes\TenantScope;
+use App\Models\Empresa;
 
 /**
  * @OA\Schema(
@@ -153,5 +154,10 @@ class Vehiculo extends Model implements Auditable
     // Relación con el documento Tecnomecánica
     public function documentoTecno(){
         return $this->belongsTo(Documento::class, 'documento_tecno_id');
+    }
+
+    // Relación con el modelo empresa
+    public function empresa(){
+        return $this->belongsTo(Empresa::class, 'empresa_id');
     }
 }

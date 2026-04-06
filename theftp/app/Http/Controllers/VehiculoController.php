@@ -18,6 +18,20 @@ class VehiculoController extends Controller
     }
 
     /**
+     * Define las relaciones permitidas para ser incluidas vía API (?include=...)
+     */
+    public function getAllowedIncludes(int $maxDepth = 3): array
+    {
+        return array_merge(parent::getAllowedIncludes($maxDepth), [
+            'empresa',
+            'documentoSoat',
+            'documentoTecno',
+            'tipo',
+            'propietario'
+        ]);
+    }
+
+    /**
      * @OA\Get(
      *     path="/api/vehiculos",
      *     summary="Obtener la lista de vehículos",
