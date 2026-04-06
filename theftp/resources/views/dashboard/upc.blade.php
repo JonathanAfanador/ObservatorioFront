@@ -16,10 +16,9 @@
                     <p class="text-gray-600 mb-4">Visualización consolidada de las métricas principales.</p>
                 </div>
 
-                <!-- Botón para descargar el informe del resumen -->
                 <div class="export-buttons">
-                    <button id="btn-export-summary" class="btn-export" data-format="pdf" title="Descargar Resumen en PDF" style="background-color: #7C3AED; border-color: #6D28D9;">
-                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1.25em; height: 1.25em;">
+                    <button id="btn-export-summary" class="btn-export" data-format="pdf" title="Descargar Resumen en PDF">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
                             <path d="M19,9H15V3H9V9H5L12,16L19,9M5,18V20H19V18H5Z" />
                         </svg>
                         <span>Descargar Resumen</span>
@@ -39,23 +38,23 @@
             <!-- Encabezado de la sección -->
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
                 <div>
-                    <h2 class="content-title">Empresas de Transporte</h2>
-                    <p class="text-gray-600 mb-4">Consulta el registro completo de empresas de transporte registradas en el sistema.</p>
+                    <h2 class="content-title">Reporte de Empresas de Transporte</h2>
+                    <p class="text-gray-600 mb-4">Consulta y descarga del registro completo de empresas de transporte bajo auditoría.</p>
                 </div>
 
                 <!-- Botones de exportación -->
                 <div class="export-buttons">
-                    <button class="btn-export" data-format="csv" data-target="empresas" title="Exportar a CSV">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>CSV</span>
+                    <button class="btn-export" data-format="csv" data-target="empresas" title="Descargar Reporte CSV">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" /></svg>
+                        <span>CSV (Auditoría)</span>
                     </button>
-                    <button class="btn-export" data-format="excel" data-target="empresas" title="Exportar a Excel">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>Excel</span>
+                    <button class="btn-export" data-format="excel" data-target="empresas" title="Descargar Reporte Excel">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.8,20H14L12,16.6L10,20H8.2L11.1,15.5L8.2,11H10L12,14.4L14,11H15.8L12.9,15.5L15.8,20Z" /></svg>
+                        <span>Excel (Auditoría)</span>
                     </button>
-                    <button class="btn-export" data-format="pdf" data-target="empresas" title="Exportar a PDF">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>PDF</span>
+                    <button class="btn-export" data-format="pdf" data-target="empresas" title="Descargar Reporte PDF">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V15H10V13H8V12H10V10H11V12H13V13Z" /></svg>
+                        <span>PDF (Auditoría)</span>
                     </button>
                 </div>
             </div>
@@ -77,25 +76,24 @@
             <!-- Encabezado -->
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
                 <div>
-                    <h2 class="content-title">Conductores</h2>
-                    <p class="text-gray-600 mb-4">Directorio de conductores habilitados con información de licencias y estado actual.</p>
+                    <h2 class="content-title">Reporte de Conductores</h2>
+                    <p class="text-gray-600 mb-4">Reporte auditado de conductores habilitados, licencias y estados actuales.</p>
                 </div>
 
                 <!-- Exportación -->
                 <div class="export-buttons">
                     <!-- Botones CSV, Excel y PDF -->
-                    <button class="btn-export" data-format="csv" data-target="conductores" title="Exportar a CSV">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>CSV</span>
+                    <button class="btn-export" data-format="csv" data-target="conductores" title="Descargar Reporte CSV">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" /></svg>
+                        <span>CSV (Auditoría)</span>
                     </button>
-                    <button class="btn-export" data-format="excel" data-target="conductores" title="Exportar a Excel">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>Excel</span>
+                    <button class="btn-export" data-format="excel" data-target="conductores" title="Descargar Reporte Excel">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.8,20H14L12,16.6L10,20H8.2L11.1,15.5L8.2,11H10L12,14.4L14,11H15.8L12.9,15.5L15.8,20Z" /></svg>
+                        <span>Excel (Auditoría)</span>
                     </button>
-                    <button class="btn-export   
-                        " data-format="pdf" data-target="conductores" title="Exportar a PDF">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>PDF</span>
+                    <button class="btn-export" data-format="pdf" data-target="conductores" title="Descargar Reporte PDF">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V15H10V13H8V12H10V10H11V12H13V13Z" /></svg>
+                        <span>PDF (Auditoría)</span>
                     </button>
                 </div>
             </div>
@@ -117,23 +115,23 @@
             <!-- Encabezado -->
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
                 <div>
-                    <h2 class="content-title">Vehículos en Servicio</h2>
-                    <p class="text-gray-600 mb-4">Registro de vehículos habilitados actualmente en servicio de transporte público.</p>
+                    <h2 class="content-title">Reporte de Vehículos en Servicio</h2>
+                    <p class="text-gray-600 mb-4">Informe consolidado de vehículos habilitados actualmente para transporte público.</p>
                 </div>
 
                 <!-- Botones de exportación -->
                 <div class="export-buttons">
-                    <button class="btn-export" data-format="csv" data-target="vehiculos" title="Exportar a CSV">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>CSV</span>
+                    <button class="btn-export" data-format="csv" data-target="vehiculos" title="Descargar Reporte CSV">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" /></svg>
+                        <span>CSV (Auditoría)</span>
                     </button>
-                    <button class="btn-export" data-format="excel" data-target="vehiculos" title="Exportar a Excel">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>Excel</span>
+                    <button class="btn-export" data-format="excel" data-target="vehiculos" title="Descargar Reporte Excel">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.8,20H14L12,16.6L10,20H8.2L11.1,15.5L8.2,11H10L12,14.4L14,11H15.8L12.9,15.5L15.8,20Z" /></svg>
+                        <span>Excel (Auditoría)</span>
                     </button>
-                    <button class="btn-export" data-format="pdf" data-target="vehiculos" title="Exportar a PDF">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>PDF</span>
+                    <button class="btn-export" data-format="pdf" data-target="vehiculos" title="Descargar Reporte PDF">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V15H10V13H8V12H10V10H11V12H13V13Z" /></svg>
+                        <span>PDF (Auditoría)</span>
                     </button>
                 </div>
             </div>
@@ -155,24 +153,24 @@
             <!-- Encabezado -->
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
                 <div>
-                    <h2 class="content-title">Rutas Autorizadas</h2>
-                    <p class="text-gray-600 mb-4">Consulta las rutas autorizadas. Filtra por empresa o nombre.</p>
+                    <h2 class="content-title">Reporte de Rutas Autorizadas</h2>
+                    <p class="text-gray-600 mb-4">Informe detallado de rutas y empresas prestadoras autorizadas.</p>
                 </div>
 
                 <!-- Botones para exportar info -->
                 <!-- Botones de exportación -->
                 <div class="export-buttons">
-                    <button class="btn-export" data-format="csv" data-target="rutas" title="Exportar a CSV">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>CSV</span>
+                    <button class="btn-export" data-format="csv" data-target="rutas" title="Descargar Reporte CSV">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" /></svg>
+                        <span>CSV (Auditoría)</span>
                     </button>
-                    <button class="btn-export" data-format="excel" data-target="rutas " title="Exportar a Excel">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>Excel</span>
+                    <button class="btn-export" data-format="excel" data-target="rutas " title="Descargar Reporte Excel">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.8,20H14L12,16.6L10,20H8.2L11.1,15.5L8.2,11H10L12,14.4L14,11H15.8L12.9,15.5L15.8,20Z" /></svg>
+                        <span>Excel (Auditoría)</span>
                     </button>
-                    <button class="btn-export" data-format="pdf" data-target="rutas" title="Exportar a PDF">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>PDF</span>
+                    <button class="btn-export" data-format="pdf" data-target="rutas" title="Descargar Reporte PDF">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V15H10V13H8V12H10V10H11V12H13V13Z" /></svg>
+                        <span>PDF (Auditoría)</span>
                     </button>
                 </div>
             </div>
@@ -200,24 +198,24 @@
             <!-- Encabezado -->
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                 <div>
-                    <h2 class="content-title">Documentos y Resoluciones</h2>
-                    <p class="text-gray-600 mb-4">Repositorio de documentos oficiales y resoluciones administrativas.</p>
+                    <h2 class="content-title">Reporte de Documentos y Resoluciones</h2>
+                    <p class="text-gray-600 mb-4">Repositorio auditado de documentos oficiales y resoluciones administrativas.</p>
                 </div>
 
                 <!-- Exportación -->
                 <!-- Botones de exportación -->
                 <div class="export-buttons">
-                    <button class="btn-export" data-format="csv" data-target="documentos" title="Exportar a CSV">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>CSV</span>
+                    <button class="btn-export" data-format="csv" data-target="documentos" title="Descargar Reporte CSV">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" /></svg>
+                        <span>CSV (Auditoría)</span>
                     </button>
-                    <button class="btn-export" data-format="excel" data-target="documentos" title="Exportar a Excel">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>Excel</span>
+                    <button class="btn-export" data-format="excel" data-target="documentos" title="Descargar Reporte Excel">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.8,20H14L12,16.6L10,20H8.2L11.1,15.5L8.2,11H10L12,14.4L14,11H15.8L12.9,15.5L15.8,20Z" /></svg>
+                        <span>Excel (Auditoría)</span>
                     </button>
-                    <button class="btn-export" data-format="pdf" data-target="documentos" title="Exportar a PDF">
-                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6..." /></svg>
-                        <span>PDF</span>
+                    <button class="btn-export" data-format="pdf" data-target="documentos" title="Descargar Reporte PDF">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V15H10V13H8V12H10V10H11V12H13V13Z" /></svg>
+                        <span>PDF (Auditoría)</span>
                     </button>
                 </div>
             </div>

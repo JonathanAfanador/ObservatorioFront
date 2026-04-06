@@ -20,7 +20,7 @@ function getExportConfig(target) {
                     { key: 'nit', label: 'NIT' },
                     { key: 'tipo_empresa.descripcion', label: 'Tipo' }
                 ],
-                title: 'Reporte de Empresas'
+                title: 'Reporte de Auditoría de Empresas - Observatorio de Transporte'
             };
         }
         case 'conductores': {
@@ -39,7 +39,7 @@ function getExportConfig(target) {
                     { key: 'persona.nui', label: 'Identificación' },
                     { key: 'persona.gender', label: 'Género' }
                 ],
-                title: 'Reporte de Conductores'
+                title: 'Reporte de Auditoría de Conductores - Observatorio de Transporte'
             };
         }
         case 'vehiculos': {
@@ -57,7 +57,7 @@ function getExportConfig(target) {
                     { key: 'modelo', label: 'Modelo' },
                     { key: 'tipo_vehiculo.descripcion', label: 'Tipo' }
                 ],
-                title: 'Reporte de Vehículos en Servicio'
+                title: 'Reporte de Auditoría de Vehículos en Servicio - Observatorio de Transporte'
             };
         }
         case 'rutas': {
@@ -75,7 +75,7 @@ function getExportConfig(target) {
                     { key: 'empresa.name', label: 'Empresa' },
                     { key: 'file_name', label: 'Archivo' }
                 ],
-                title: 'Reporte de Rutas'
+                title: 'Reporte de Auditoría de Rutas - Observatorio de Transporte'
             };
         }
         case 'documentos': {
@@ -95,7 +95,7 @@ function getExportConfig(target) {
                     { key: 'url', label: 'URL' },
                     { key: 'created_at', label: 'Fecha Creación' }
                 ],
-                title: 'Reporte de Documentos'
+                title: 'Reporte de Auditoría de Documentos - Observatorio de Transporte'
             };
         }
         default:
@@ -106,15 +106,29 @@ function getExportConfig(target) {
 // --- Configurar listeners de los botones de exportación ---
 window.setupUpcListeners = function () {
     // Filtros de texto (keyup)
-    document.getElementById('filter-empresas').addEventListener('keyup', renderEmpresasTable);
-    document.getElementById('filter-conductores').addEventListener('keyup', renderConductoresTable);
-    document.getElementById('filter-vehiculos').addEventListener('keyup', renderVehiculosTable);
-    document.getElementById('filter-rutas').addEventListener('keyup', renderRutasTable);
-    document.getElementById('filter-documentos').addEventListener('keyup', renderDocumentosTable);
+    document.getElementById('filter-empresas').addEventListener('keyup', () => { 
+        dashboardDataStore.pagination.empresas.current = 1; renderEmpresasTable(); 
+    });
+    document.getElementById('filter-conductores').addEventListener('keyup', () => { 
+        dashboardDataStore.pagination.conductores.current = 1; renderConductoresTable(); 
+    });
+    document.getElementById('filter-vehiculos').addEventListener('keyup', () => { 
+        dashboardDataStore.pagination.vehiculos.current = 1; renderVehiculosTable(); 
+    });
+    document.getElementById('filter-rutas').addEventListener('keyup', () => { 
+        dashboardDataStore.pagination.rutas.current = 1; renderRutasTable(); 
+    });
+    document.getElementById('filter-documentos').addEventListener('keyup', () => { 
+        dashboardDataStore.pagination.documentos.current = 1; renderDocumentosTable(); 
+    });
 
     // Filtros de select (change)
-    document.getElementById('select-empresa-rutas').addEventListener('change', renderRutasTable);
-    document.getElementById('select-tipo-docs').addEventListener('change', renderDocumentosTable);
+    document.getElementById('select-empresa-rutas').addEventListener('change', () => { 
+        dashboardDataStore.pagination.rutas.current = 1; renderRutasTable(); 
+    });
+    document.getElementById('select-tipo-docs').addEventListener('change', () => { 
+        dashboardDataStore.pagination.documentos.current = 1; renderDocumentosTable(); 
+    });
 
     // Botones de exportación (.btn-export)
     document.querySelectorAll('.btn-export').forEach(button => {
@@ -129,8 +143,8 @@ window.setupUpcListeners = function () {
                 return;
             }
 
-            if (format === 'csv') exportToCSV(config.data, config.headers, filename + '.csv');
-            if (format === 'excel') exportToExcel(config.data, config.headers, filename + '.xlsx');
+            if (format === 'csv') exportToCSV(config.data, config.headers, filename + '.csv', config.title);
+            if (format === 'excel') exportToExcel(config.data, config.headers, filename + '.xlsx', config.title);
             if (format === 'pdf') exportToPDF(config.data, config.headers, filename + '.pdf', config.title);
         });
     });
@@ -212,43 +226,52 @@ window.handleExportSummary = function () {
 };
 
 // --- Exportar a CSV (requiere PapaParse) ---
-window.exportToCSV = function (data, headers, filename) {
+window.exportToCSV = function (data, headers, filename, title) {
     if (typeof Papa === 'undefined') { alert('Error: La librería PapaParse (CSV) no está cargada.'); return; }
-    const csvData = data.map(row => {
+    
+    // Preparar datos con encabezados amigables
+    const csvRows = data.map(row => {
         let newRow = {};
         headers.forEach(h => { newRow[h.label] = getDeepValue(row, h.key); });
         return newRow;
     });
-    const csv = Papa.unparse(csvData);
+
+    // Añadimos el título como primera fila (opcional, pero solicitado como "encabezado")
+    let csv = title + "\n\n";
+    csv += Papa.unparse(csvRows);
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.setAttribute('href', URL.createObjectURL(blob));
     link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
 };
 
 // --- Exportar a Excel (requiere SheetJS/XLSX) ---
-window.exportToExcel = function (data, headers, filename) {
+window.exportToExcel = function (data, headers, filename, title) {
     if (typeof XLSX === 'undefined') { alert('Error: La librería XLSX (Excel) no está cargada.'); return; }
-    const excelData = data.map(row => {
+    
+    const excelRows = data.map(row => {
         let newRow = {};
         headers.forEach(h => { newRow[h.label] = getDeepValue(row, h.key); });
         return newRow;
     });
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = { Sheets: { 'Datos': worksheet }, SheetNames: ['Datos'] };
+
+    // Crear hoja de cálculo
+    const worksheet = XLSX.utils.json_to_sheet(excelRows, { origin: "A3" });
+    
+    // Añadir el título en la celda A1
+    XLSX.utils.sheet_add_aoa(worksheet, [[title]], { origin: "A1" });
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Auditoría');
+    
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
     const link = document.createElement('a');
     link.setAttribute('href', URL.createObjectURL(blob));
     link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
 };
 
 // --- Exportar a PDF (requiere jsPDF + autoTable) ---
@@ -259,14 +282,24 @@ window.exportToPDF = function (data, headers, filename, title) {
     const tableHeaders = headers.map(h => h.label);
     const tableBody = data.map(row => headers.map(h => getDeepValue(row, h.key)));
 
-    doc.text(title, 14, 20);
+    // Estilo del Título
+    doc.setFontSize(16);
+    doc.setTextColor(40);
+    doc.text(title, 14, 15);
+    
+    // Fecha y subtítulo
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado por el Sistema Observatorio - ${new Date().toLocaleDateString('es-CO')}`, 14, 22);
+
     doc.autoTable({
-        startY: 25,
+        startY: 28,
         head: [tableHeaders],
         body: tableBody,
         theme: 'striped',
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [34, 139, 230] }
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 247, 250] }
     });
     doc.save(filename);
 };

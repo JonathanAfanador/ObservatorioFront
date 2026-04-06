@@ -9,7 +9,16 @@ window.dashboardDataStore = {
     conductores: [],
     vehiculos: [],
     rutas: [],
-    documentos: []
+    documentos: [],
+
+    // Paginación por módulo
+    pagination: {
+        empresas: { current: 1, perPage: 10 },
+        conductores: { current: 1, perPage: 10 },
+        vehiculos: { current: 1, perPage: 10 },
+        rutas: { current: 1, perPage: 10 },
+        documentos: { current: 1, perPage: 10 }
+    }
 };
 
 // --- Almacén de instancias de gráficos (para destruirlos antes de recrear) ---
@@ -96,6 +105,46 @@ window.getDeepValue = function (obj, path) {
     } catch (e) {
         return '-';
     }
+};
+
+// --- Helper para renderizar la paginación con números específicos ---
+window.renderPagination = function (totalItems, currentPage, itemsPerPage, onPageChangeName) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (totalPages <= 1) return '';
+
+    let html = '<div class="pagination-container">';
+
+    // Botón Anterior
+    html += `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} 
+                onclick="${onPageChangeName}(${currentPage - 1})" title="Anterior">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+    `;
+
+    // Lógica para mostrar números (1, ..., curr-1, curr, curr+1, ..., total)
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            html += `<button class="pagination-btn ${i === currentPage ? 'is-active' : ''}" onclick="${onPageChangeName}(${i})">${i}</button>`;
+        } else if (i === currentPage - 2 || i === currentPage + 2) {
+            html += `<span class="pagination-ellipsis">...</span>`;
+        }
+    }
+
+    // Botón Siguiente
+    html += `
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} 
+                onclick="${onPageChangeName}(${currentPage + 1})" title="Siguiente">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+    `;
+
+    html += '</div>';
+    return html;
 };
 
 // --- Generador genérico de tablas HTML ---

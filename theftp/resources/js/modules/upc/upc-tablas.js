@@ -1,8 +1,23 @@
-// ============================================================
-// upc-tablas.js
-// Carga y renderizado de las 5 tablas: empresas, conductores,
-// vehículos, rutas y documentos. Incluye lógica de filtros.
-// ============================================================
+// ---------- PAGINACIÓN ----------
+
+window.changeUpcPage = function (module, page) {
+    if (!dashboardDataStore.pagination[module]) return;
+    dashboardDataStore.pagination[module].current = page;
+
+    // Re-renderizar la tabla correspondiente
+    if (module === 'empresas') renderEmpresasTable();
+    if (module === 'conductores') renderConductoresTable();
+    if (module === 'vehiculos') renderVehiculosTable();
+    if (module === 'rutas') renderRutasTable();
+    if (module === 'documentos') renderDocumentosTable();
+
+    // Efecto Premium: Scroll suave hacia la cabecera de la tabla al cambiar de página
+    const tableId = `${module}-table`;
+    const el = document.getElementById(tableId);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
 
 // ---------- EMPRESAS ----------
 
@@ -11,14 +26,19 @@ window.renderEmpresasTable = function () {
     const filterInput = document.getElementById('filter-empresas');
     const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
-    const filteredData = dashboardDataStore.empresas.filter(empresa => {
+    const allFilteredData = dashboardDataStore.empresas.filter(empresa => {
         const name = empresa.name ? empresa.name.toLowerCase() : '';
         const nit = empresa.nit ? empresa.nit.toLowerCase() : '';
         return name.includes(searchTerm) || nit.includes(searchTerm);
     });
 
+    // Paginación
+    const { current, perPage } = dashboardDataStore.pagination.empresas;
+    const start = (current - 1) * perPage;
+    const paginatedData = allFilteredData.slice(start, start + perPage);
+
     el.innerHTML = createTableFromArray(
-        filteredData,
+        paginatedData,
         [
             { key: 'id', label: 'ID' },
             { key: 'name', label: 'Nombre de la Empresa' },
@@ -26,7 +46,7 @@ window.renderEmpresasTable = function () {
             { key: 'tipo_empresa.descripcion', label: 'Tipo de Empresa' }
         ],
         'No se encontraron empresas con ese filtro.'
-    );
+    ) + renderPagination(allFilteredData.length, current, perPage, "window.changeUpcPage.bind(null, 'empresas')");
 };
 
 window.loadEmpresas = async function () {
@@ -48,7 +68,7 @@ window.renderConductoresTable = function () {
     const filterInput = document.getElementById('filter-conductores');
     const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
-    const tablaData = dashboardDataStore.conductores
+    const allTablaData = dashboardDataStore.conductores
         .map(c => {
             let licStatus = 'Sin Licencia';
             let licColor = 'text-gray-400';
@@ -84,10 +104,15 @@ window.renderConductoresTable = function () {
             c.nui.toLowerCase().includes(searchTerm)
         );
 
+    // Paginación
+    const { current, perPage } = dashboardDataStore.pagination.conductores;
+    const start = (current - 1) * perPage;
+    const paginatedData = allTablaData.slice(start, start + perPage);
+
     el.innerHTML = createTableFromArray(
-        tablaData,
+        paginatedData,
         [
-            { label: '#', render: (_, i) => i + 1 },
+            { label: '#', render: (_, i) => start + i + 1 },
             { key: 'nombres', label: 'Nombres' },
             { key: 'apellidos', label: 'Apellidos' },
             { key: 'nui', label: 'Identificación' },
@@ -97,7 +122,7 @@ window.renderConductoresTable = function () {
             }
         ],
         'No se encontraron conductores con ese filtro.'
-    );
+    ) + renderPagination(allTablaData.length, current, perPage, "window.changeUpcPage.bind(null, 'conductores')");
 };
 
 window.loadConductores = async function () {
@@ -119,7 +144,7 @@ window.renderVehiculosTable = function () {
     const filterInput = document.getElementById('filter-vehiculos');
     const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
-    const vehiculosData = dashboardDataStore.vehiculos
+    const allVehiculosData = dashboardDataStore.vehiculos
         .map(v => ({
             id: v.id,
             placa: v.placa,
@@ -133,8 +158,13 @@ window.renderVehiculosTable = function () {
             v.modelo.toLowerCase().includes(searchTerm)
         );
 
+    // Paginación
+    const { current, perPage } = dashboardDataStore.pagination.vehiculos;
+    const start = (current - 1) * perPage;
+    const paginatedData = allVehiculosData.slice(start, start + perPage);
+
     el.innerHTML = createTableFromArray(
-        vehiculosData,
+        paginatedData,
         [
             { key: 'id', label: 'ID' },
             { key: 'placa', label: 'Placa' },
@@ -143,7 +173,7 @@ window.renderVehiculosTable = function () {
             { key: 'tipo_vehiculo.descripcion', label: 'Tipo' }
         ],
         'No se encontraron vehículos con ese filtro.'
-    );
+    ) + renderPagination(allVehiculosData.length, current, perPage, "window.changeUpcPage.bind(null, 'vehiculos')");
 };
 
 window.loadVehiculos = async function () {
@@ -170,22 +200,27 @@ window.renderRutasTable = function () {
     const empresaId = filterSelect ? filterSelect.value : '';
     const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
-    const filteredData = dashboardDataStore.rutas.filter(ruta => {
+    const allFilteredData = dashboardDataStore.rutas.filter(ruta => {
         const matchEmpresa = !empresaId || (ruta.empresa_id == empresaId);
         const name = ruta.name ? ruta.name.toLowerCase() : '';
         const matchText = !searchTerm || name.includes(searchTerm);
         return matchEmpresa && matchText;
     });
 
-    const tablaData = filteredData.map(r => ({
+    const tablaData = allFilteredData.map(r => ({
         id: r.id,
         name: r.name,
         file_name: r.file_name,
         empresa: r.empresa ? r.empresa.name : 'N/A'
     }));
 
+    // Paginación
+    const { current, perPage } = dashboardDataStore.pagination.rutas;
+    const start = (current - 1) * perPage;
+    const paginatedData = tablaData.slice(start, start + perPage);
+
     el.innerHTML = createTableFromArray(
-        tablaData,
+        paginatedData,
         [
             { key: 'id', label: 'ID' },
             { key: 'name', label: 'Nombre Ruta' },
@@ -193,7 +228,7 @@ window.renderRutasTable = function () {
             { key: 'file_name', label: 'Archivo' }
         ],
         'No se encontraron rutas con esos filtros.'
-    );
+    ) + renderPagination(allFilteredData.length, current, perPage, "window.changeUpcPage.bind(null, 'rutas')");
 };
 
 window.loadRutas = async function () {
@@ -210,6 +245,7 @@ window.loadRutas = async function () {
 
 window.loadEmpresasSelect = async function () {
     const sel = document.getElementById('select-empresa-rutas');
+    if (!sel) return;
     sel.innerHTML = '<option value="">Cargando empresas...</option>';
     try {
         const response = await apiGet('/api/empresas');
@@ -230,7 +266,7 @@ window.renderDocumentosTable = function () {
     const tipoId = filterSelect ? filterSelect.value : '';
     const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
-    const filteredData = dashboardDataStore.documentos.filter(doc => {
+    const allFilteredData = dashboardDataStore.documentos.filter(doc => {
         const matchTipo = !tipoId || (doc.tipo_doc_id == tipoId);
         const obs = doc.observaciones ? doc.observaciones.toLowerCase() : '';
         const url = doc.url ? doc.url.toLowerCase() : '';
@@ -238,10 +274,15 @@ window.renderDocumentosTable = function () {
         return matchTipo && matchText;
     });
 
+    // Paginación
+    const { current, perPage } = dashboardDataStore.pagination.documentos;
+    const start = (current - 1) * perPage;
+    const paginatedData = allFilteredData.slice(start, start + perPage);
+
     el.innerHTML = createTableFromArray(
-        filteredData,
+        paginatedData,
         [
-            { label: '#', render: (_, i) => i + 1 },
+            { label: '#', render: (_, i) => start + i + 1 },
             { key: 'observaciones', label: 'Título/Observación' },
             { key: 'url', label: 'URL' },
             {
@@ -254,7 +295,7 @@ window.renderDocumentosTable = function () {
             }
         ],
         'No se encontraron documentos con esos filtros.'
-    );
+    ) + renderPagination(allFilteredData.length, current, perPage, "window.changeUpcPage.bind(null, 'documentos')");
 };
 
 window.loadDocumentos = async function () {
