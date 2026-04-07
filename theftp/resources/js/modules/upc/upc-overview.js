@@ -27,7 +27,7 @@ window.loadOverview = async function () {
 
     try {
         // Quitamos limit=1 que causaba error 500 en algunas configuraciones de backend
-        const res = await apiGet('/api/rutas'); 
+        const res = await apiGet('/api/rutas?include=empresas'); 
         totalRutas = res.total || (res.data && res.data.data ? res.data.data.length : 0);
     } catch (e) { console.error("Error cargando total rutas:", e); }
 

@@ -515,6 +515,12 @@ async function saveLicencia(e) {
     return;
   }
 
+  // Validación de tamaño de archivo (Límite por defecto de PHP: 2MB)
+  if (archivo && archivo.size > 2 * 1024 * 1024) {
+      showNotification('error', 'Archivo demasiado grande', 'El archivo seleccionado excede los 2MB permitidos por la configuración actual del servidor. Intenta con un archivo más ligero o solicita ampliar el límite.');
+      return;
+  }
+
   const expDateObj = new Date(fechaExpedicion);
   if (expDateObj > new Date()) {
       showNotification('error', 'Fecha Inválida', 'La fecha de expedición no puede estar en el futuro.');
@@ -582,18 +588,26 @@ async function saveLicencia(e) {
       const formData = new FormData();
       formData.append('file', archivo);
       formData.append('observaciones', `Licencia #${numero} - Conductor ID: ${conductorId}`);
-      formData.append('tipo_doc_id', 1);
+      formData.append('tipo_doc_id', 1); // PDF / Escaneo
+      
+      // Enviamos el empresa_id para que el TenantScope lo asocie correctamente
+      if (window.myEmpresaId) {
+          formData.append('empresa_id', window.myEmpresaId);
+      }
 
       const documentoResult = await apiPostFile('/documentos', formData);
-      if (documentoResult && documentoResult.data) {
-        documentoId = documentoResult.data.id;
+      
+      // ERROR CRÍTICO: Si no hay resultado, el proceso debe abortar para no crear licencias corruptas
+      if (!documentoResult || !documentoResult.data) {
+        showNotification('error', 'Fallo de Carga', 'No se pudo subir el archivo de la licencia. El proceso se ha detenido.');
+        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
+        return; 
       }
+      
+      documentoId = documentoResult.data.id;
     }
 
-    // El estado de la licencia ahora se gestiona exclusivamente por el Modal de Novedades (Historial)
-    // Para nuevas licencias el estado por defecto del servidor es true (Activo)
-    
-    // Paso 2: Crear o Actualizar la licencia
+    // Paso 2: Preparar los datos de la licencia
     const licenciaData = {
       numero: numero,
       categoria_lic_id: categoriaId,
@@ -602,7 +616,10 @@ async function saveLicencia(e) {
       fecha_vencimiento: fechaVencimiento,
       organismo_transito: organismo
     };
-    if (documentoId) licenciaData.documento_id = documentoId;
+    
+    if (documentoId) {
+        licenciaData.documento_id = documentoId;
+    }
 
     let targetLicenciaId = null;
 

@@ -68,34 +68,40 @@ window.renderConductoresTable = function () {
     const filterInput = document.getElementById('filter-conductores');
     const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
+    // Filtrado y mapeo de datos
     const allTablaData = dashboardDataStore.conductores
         .map(c => {
             let licStatus = 'Sin Licencia';
-            let licColor = 'text-gray-400';
+            let badgeClass = 'badge-secondary'; // Gris suave
             
             if (c.licencias && c.licencias.length > 0) {
-                const lic = c.licencias[0].licencia || {};
+                const lic = c.licencias[0] || {};
                 const fv = lic.fecha_vencimiento;
                 if (fv) {
                     const diff = Math.ceil((new Date(fv) - new Date()) / (1000 * 60 * 60 * 24));
-                    if (diff <= 0) { licStatus = 'VENCIDA'; licColor = 'text-red-600 font-bold'; }
-                    else if (diff <= 30) { licStatus = 'POR VENCER'; licColor = 'text-yellow-600 font-bold'; }
-                    else { licStatus = 'VIGENTE'; licColor = 'text-green-600 font-bold'; }
+                    if (diff <= 0) { 
+                        licStatus = 'VENCIDA'; 
+                        badgeClass = 'badge-danger'; 
+                    } else if (diff <= 30) { 
+                        licStatus = 'POR VENCER'; 
+                        badgeClass = 'badge-warning'; 
+                    } else { 
+                        licStatus = 'VIGENTE'; 
+                        badgeClass = 'badge-success'; 
+                    }
                 } else {
                     licStatus = 'Registrada (Sin fecha)';
-                    licColor = 'text-blue-600';
+                    badgeClass = 'badge-info';
                 }
             }
 
             return {
                 id: c.id,
-                persona: c.persona,
                 nombres: c.persona ? c.persona.name : 'N/A',
                 apellidos: c.persona ? c.persona.last_name : 'N/A',
-                tipo_ident: c.persona && c.persona.tipo_ident ? c.persona.tipo_ident.descripcion : 'N/A',
                 nui: c.persona ? c.persona.nui : 'N/A',
                 licStatus,
-                licColor
+                badgeClass
             };
         })
         .filter(c =>
@@ -104,12 +110,16 @@ window.renderConductoresTable = function () {
             c.nui.toLowerCase().includes(searchTerm)
         );
 
+    // Contador de resultados
+    const resultsCount = allTablaData.length;
+    const countHtml = `<div class="results-info pb-3"><span class="badge-results">${resultsCount} conductores encontrados</span></div>`;
+
     // Paginación
     const { current, perPage } = dashboardDataStore.pagination.conductores;
     const start = (current - 1) * perPage;
     const paginatedData = allTablaData.slice(start, start + perPage);
 
-    el.innerHTML = createTableFromArray(
+    el.innerHTML = countHtml + createTableFromArray(
         paginatedData,
         [
             { label: '#', render: (_, i) => start + i + 1 },
@@ -118,7 +128,7 @@ window.renderConductoresTable = function () {
             { key: 'nui', label: 'Identificación' },
             { 
                 label: 'Estado Licencia', 
-                render: (row) => `<span class="${row.licColor}">${row.licStatus}</span>` 
+                render: (row) => `<span class="badge-status ${row.badgeClass}">${row.licStatus}</span>` 
             }
         ],
         'No se encontraron conductores con ese filtro.'
@@ -129,7 +139,7 @@ window.loadConductores = async function () {
     const el = document.getElementById('conductores-table');
     el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando conductores...</p></div>';
     try {
-        const response = await apiGet('/api/conductores?include=persona,persona.tipo_ident,licencias.licencia&limit=100');
+        const response = await apiGet('/api/conductores?include=persona,persona.tipo_ident,licencias&limit=100');
         dashboardDataStore.conductores = response.data.data;
         renderConductoresTable();
     } catch (error) {
@@ -201,7 +211,7 @@ window.renderRutasTable = function () {
     const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
     const allFilteredData = dashboardDataStore.rutas.filter(ruta => {
-        const matchEmpresa = !empresaId || (ruta.empresa_id == empresaId);
+        const matchEmpresa = !empresaId || (ruta.empresas && ruta.empresas.some(e => e.id == empresaId));
         const name = ruta.name ? ruta.name.toLowerCase() : '';
         const matchText = !searchTerm || name.includes(searchTerm);
         return matchEmpresa && matchText;
@@ -211,7 +221,7 @@ window.renderRutasTable = function () {
         id: r.id,
         name: r.name,
         file_name: r.file_name,
-        empresa: r.empresa ? r.empresa.name : 'N/A'
+        empresa: (r.empresas && r.empresas.length > 0) ? r.empresas[0].name : 'N/A'
     }));
 
     // Paginación
@@ -235,7 +245,7 @@ window.loadRutas = async function () {
     const el = document.getElementById('rutas-table');
     el.innerHTML = 'Cargando...';
     try {
-        const response = await apiGet('/api/rutas?include=empresa');
+        const response = await apiGet('/api/rutas?include=empresas');
         dashboardDataStore.rutas = response.data.data;
         renderRutasTable();
     } catch (error) {

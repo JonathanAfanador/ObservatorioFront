@@ -223,14 +223,20 @@ async function apiPostFile(path, formData) {
       headers: {
         'Accept': 'application/json',
         ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken })
-        // NO incluir Content-Type, el navegador lo establece automáticamente con boundary
       },
       credentials: 'same-origin',
       body: formData
     });
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('SERVER VALIDATION ERROR:', errorData);
+      
+      let msg = errorData.message || `HTTP ${response.status}`;
+      if (errorData.errors) {
+        msg = Object.values(errorData.errors).flat().join(' | ');
+      }
+      throw new Error(msg);
     }
     return await response.json();
   } catch (error) {

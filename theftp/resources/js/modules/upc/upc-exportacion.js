@@ -26,17 +26,36 @@ function getExportConfig(target) {
         case 'conductores': {
             const searchTerm = document.getElementById('filter-conductores').value.toLowerCase();
             return {
-                data: dashboardDataStore.conductores.filter(c => {
-                    const p = c.persona;
-                    return (p && p.name && p.name.toLowerCase().includes(searchTerm)) ||
-                        (p && p.last_name && p.last_name.toLowerCase().includes(searchTerm)) ||
-                        (p && p.nui && p.nui.toLowerCase().includes(searchTerm));
-                }),
+                data: dashboardDataStore.conductores
+                    .filter(c => {
+                        const p = c.persona;
+                        return (p && p.name && p.name.toLowerCase().includes(searchTerm)) ||
+                            (p && p.last_name && p.last_name.toLowerCase().includes(searchTerm)) ||
+                            (p && p.nui && p.nui.toLowerCase().includes(searchTerm));
+                    })
+                    .map(c => {
+                        // Calcular estado para la exportación
+                        let licStatus = 'Sin Licencia';
+                        if (c.licencias && c.licencias.length > 0) {
+                            const lic = c.licencias[0] || {};
+                            const fv = lic.fecha_vencimiento;
+                            if (fv) {
+                                const diff = Math.ceil((new Date(fv) - new Date()) / (1000 * 60 * 60 * 24));
+                                if (diff <= 0) licStatus = 'VENCIDA';
+                                else if (diff <= 30) licStatus = 'POR VENCER';
+                                else licStatus = 'VIGENTE';
+                            } else {
+                                licStatus = 'Registrada (Sin fecha)';
+                            }
+                        }
+                        return { ...c, licencia_estado: licStatus };
+                    }),
                 headers: [
                     { key: 'id', label: 'ID Conductor' },
                     { key: 'persona.name', label: 'Nombres' },
                     { key: 'persona.last_name', label: 'Apellidos' },
                     { key: 'persona.nui', label: 'Identificación' },
+                    { key: 'licencia_estado', label: 'Estado Licencia' },
                     { key: 'persona.gender', label: 'Género' }
                 ],
                 title: 'Reporte de Auditoría de Conductores - Observatorio de Transporte'

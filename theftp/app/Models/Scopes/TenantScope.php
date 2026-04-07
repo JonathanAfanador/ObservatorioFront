@@ -18,13 +18,13 @@ class TenantScope implements Scope
         if (Auth::check()) {
             $user = Auth::user();
 
-            // 2. Si es Admin (Rol 1), SubAdmin (Rol 6), o Secretaría (Rol 2), lo dejamos ver TODO
-            if (in_array($user->rol_id, [1, 2, 6])) {
+            // 2. Si es Admin (1), Secretaría (2), UPC (4), o SubAdmin (6), lo dejamos ver TODO
+            // Estos roles son administrativos o de auditoría global en el contexto de este proyecto.
+            if (in_array($user->rol_id, [1, 2, 4, 6])) {
                 return;
             }
 
             // 3. Si es Empresa o cualquier otro, filtramos estrictamente por su 'empresa_id'
-            // Omitimos la operación si el usuario increíblemente no tiene una empresa asignada.
             if ($user->empresa_id) {
                 // EXCEPCIÓN: La tabla Rutas usa una relación Muchos a Muchos (Pivote)
                 if ($model instanceof \App\Models\Ruta) {
@@ -36,9 +36,12 @@ class TenantScope implements Scope
                     $builder->where($model->getTable() . '.empresa_id', $user->empresa_id);
                 }
             } else {
-                // Si el usuario no es Admin y NO tiene empresa_id, bloqueamos radicalmente
-                // forzando un ID que retorne vacío para no exponer data de otros.
-                $builder->where($model->getTable() . '.empresa_id', -1);
+                // Si el usuario no es Admin/UPC y NO tiene empresa_id, bloqueamos radicalmente
+                // PERO verificamos que la columna exista para evitar el error SQL 500 (columna inexistente)
+                $tableName = $model->getTable();
+                if (\Illuminate\Support\Facades\Schema::hasColumn($tableName, 'empresa_id')) {
+                    $builder->where($tableName . '.empresa_id', -1);
+                }
             }
         }
     }
