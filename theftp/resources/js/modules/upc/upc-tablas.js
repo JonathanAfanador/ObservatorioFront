@@ -110,9 +110,22 @@ window.renderConductoresTable = function () {
             c.nui.toLowerCase().includes(searchTerm)
         );
 
-    // Contador de resultados
+    // Contador de resultados Premium
     const resultsCount = allTablaData.length;
-    const countHtml = `<div class="results-info pb-3"><span class="badge-results">${resultsCount} conductores encontrados</span></div>`;
+    const countHtml = `
+        <div class="results-pill-container">
+            <div class="results-pill">
+                <span class="results-pill-icon">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </span>
+                <span class="results-pill-text">
+                    <strong class="results-pill-number">${resultsCount}</strong> conductores encontrados
+                </span>
+            </div>
+        </div>
+    `;
 
     // Paginación
     const { current, perPage } = dashboardDataStore.pagination.conductores;
@@ -155,32 +168,64 @@ window.renderVehiculosTable = function () {
     const searchTerm = filterInput ? filterInput.value.toLowerCase() : '';
 
     const allVehiculosData = dashboardDataStore.vehiculos
-        .map(v => ({
-            id: v.id,
-            placa: v.placa,
-            modelo: v.modelo,
-            marca: v.marca,
-            tipo_vehiculo: v.tipo ? v.tipo : { descripcion: 'N/A' }
-        }))
+        .map(v => {
+            const tipoDesc = v.tipo ? v.tipo.descripcion : 'N/A';
+            let badgeClass = 'badge-secondary'; // Default
+
+            // Asignar colores según tipo
+            if (tipoDesc.toLowerCase().includes('bus')) badgeClass = 'badge-indigo';
+            if (tipoDesc.toLowerCase().includes('micro')) badgeClass = 'badge-blue';
+            if (tipoDesc.toLowerCase().includes('camio')) badgeClass = 'badge-orange';
+            if (tipoDesc.toLowerCase().includes('auto')) badgeClass = 'badge-info';
+
+            return {
+                id: v.id,
+                placa: v.placa,
+                modelo: v.modelo,
+                marca: v.marca,
+                tipo_desc: tipoDesc,
+                badgeClass
+            };
+        })
         .filter(v =>
             v.placa.toLowerCase().includes(searchTerm) ||
             v.marca.toLowerCase().includes(searchTerm) ||
             v.modelo.toLowerCase().includes(searchTerm)
         );
 
+    // Contador de resultados Premium
+    const resultsCount = allVehiculosData.length;
+    const countHtml = `
+        <div class="results-pill-container">
+            <div class="results-pill">
+                <span class="results-pill-icon">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </span>
+                <span class="results-pill-text">
+                    <strong class="results-pill-number">${resultsCount}</strong> vehículos en servicio encontrados
+                </span>
+            </div>
+        </div>
+    `;
+
     // Paginación
     const { current, perPage } = dashboardDataStore.pagination.vehiculos;
     const start = (current - 1) * perPage;
     const paginatedData = allVehiculosData.slice(start, start + perPage);
 
-    el.innerHTML = createTableFromArray(
+    el.innerHTML = countHtml + createTableFromArray(
         paginatedData,
         [
             { key: 'id', label: 'ID' },
             { key: 'placa', label: 'Placa' },
             { key: 'modelo', label: 'Modelo' },
             { key: 'marca', label: 'Marca' },
-            { key: 'tipo_vehiculo.descripcion', label: 'Tipo' }
+            { 
+                label: 'Tipo', 
+                render: (row) => `<span class="badge-status ${row.badgeClass}">${row.tipo_desc}</span>` 
+            }
         ],
         'No se encontraron vehículos con ese filtro.'
     ) + renderPagination(allVehiculosData.length, current, perPage, "window.changeUpcPage.bind(null, 'vehiculos')");

@@ -14,7 +14,7 @@ window.dashboardDataStore = {
     // Paginación por módulo
     pagination: {
         empresas: { current: 1, perPage: 10 },
-        conductores: { current: 1, perPage: 5 },
+        conductores: { current: 1, perPage: 10 },
         vehiculos: { current: 1, perPage: 10 },
         rutas: { current: 1, perPage: 10 },
         documentos: { current: 1, perPage: 10 }

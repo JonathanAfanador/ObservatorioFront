@@ -74,7 +74,7 @@ function getExportConfig(target) {
                     { key: 'placa', label: 'Placa' },
                     { key: 'marca', label: 'Marca' },
                     { key: 'modelo', label: 'Modelo' },
-                    { key: 'tipo_vehiculo.descripcion', label: 'Tipo' }
+                    { key: 'tipo.descripcion', label: 'Tipo' }
                 ],
                 title: 'Reporte de Auditoría de Vehículos en Servicio - Observatorio de Transporte'
             };
