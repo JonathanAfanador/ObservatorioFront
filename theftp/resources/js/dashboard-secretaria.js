@@ -25,16 +25,42 @@
      * Función puente para navegar entre vistas de forma segura
      */
     window.navigateToView = function(viewName) {
-        const link = document.querySelector(`.sidebar-nav .nav-link[data-view="${viewName}"]`);
-        if (link) {
-            link.click();
-        } else {
-            console.error(`No se encontró el enlace de navegación para la vista: ${viewName}`);
-            // Fallback manual si el link no existe por alguna razón
+        console.log(`[Dashboard Master] Navegando a vista: ${viewName}`);
+        
+        // Estrategias de selección para robustez máxima
+        const selectors = [
+            `.sidebar-nav .nav-link[data-view="${viewName}"]`,
+            `.nav-link[data-view="${viewName}"]`,
+            `a[data-view="${viewName}"]`,
+            `a[href="#${viewName}"]`
+        ];
+
+        let linkFound = false;
+        for (const selector of selectors) {
+            const link = document.querySelector(selector);
+            if (link) {
+                link.click();
+                linkFound = true;
+                break;
+            }
+        }
+
+        if (!linkFound) {
+            console.warn(`[Dashboard Master] No se encontró enlace para "${viewName}". Aplicando cambio forzado.`);
             document.querySelectorAll('.dashboard-view').forEach(v => v.style.display = 'none');
             const target = document.getElementById(`view-${viewName}`);
-            if (target) target.style.display = 'block';
-            if (typeof loadViewData === 'function') loadViewData(viewName);
+            if (target) {
+                target.style.display = 'block';
+                if (typeof window.loadViewData === 'function') window.loadViewData(viewName);
+                
+                // Sincronización visual de enlaces activos
+                document.querySelectorAll('.nav-link').forEach(l => {
+                    if (l.getAttribute('data-view') === viewName) l.classList.add('active');
+                    else l.classList.remove('active');
+                });
+            } else {
+                console.error(`[Dashboard Master] Vista crítica [view-${viewName}] no presente.`);
+            }
         }
     };
 

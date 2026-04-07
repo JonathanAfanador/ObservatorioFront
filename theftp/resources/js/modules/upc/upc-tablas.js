@@ -37,13 +37,36 @@ window.renderEmpresasTable = function () {
     const start = (current - 1) * perPage;
     const paginatedData = allFilteredData.slice(start, start + perPage);
 
-    el.innerHTML = createTableFromArray(
+    // Contador de resultados Premium
+    const resultsCount = allFilteredData.length;
+    const countHtml = `
+        <div class="results-pill-container">
+            <div class="results-pill">
+                <span class="results-pill-icon">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </span>
+                <span class="results-pill-text">
+                    <strong class="results-pill-number">${resultsCount}</strong> empresas registradas
+                </span>
+            </div>
+        </div>
+    `;
+
+    el.innerHTML = countHtml + createTableFromArray(
         paginatedData,
         [
             { key: 'id', label: 'ID' },
             { key: 'name', label: 'Nombre de la Empresa' },
             { key: 'nit', label: 'NIT' },
-            { key: 'tipo_empresa.descripcion', label: 'Tipo de Empresa' }
+            { 
+                label: 'Tipo de Empresa',
+                render: (row) => {
+                    const desc = row.tipo_empresa ? row.tipo_empresa.descripcion : 'N/A';
+                    return `<span class="badge-status badge-info">${desc}</span>`;
+                }
+            }
         ],
         'No se encontraron empresas con ese filtro.'
     ) + renderPagination(allFilteredData.length, current, perPage, "window.changeUpcPage.bind(null, 'empresas')");
@@ -266,6 +289,7 @@ window.renderRutasTable = function () {
         id: r.id,
         name: r.name,
         file_name: r.file_name,
+        paraderos_count: (r.paraderos && r.paraderos.length) ? r.paraderos.length : 0,
         empresa: (r.empresas && r.empresas.length > 0) ? r.empresas[0].name : 'N/A'
     }));
 
@@ -274,15 +298,75 @@ window.renderRutasTable = function () {
     const start = (current - 1) * perPage;
     const paginatedData = tablaData.slice(start, start + perPage);
 
-    el.innerHTML = createTableFromArray(
+    // Contador de resultados Premium
+    const resultsCount = allFilteredData.length;
+    const countHtml = `
+        <div class="results-pill-container">
+            <div class="results-pill">
+                <span class="results-pill-icon">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                </span>
+                <span class="results-pill-text">
+                    <strong class="results-pill-number">${resultsCount}</strong> rutas autorizadas
+                </span>
+            </div>
+        </div>
+    `;
+
+    el.innerHTML = countHtml + createTableFromArray(
         paginatedData,
         [
             { key: 'id', label: 'ID' },
-            { key: 'name', label: 'Nombre Ruta' },
-            { key: 'empresa', label: 'Empresa' },
-            { key: 'file_name', label: 'Archivo' }
+            { key: 'name', label: 'Nombre de Ruta' },
+            { key: 'empresa', label: 'Empresa Responsable' },
+            { 
+                label: 'Estado Respaldo',
+                render: (row) => {
+                    // Auditoría Ultra-Estricta: Trazado + Paraderos
+                    const f = row.file_name ? String(row.file_name).trim().toLowerCase() : '';
+                    
+                    // Lista negra extendida de valores basura y archivos vacíos conocidos
+                    const blackList = [
+                        'undefined', 'null', 'n/a', 'none', 'no', 'default', 'error', 'vacio', 
+                        'pendiente', 'error.kml', 'ruta.kml', 'centro-occidente.kml', 'centro.kml'
+                    ];
+                    
+                    const hasRouteFile = f !== '' && 
+                                   f.length > 5 && 
+                                   !blackList.includes(f) &&
+                                   !f.includes('undefined') && 
+                                   !f.includes('placeholder') &&
+                                   (f.includes('.') || f.includes('/'));
+
+                    const hasStops = row.paraderos_count > 0;
+
+                    if (hasRouteFile && hasStops) {
+                        return `<span class="badge-status badge-success" title="${f}">DOCUMENTADO</span>`;
+                    } else if (!hasRouteFile && !hasStops) {
+                        return `<span class="badge-status badge-danger" title="${f}">PENDIENTE TOTAL</span>`;
+                    } else if (!hasRouteFile) {
+                        return `<span class="badge-status badge-warning" title="${f}">SIN TRAZADO KML</span>`;
+                    } else {
+                        return `<span class="badge-status badge-warning" title="${f}">SIN PARADEROS</span>`;
+                    }
+                }
+            },
+            {
+                label: 'GeoVisor',
+                render: () => `
+                    <button class="btn-sm btn-primary" onclick="window.open('/geovisor', '_blank')" title="Abrir GeoVisor en nueva pestaña">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span>Ver Mapa</span>
+                    </button>
+                `
+            }
         ],
-        'No se encontraron rutas con esos filtros.'
+        'No hay rutas registradas para esta empresa.'
     ) + renderPagination(allFilteredData.length, current, perPage, "window.changeUpcPage.bind(null, 'rutas')");
 };
 
@@ -290,7 +374,7 @@ window.loadRutas = async function () {
     const el = document.getElementById('rutas-table');
     el.innerHTML = 'Cargando...';
     try {
-        const response = await apiGet('/api/rutas?include=empresas');
+        const response = await apiGet('/api/rutas?include=empresas,paraderos');
         dashboardDataStore.rutas = response.data.data;
         renderRutasTable();
     } catch (error) {

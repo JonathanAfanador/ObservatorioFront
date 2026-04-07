@@ -83,16 +83,43 @@ function getExportConfig(target) {
             const empId = document.getElementById('select-empresa-rutas').value;
             const searchTerm = document.getElementById('filter-rutas').value.toLowerCase();
             return {
-                data: dashboardDataStore.rutas.filter(r => {
-                    const matchEmpresa = !empId || (r.empresa_id == empId);
-                    const matchText = !searchTerm || (r.name && r.name.toLowerCase().includes(searchTerm));
-                    return matchEmpresa && matchText;
-                }),
+                data: dashboardDataStore.rutas
+                    .filter(r => {
+                        const matchEmpresa = !empId || (r.empresa_id == empId);
+                        const matchText = !searchTerm || (r.name && r.name.toLowerCase().includes(searchTerm));
+                        return matchEmpresa && matchText;
+                    })
+                    .map(r => {
+                        const f = r.file_name ? String(r.file_name).trim().toLowerCase() : '';
+                        const blackList = ['undefined', 'null', 'n/a', 'none', 'no', 'default', 'error', 'vacio', 'pendiente', 'error.kml', 'ruta.kml'];
+                        
+                        const hasFile = f !== '' && 
+                                      f.length > 5 && 
+                                      !blackList.includes(f) && 
+                                      !f.includes('undefined') &&
+                                      (f.includes('.') || f.includes('/'));
+
+                        const hasStops = r.paraderos && r.paraderos.length > 0;
+                        
+                        let estado = 'DOCUMENTADO';
+                        if (!hasFile && !hasStops) estado = 'PENDIENTE TOTAL';
+                        else if (!hasFile) estado = 'SIN TRAZADO KML';
+                        else if (!hasStops) estado = 'SIN PARADEROS';
+
+                        return {
+                            ...r,
+                            empresa_nombre: (r.empresas && r.empresas.length > 0) ? r.empresas[0].name : 'N/A',
+                            estado_auditoria: estado,
+                            cantidad_paraderos: r.paraderos ? r.paraderos.length : 0
+                        };
+                    }),
                 headers: [
                     { key: 'id', label: 'ID' },
                     { key: 'name', label: 'Nombre Ruta' },
-                    { key: 'empresa.name', label: 'Empresa' },
-                    { key: 'file_name', label: 'Archivo' }
+                    { key: 'empresa_nombre', label: 'Empresa' },
+                    { key: 'estado_auditoria', label: 'Estado Auditoría' },
+                    { key: 'cantidad_paraderos', label: 'Paraderos Reg.' },
+                    { key: 'file_name', label: 'Archivo Trazado' }
                 ],
                 title: 'Reporte de Auditoría de Rutas - Observatorio de Transporte'
             };
@@ -101,18 +128,23 @@ function getExportConfig(target) {
             const tipoId = document.getElementById('select-tipo-docs').value;
             const searchTerm = document.getElementById('filter-documentos').value.toLowerCase();
             return {
-                data: dashboardDataStore.documentos.filter(d => {
-                    const matchTipo = !tipoId || (d.tipo_doc_id == tipoId);
-                    const matchText = !searchTerm ||
-                        (d.observaciones && d.observaciones.toLowerCase().includes(searchTerm)) ||
-                        (d.url && d.url.toLowerCase().includes(searchTerm));
-                    return matchTipo && matchText;
-                }),
+                data: dashboardDataStore.documentos
+                    .filter(d => {
+                        const matchTipo = !tipoId || (d.tipo_doc_id == tipoId);
+                        const matchText = !searchTerm ||
+                            (d.observaciones && d.observaciones.toLowerCase().includes(searchTerm)) ||
+                            (d.url && d.url.toLowerCase().includes(searchTerm));
+                        return matchTipo && matchText;
+                    })
+                    .map(d => ({
+                        ...d,
+                        ha_sido_cargado: d.url ? 'SÍ (Documentado)' : 'NO'
+                    })),
                 headers: [
                     { key: 'id', label: 'ID' },
                     { key: 'observaciones', label: 'Observación' },
-                    { key: 'url', label: 'URL' },
-                    { key: 'created_at', label: 'Fecha Creación' }
+                    { key: 'ha_sido_cargado', label: 'Estado de Evidencia' },
+                    { key: 'created_at', label: 'Fecha Registro' }
                 ],
                 title: 'Reporte de Auditoría de Documentos - Observatorio de Transporte'
             };

@@ -3,6 +3,48 @@
 // Almacén de datos global, notificaciones y llamada a API (GET)
 // ============================================================
 
+/**
+ * Función maestra de navegación autónoma para el panel UPC
+ * Permite cambiar entre vistas de reporte y entrar al Geovisor de forma segura.
+ */
+window.navigateToView = function(viewName) {
+    console.log(`[UPC Router] Navegando a vista: ${viewName}`);
+    
+    // 1. Intentar disparar el clic del enlace real en el sidebar UPC
+    const link = document.querySelector(`.nav-link[data-view="${viewName}"], a[href="#${viewName}"]`);
+    if (link) {
+        link.click();
+    } else {
+        // 2. Fallback manual: Cambio de estado directo en el DOM si el link no está disponible
+        document.querySelectorAll('.dashboard-view').forEach(v => v.style.display = 'none');
+        const target = document.getElementById(`view-${viewName}`);
+        if (target) {
+            target.style.display = 'block';
+            
+            // Actualizar el título del header para feedback visual
+            const headerTitle = document.getElementById('header-title');
+            if (headerTitle) {
+                const names = {
+                    'overview': 'Resumen',
+                    'empresas': 'Reporte de Empresas',
+                    'conductores': 'Reporte de Conductores',
+                    'vehiculos': 'Reporte de Vehículos',
+                    'rutas': 'Reporte de Rutas Autorizadas',
+                    'documentos': 'Reporte de Resoluciones',
+                    'estadisticas': 'Estadísticas'
+                };
+                headerTitle.textContent = names[viewName] || viewName;
+            }
+
+            // Sincronizar estado visual del menú
+            document.querySelectorAll('.nav-link').forEach(l => {
+                if (l.getAttribute('data-view') === viewName) l.classList.add('is-active');
+                else l.classList.remove('is-active');
+            });
+        }
+    }
+};
+
 // --- Almacén compartido de datos para todas las vistas ---
 window.dashboardDataStore = {
     empresas: [],
