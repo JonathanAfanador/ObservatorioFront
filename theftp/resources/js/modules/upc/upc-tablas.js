@@ -421,11 +421,38 @@ window.renderDocumentosTable = function () {
     el.innerHTML = createTableFromArray(
         paginatedData,
         [
-            { label: '#', render: (_, i) => start + i + 1 },
-            { key: 'observaciones', label: 'Título/Observación' },
-            { key: 'url', label: 'URL' },
+            { 
+                label: 'Empresa Responsable', 
+                render: (item) => `<span class="text-sm font-medium text-gray-700">${item.empresa ? item.empresa.name : 'VINCULACIÓN PENDIENTE'}</span>`
+            },
             {
-                label: 'Fecha',
+                label: 'Categoría',
+                render: (item) => {
+                    const desc = item.tipo_documento ? item.tipo_documento.descripcion : 'SIN CATEGORÍA';
+                    let badgeClass = 'badge-info';
+                    if (desc.toLowerCase().includes('resol')) badgeClass = 'badge-success';
+                    if (desc.toLowerCase().includes('licen')) badgeClass = 'badge-blue';
+                    return `<span class="badge-status ${badgeClass}">${desc}</span>`;
+                }
+            },
+            { key: 'observaciones', label: 'Observaciones/Título' },
+            {
+                label: 'Evidencia',
+                render: (item) => {
+                    if (!item.url) return '<span class="text-gray-400 italic">No disponible</span>';
+                    return `
+                        <button class="btn-sm btn-outline" onclick="window.open('${item.url}', '_blank')" title="Ver Archivo Original">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <span>Ver Documento</span>
+                        </button>
+                    `;
+                }
+            },
+            {
+                label: 'Fecha Registro',
                 render: (item) => {
                     if (!item.created_at) return '-';
                     const d = new Date(item.created_at);
@@ -439,13 +466,13 @@ window.renderDocumentosTable = function () {
 
 window.loadDocumentos = async function () {
     const el = document.getElementById('documentos-table');
-    el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando documentos...</p></div>';
+    el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando repositorio de evidencias...</p></div>';
     try {
-        const response = await apiGet('/api/documentos');
+        const response = await apiGet('/api/documentos?include=tipo_documento,empresa&limit=100');
         dashboardDataStore.documentos = response.data.data;
         renderDocumentosTable();
     } catch (error) {
-        el.innerHTML = `<div class='error-state'><p class='text-red-600 text-center py-8'>${error.message}</p></div>`;
+        el.innerHTML = `<div class='error-state'><p class='text-red-600 text-center py-8'>Error de acceso al repositorio: ${error.message}</p></div>`;
     }
 };
 

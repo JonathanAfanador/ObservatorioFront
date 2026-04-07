@@ -138,15 +138,19 @@ function getExportConfig(target) {
                     })
                     .map(d => ({
                         ...d,
+                        empresa_nombre: d.empresa ? d.empresa.name : 'N/A',
+                        categoria_desc: d.tipo_documento ? d.tipo_documento.descripcion : 'SIN CATEGORÍA',
                         ha_sido_cargado: d.url ? 'SÍ (Documentado)' : 'NO'
                     })),
                 headers: [
                     { key: 'id', label: 'ID' },
+                    { key: 'empresa_nombre', label: 'Empresa Responsable' },
+                    { key: 'categoria_desc', label: 'Categoría' },
                     { key: 'observaciones', label: 'Observación' },
                     { key: 'ha_sido_cargado', label: 'Estado de Evidencia' },
                     { key: 'created_at', label: 'Fecha Registro' }
                 ],
-                title: 'Reporte de Auditoría de Documentos - Observatorio de Transporte'
+                title: 'Reporte de Auditoría de Documentos y Resoluciones - Observatorio de Transporte'
             };
         }
         default:

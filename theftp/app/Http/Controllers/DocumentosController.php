@@ -240,6 +240,13 @@ class DocumentosController extends Controller{
         $file = Storage::disk('public')->put(self::FOLDER, $request->file('file'));
         $request->merge(['url' => Storage::url($file)]);
 
+        // --- INYECCIÓN DEL GUARDIÁN DE PROPIEDAD DE ESCRITURA (CREATE) ---
+        $user = auth()->user();
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value, \App\Enums\RolesEnum::SECRETARIA->value])) {
+            $request->merge(['empresa_id' => $user->empresa_id]);
+        }
+        // -----------------------------------------------------------------
+
         return parent::baseStore($request);
     }
 
