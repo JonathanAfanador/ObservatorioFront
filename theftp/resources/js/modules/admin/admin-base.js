@@ -248,11 +248,11 @@ const AdminBase = (function() {
                 
                 <div class="flex items-center gap-3">`;
         } else {
-            // Si el buscador global está oculto, aun renderizamos el contenedor de selectores si hay alguno
+            // Si el buscador global está oculto, renderizamos un contenedor minimalista solo para los selectores
             const hasSelectors = columns.some(col => col.filterOptions);
             if (hasSelectors) {
                 toolbarHtml = `
-                    <div class="admin-toolbar flex flex-wrap items-center justify-end gap-3 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm mb-6">
+                    <div class="admin-toolbar flex flex-wrap items-center justify-end gap-3 mb-4">
                         <div class="flex items-center gap-3">`;
             }
         }

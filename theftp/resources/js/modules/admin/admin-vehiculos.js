@@ -58,6 +58,7 @@ const AdminVehiculos = (function() {
             if (response && response.data) {
                 vehiculosList = response.data.data || response.data;
                 render(vehiculosList);
+                setupVehiculosSearch();
             } else {
                 container.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar datos.</div>';
             }
@@ -122,7 +123,7 @@ const AdminVehiculos = (function() {
             },
             { 
                 header: 'Estado', 
-                filterOptions: ['Habilitado', 'Inactivo', 'Papelera'],
+                filterOptions: ['Habilitado', 'Inactivo'],
                 render: (r) => {
                     const registroBadge = r.deleted_at 
                         ? `<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase border border-red-200 shadow-sm">Papelera</span>` 
@@ -142,7 +143,32 @@ const AdminVehiculos = (function() {
             }
         ];
 
-        AdminBase.renderTable(data, columns, 'vehiculos-table');
+        AdminBase.renderTable(data, columns, 'vehiculos-table', 10, { hideGlobalSearch: true });
+    }
+
+    /**
+     * 3.1 Buscador Local Multi-campo
+     */
+    function setupVehiculosSearch() {
+        const input = document.getElementById('search-vehiculos');
+        if (!input) return;
+        
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        newInput.addEventListener('keyup', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = vehiculosList.filter(v => {
+                const placa = (v.placa || '').toLowerCase();
+                const marca = (v.marca || '').toLowerCase();
+                const modelo = (v.modelo || '').toLowerCase();
+                const prop = v.propietario && v.propietario.persona 
+                    ? `${v.propietario.persona.name} ${v.propietario.persona.last_name}`.toLowerCase()
+                    : '';
+                return placa.includes(term) || marca.includes(term) || modelo.includes(term) || prop.includes(term);
+            });
+            render(filtered);
+        });
     }
 
     /**
