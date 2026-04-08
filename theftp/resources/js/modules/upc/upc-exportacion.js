@@ -48,15 +48,21 @@ function getExportConfig(target) {
                                 licStatus = 'Registrada (Sin fecha)';
                             }
                         }
-                        return { ...c, licencia_estado: licStatus };
+                        return { 
+                            ...c, 
+                            empresa_nombre: c.empresa ? c.empresa.name : 'N/A',
+                            licencia_estado: licStatus,
+                            verificado_st: (c.licencias && c.licencias.length > 0 && c.licencias[0].verificado_secretaria) ? 'VALIDADO' : 'PENDIENTE'
+                        };
                     }),
                 headers: [
                     { key: 'id', label: 'ID Conductor' },
+                    { key: 'empresa_nombre', label: 'Empresa' },
                     { key: 'persona.name', label: 'Nombres' },
                     { key: 'persona.last_name', label: 'Apellidos' },
                     { key: 'persona.nui', label: 'Identificación' },
                     { key: 'licencia_estado', label: 'Estado Licencia' },
-                    { key: 'persona.gender', label: 'Género' }
+                    { key: 'verificado_st', label: 'Estado ST (Validación)' }
                 ],
                 title: 'Reporte de Auditoría de Conductores - Observatorio de Transporte'
             };
@@ -64,19 +70,28 @@ function getExportConfig(target) {
         case 'vehiculos': {
             const searchTerm = document.getElementById('filter-vehiculos').value.toLowerCase();
             return {
-                data: dashboardDataStore.vehiculos.filter(v =>
-                    (v.placa && v.placa.toLowerCase().includes(searchTerm)) ||
-                    (v.marca && v.marca.toLowerCase().includes(searchTerm)) ||
-                    (v.modelo && v.modelo.toLowerCase().includes(searchTerm))
-                ),
+                data: dashboardDataStore.vehiculos
+                    .filter(v =>
+                        (v.placa && v.placa.toLowerCase().includes(searchTerm)) ||
+                        (v.marca && v.marca.toLowerCase().includes(searchTerm)) ||
+                        (v.modelo && v.modelo.toLowerCase().includes(searchTerm))
+                    )
+                    .map(v => ({
+                        ...v,
+                        empresa_nombre: v.empresa ? v.empresa.name : 'N/A',
+                        en_servicio_empresa: v.servicio ? 'SÍ' : 'NO',
+                        estado_st: v.estado || 'PENDIENTE',
+                        tipo_nombre: v.tipo ? v.tipo.descripcion : 'N/A'
+                    })),
                 headers: [
                     { key: 'id', label: 'ID' },
+                    { key: 'empresa_nombre', label: 'Empresa' },
                     { key: 'placa', label: 'Placa' },
-                    { key: 'marca', label: 'Marca' },
-                    { key: 'modelo', label: 'Modelo' },
-                    { key: 'tipo.descripcion', label: 'Tipo' }
+                    { key: 'tipo_nombre', label: 'Tipo' },
+                    { key: 'en_servicio_empresa', label: 'Servicio (Empresa)' },
+                    { key: 'estado_st', label: 'Estado (Secretaría)' }
                 ],
-                title: 'Reporte de Auditoría de Vehículos en Servicio - Observatorio de Transporte'
+                title: 'Reporte de Auditoría de Vehículos - Observatorio de Transporte'
             };
         }
         case 'rutas': {

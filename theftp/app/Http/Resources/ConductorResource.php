@@ -31,6 +31,7 @@ class ConductorResource extends JsonResource
             
             // Relaciones
             'persona' => new PersonaResource($this->whenLoaded('persona')),
+            'empresa' => new \App\Http\Resources\EmpresaResource($this->whenLoaded('empresa')),
             'licencias' => LicenciaResource::collection($this->whenLoaded('licencias')),
         ];
     }

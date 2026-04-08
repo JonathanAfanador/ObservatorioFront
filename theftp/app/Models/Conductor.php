@@ -121,4 +121,10 @@ class Conductor extends Model implements Auditable
                     ->withTimestamps()
                     ->whereNull('conductores_licencias.deleted_at');
     }
+
+    // Relación con el modelo empresas
+    public function empresa()
+    {
+        return $this->belongsTo(Empresa::class, 'empresa_id');
+    }
 }

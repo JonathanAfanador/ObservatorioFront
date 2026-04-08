@@ -120,11 +120,13 @@ window.renderConductoresTable = function () {
 
             return {
                 id: c.id,
+                empresa: c.empresa ? c.empresa.name : 'N/A',
                 nombres: c.persona ? c.persona.name : 'N/A',
                 apellidos: c.persona ? c.persona.last_name : 'N/A',
                 nui: c.persona ? c.persona.nui : 'N/A',
                 licStatus,
-                badgeClass
+                badgeClass,
+                isVerified: (c.licencias && c.licencias.length > 0) ? (c.licencias[0].verificado_secretaria || false) : false
             };
         })
         .filter(c =>
@@ -159,12 +161,25 @@ window.renderConductoresTable = function () {
         paginatedData,
         [
             { label: '#', render: (_, i) => start + i + 1 },
+            { 
+                label: 'Empresa', 
+                render: (row) => `<span class="text-xs font-semibold text-blue-600 uppercase" title="${row.empresa}">${row.empresa}</span>`
+            },
             { key: 'nombres', label: 'Nombres' },
             { key: 'apellidos', label: 'Apellidos' },
             { key: 'nui', label: 'Identificación' },
             { 
                 label: 'Estado Licencia', 
                 render: (row) => `<span class="badge-status ${row.badgeClass}">${row.licStatus}</span>` 
+            },
+            {
+                label: 'Estado ST',
+                render: (row) => {
+                    const icon = row.isVerified ? '✓ ' : '';
+                    const label = row.isVerified ? 'VALIDADO' : 'PENDIENTE';
+                    const css = row.isVerified ? 'badge-success' : 'badge-secondary';
+                    return `<span class="badge-status ${css}" style="font-weight: 700;">${icon}${label}</span>`;
+                }
             }
         ],
         'No se encontraron conductores con ese filtro.'
@@ -175,7 +190,7 @@ window.loadConductores = async function () {
     const el = document.getElementById('conductores-table');
     el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando conductores...</p></div>';
     try {
-        const response = await apiGet('/api/conductores?include=persona,persona.tipo_ident,licencias&limit=100');
+        const response = await apiGet('/api/conductores?include=persona,persona.tipo_ident,licencias,empresa&limit=100&orderBy=id&orderDirection=desc');
         dashboardDataStore.conductores = response.data.data;
         renderConductoresTable();
     } catch (error) {
@@ -201,13 +216,26 @@ window.renderVehiculosTable = function () {
             if (tipoDesc.toLowerCase().includes('camio')) badgeClass = 'badge-orange';
             if (tipoDesc.toLowerCase().includes('auto')) badgeClass = 'badge-info';
 
+            // Traducción humana del estado de Secretaría
+            let displayEstado = v.estado || 'PENDIENTE';
+            if (v.estado === true || String(v.estado).toLowerCase() === 'true' || v.estado === 1 || v.estado === '1') {
+                displayEstado = 'HABILITADO';
+            } else if (v.estado === false || String(v.estado).toLowerCase() === 'false' || v.estado === 0 || v.estado === '0') {
+                displayEstado = 'SIN ESTADO';
+            }
+
             return {
                 id: v.id,
                 placa: v.placa,
                 modelo: v.modelo,
                 marca: v.marca,
+                empresa_nombre: v.empresa ? v.empresa.name : 'N/A',
+                en_servicio_empresa: v.servicio ? 'SÍ' : 'NO',
+                estado_st: displayEstado,
                 tipo_desc: tipoDesc,
-                badgeClass
+                badgeClass,
+                servicioBadge: v.servicio ? 'badge-success' : 'badge-danger',
+                estadoBadge: (displayEstado.toLowerCase().includes('habil') || displayEstado.toLowerCase().includes('opera')) ? 'badge-success' : 'badge-secondary'
             };
         })
         .filter(v =>
@@ -242,9 +270,19 @@ window.renderVehiculosTable = function () {
         paginatedData,
         [
             { key: 'id', label: 'ID' },
+            { 
+                label: 'Empresa', 
+                render: (row) => `<span class="text-xs font-semibold text-blue-600 uppercase">${row.empresa_nombre}</span>`
+            },
             { key: 'placa', label: 'Placa' },
-            { key: 'modelo', label: 'Modelo' },
-            { key: 'marca', label: 'Marca' },
+            { 
+                label: 'En servicio (Empresa)', 
+                render: (row) => `<span class="badge-status ${row.servicioBadge}">${row.en_servicio_empresa}</span>`
+            },
+            { 
+                label: 'Estado (Secretaría)', 
+                render: (row) => `<span class="badge-status ${row.estadoBadge}">${row.estado_st}</span>`
+            },
             { 
                 label: 'Tipo', 
                 render: (row) => `<span class="badge-status ${row.badgeClass}">${row.tipo_desc}</span>` 
@@ -256,15 +294,15 @@ window.renderVehiculosTable = function () {
 
 window.loadVehiculos = async function () {
     const el = document.getElementById('vehiculos-table');
-    el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando vehículos...</p></div>';
+    el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando flota de vehículos...</p></div>';
     try {
-        const filtro = { "column": "servicio", "operator": "=", "value": true };
-        const params = `?filter=${encodeURIComponent(JSON.stringify(filtro))}&include=tipo&limit=100`;
+        // Traemos todos los vehículos con su empresa y tipo, ordenados por ID desc
+        const params = `?include=tipo,empresa&limit=100&orderBy=id&orderDirection=desc`;
         const response = await apiGet('/api/vehiculos' + params);
         dashboardDataStore.vehiculos = response.data.data;
         renderVehiculosTable();
     } catch (error) {
-        el.innerHTML = `<div class="error-state"><p class='text-red-600 text-center py-8'>Error al cargar vehículos: ${error.message}</p></div>`;
+        el.innerHTML = `<div class="error-state"><p class='text-red-600 text-center py-8'>Error al cargar flota: ${error.message}</p></div>`;
     }
 };
 
@@ -468,7 +506,7 @@ window.loadDocumentos = async function () {
     const el = document.getElementById('documentos-table');
     el.innerHTML = '<div class="loading-state"><p class="text-gray-500 text-center py-8">Cargando repositorio de evidencias...</p></div>';
     try {
-        const response = await apiGet('/api/documentos?include=tipo_documento,empresa&limit=100');
+        const response = await apiGet('/api/documentos?include=tipo_documento,empresa&limit=100&orderBy=id&orderDirection=desc');
         dashboardDataStore.documentos = response.data.data;
         renderDocumentosTable();
     } catch (error) {
