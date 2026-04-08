@@ -238,52 +238,169 @@ window.handleExportSummary = function () {
             throw new Error('jsPDF no definido');
         }
 
-        const totalEmpresas = document.querySelector('.card-empresas .metric-value').textContent;
-        const totalConductores = document.querySelector('.card-conductores .metric-value').textContent;
-        const totalVehiculos = document.querySelector('.card-vehiculos .metric-value').textContent;
-        const totalRutas = document.querySelector('.card-rutas .metric-value').textContent;
+        const totalEmpresas = document.getElementById('upc-total-empresas')?.textContent || '0';
+        const totalConductores = document.getElementById('upc-total-conductores')?.textContent || '0';
+        const totalVehiculos = document.getElementById('upc-total-vehiculos')?.textContent || '0';
+        const totalRutas = document.getElementById('upc-total-rutas')?.textContent || '0';
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
         const docWidth = doc.internal.pageSize.getWidth();
+        const docHeight = doc.internal.pageSize.getHeight();
         const margin = 20;
         let y = 30;
 
+        // --- PÁGINA 1: RESUMEN EJECUTIVO Y KPIs ---
+        doc.setFillColor(59, 130, 246); // Color primario
+        doc.rect(margin, y - 5, 2, 8, 'F');
         doc.setFontSize(18); doc.setFont('helvetica', 'bold');
-        doc.text('Resumen General del Sistema de Transporte', docWidth / 2, y, { align: 'center' });
-        y += 15;
-
-        doc.setFontSize(11); doc.setFont('helvetica', 'normal');
-        doc.text(`Fecha de generación: ${new Date().toLocaleDateString('es-CO')}`, margin, y);
-        y += 15;
-
-        doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-        doc.text('Métricas Principales', margin, y);
+        doc.setTextColor(15, 23, 42); 
+        doc.text('Informe Estratégico de Gestión', margin + 6, y);
         y += 10;
 
-        const cardWidth = docWidth - (margin * 2);
-        const cardHeight = 15;
-        const textOffset = 9;
-        const valueOffset = docWidth - margin - 10;
+        doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100);
+        doc.text(`Módulo UPC - Generado el: ${new Date().toLocaleDateString('es-CO')} ${new Date().toLocaleTimeString()}`, margin, y);
+        y += 20;
 
-        const metricas = [
-            { label: 'Empresas Registradas:', value: totalEmpresas },
-            { label: 'Conductores Registrados:', value: totalConductores },
-            { label: 'Vehículos en Servicio:', value: totalVehiculos },
-            { label: 'Rutas Autorizadas:', value: totalRutas }
+        doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 41, 59);
+        doc.text('Indicadores Clave de Desempeño (KPIs)', margin, y);
+        y += 10;
+
+        const cardWidth = (docWidth - (margin * 2) - 10) / 2;
+        const cardHeight = 25;
+        const metrics = [
+            { label: 'Empresas Registradas', value: totalEmpresas },
+            { label: 'Conductores Registrados', value: totalConductores },
+            { label: 'Flota en Servicio', value: totalVehiculos },
+            { label: 'Rutas Autorizadas', value: totalRutas }
         ];
 
-        metricas.forEach(m => {
-            doc.setFillColor(245, 245, 245);
-            doc.rect(margin, y, cardWidth, cardHeight, 'F');
-            doc.setFontSize(12); doc.setFont('helvetica', 'normal');
-            doc.text(m.label, margin + 5, y + textOffset);
-            doc.setFont('helvetica', 'bold');
-            doc.text(m.value, valueOffset, y + textOffset, { align: 'right' });
-            y += 20;
+        metrics.forEach((m, i) => {
+            const posX = margin + (i % 2 === 0 ? 0 : cardWidth + 10);
+            const posY = y + (Math.floor(i / 2) * (cardHeight + 10));
+            
+            doc.setFillColor(248, 250, 252);
+            doc.setDrawColor(226, 232, 240);
+            doc.roundedRect(posX, posY, cardWidth, cardHeight, 2, 2, 'FD');
+            
+            doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+            doc.setTextColor(100);
+            doc.text(m.label.toUpperCase(), posX + 5, posY + 8);
+            
+            doc.setFontSize(16); doc.setTextColor(15, 23, 42);
+            doc.text(m.value, posX + 5, posY + 18);
+        });
+        
+        y += (cardHeight * 2) + 15;
+
+        // --- SECCIÓN: INTELIGENCIA OPERATIVA Y RIESGOS ---
+        const audit = dashboardDataStore.lastAudit;
+        if (audit) {
+            const sColor = scoreColor(audit.score);
+            doc.setFillColor(sColor[0], sColor[1], sColor[2]); 
+            doc.rect(margin, y - 5, 2, 8, 'F');
+            doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+            doc.setTextColor(30, 41, 59);
+            doc.text('Análisis de Cumplimiento y Riesgos', margin + 6, y);
+            y += 10;
+
+            // Banner de Salud del Sistema
+            doc.setFillColor(248, 250, 252);
+            doc.setDrawColor(226, 232, 240);
+            doc.roundedRect(margin, y, docWidth - (margin * 2), 15, 2, 2, 'FD');
+            
+            doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+            doc.setTextColor(71, 85, 105);
+            doc.text('ÍNDICE DE SALUD OPERATIVA:', margin + 5, y + 9.5);
+            
+            doc.setFontSize(14); doc.setTextColor(15, 23, 42);
+            doc.text(`${audit.score}%`, docWidth - margin - 15, y + 10, { align: 'right' });
+            
+            y += 22;
+
+            if (audit.hallazgos.length > 0) {
+                audit.hallazgos.forEach(h => {
+                    const hColor = h.type === 'critical' ? [185, 28, 28] : (h.type === 'warning' ? [180, 83, 9] : [3, 105, 161]);
+                    
+                    doc.setDrawColor(226, 232, 240);
+                    doc.setLineWidth(0.1);
+                    doc.line(margin, y, docWidth - margin, y);
+                    y += 6;
+
+                    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(hColor[0], hColor[1], hColor[2]);
+                    doc.text(h.title.toUpperCase(), margin, y);
+                    y += 5;
+
+                    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(71, 85, 105);
+                    const splitDesc = doc.splitTextToSize(h.desc.replace(/<\/?strong>/g, ''), docWidth - (margin * 2));
+                    doc.text(splitDesc, margin, y);
+                    y += (splitDesc.length * 5) + 3;
+                });
+            } else {
+                doc.setFontSize(10); doc.setFont('helvetica', 'italic');
+                doc.setTextColor(100);
+                doc.text('No se detectaron inconsistencias legales ni riesgos operativos vigentes.', margin, y);
+                y += 10;
+            }
+        }
+
+        function scoreColor(s) {
+            if (s > 90) return [16, 185, 129];
+            if (s > 60) return [245, 158, 11];
+            return [239, 68, 68];
+        }
+
+        // --- PÁGINA 2: ANÁLISIS ANALÍTICO (GRÁFICOS) ---
+        doc.addPage();
+        y = 25;
+        
+        doc.setFillColor(99, 102, 241); 
+        doc.rect(margin, y - 5, 2, 8, 'F');
+        doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+        doc.setTextColor(15, 23, 42); 
+        doc.text('Análisis Operativo Visual', margin + 6, y);
+        y += 15;
+
+        const chartIds = [
+            { id: 'graficoVehiculosPorTipo', title: 'Distribución de Flota por Tipo' },
+            { id: 'graficoConductoresPorGenero', title: 'Demografía de Conductores' },
+            { id: 'graficoEmpresasPorTipo', title: 'Composición Empresarial' },
+            { id: 'graficoVehiculosPorModelo', title: 'Antigüedad/Modelo de Flota' }
+        ];
+
+        const chartW = (docWidth - (margin * 2) - 10) / 2;
+        const chartH = 65;
+
+        chartIds.forEach((chart, i) => {
+            const canvas = document.getElementById(chart.id);
+            if (canvas) {
+                const posX = margin + (i % 2 === 0 ? 0 : chartW + 10);
+                const posY = y + (Math.floor(i / 2) * (chartH + 15));
+                
+                doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+                doc.setTextColor(71, 85, 105);
+                doc.text(chart.title, posX, posY - 5);
+                
+                try {
+                    const imgData = canvas.toDataURL('image/png', 1.0);
+                    doc.addImage(imgData, 'PNG', posX, posY, chartW, chartH);
+                } catch (e) {
+                    doc.setFontSize(8); doc.setTextColor(200, 0, 0);
+                    doc.text('[Error al capturar analítica]', posX + 5, posY + 10);
+                }
+            }
         });
 
-        doc.save(`resumen_general_${new Date().toISOString().split('T')[0]}.pdf`);
+        // Pie de página institucional
+        doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 163, 184);
+        doc.text('Observatorio de Transporte - Informe Confidencial de Auditoría', docWidth / 2, docHeight - 10, { align: 'center' });
+
+        doc.save(`informe_estrategetico_upc_${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (err) {
         console.error('Error al generar el PDF del resumen:', err);
         alert('No se pudo generar el PDF del resumen. Asegúrese de que el resumen esté cargado.');
