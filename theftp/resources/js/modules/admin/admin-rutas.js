@@ -51,6 +51,11 @@ const AdminRutas = (function() {
     function render(data) {
         const columns = [
             { 
+                header: 'ID', 
+                key: 'id',
+                render: (r) => `<span class="font-mono text-xs text-gray-400">#${r.id}</span>`
+            },
+            { 
                 header: 'Empresa', 
                 render: (r) => r.empresa 
                     ? `<span class="text-sm font-medium text-gray-700">${r.empresa.name}</span>` 
@@ -59,7 +64,6 @@ const AdminRutas = (function() {
             { 
                 header: 'Nombre Ruta', 
                 render: (r) => {
-                    // Limpiamos visualmente el nombre en la tabla para que se vea ordenado
                     const cleanName = r.name.replace('✅', '').replace('[OK]', '').trim();
                     return `<span class="font-bold text-gray-800">${cleanName}</span>`;
                 }
@@ -75,98 +79,79 @@ const AdminRutas = (function() {
                     : '<span class="text-gray-400 text-xs italic">Sin archivo</span>' 
             },
             {
-                header: 'Estado',
+                header: 'Gobernanza / Estado',
+                filterOptions: [
+                    { value: 'Verificada', label: 'Verificadas ✅' },
+                    { value: 'Pendiente', label: 'Pendientes ⏳' },
+                    { value: 'Papelera', label: 'En Papelera 🗑️' }
+                ],
                 render: (r) => {
-                    if (r.deleted_at) return '<span class="badge bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">Eliminado</span>';
+                    if (r.deleted_at) return '<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase border border-red-200 shadow-sm">Papelera / Eliminado</span>';
                     
                     const isVerified = r.name.includes('✅') || r.name.includes('[OK]');
                     return isVerified
-                        ? `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">
-                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Verificada
+                        ? `<span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-green-100 text-green-700 border border-green-200 shadow-sm">
+                             <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg> Verificada
                            </span>`
-                        : `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">
-                             Pendiente
+                        : `<span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-700 border border-amber-200 shadow-sm">
+                             <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Pendiente Revisión
                            </span>`;
                 }
             },
             { 
                 header: 'Acciones', 
                 render: (r) => {
-                    // 1. Generamos botones base (Editar/Eliminar/Restaurar)
                     let buttons = AdminBase.generateActionButtons(r, 'AdminRutas');
-                    
-                    // 2. Lógica de botones de estado
                     const isVerified = r.name.includes('✅') || r.name.includes('[OK]');
-                    const safeName = r.name.replace(/'/g, "\\'"); // Escapar comillas para el string JS
+                    const safeName = r.name.replace(/'/g, "\\'"); 
 
                     if (!r.deleted_at) {
                         if (!isVerified) {
-                            // Botón APROBAR (Verde)
                             const btnApprove = `
                                 <button onclick="AdminRutas.approve(${r.id}, '${safeName}', ${r.empresa_id})" 
-                                        class="ml-2 text-green-600 hover:text-green-800 transition" title="Aprobar Ruta">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:scale-105 transition-all duration-200 border border-indigo-100 shadow-sm group">
+                                    <svg class="w-4 h-4 group-hover:rotate-12 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span class="text-[10px] font-bold uppercase tracking-tight">Aprobar</span>
                                 </button>`;
-                            buttons = buttons.replace('<div class="flex gap-3">', '<div class="flex gap-3">' + btnApprove);
+                            buttons = buttons.replace('<div class="flex gap-2">', '<div class="flex gap-2">' + btnApprove);
                         } else {
-                            // Botón DESAPROBAR (Naranja/Rojo)
                             const btnReject = `
                                 <button onclick="AdminRutas.reject(${r.id}, '${safeName}', ${r.empresa_id})" 
-                                        class="ml-2 text-orange-500 hover:text-orange-700 transition" title="Desaprobar Ruta">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 hover:scale-105 transition-all duration-200 border border-rose-100 shadow-sm group">
+                                    <svg class="w-4 h-4 group-hover:-rotate-12 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span class="text-[10px] font-bold uppercase tracking-tight">Rechazar</span>
                                 </button>`;
-                            buttons = buttons.replace('<div class="flex gap-3">', '<div class="flex gap-3">' + btnReject);
+                            buttons = buttons.replace('<div class="flex gap-2">', '<div class="flex gap-2">' + btnReject);
                         }
                     }
                     return buttons;
                 }
             }
         ];
-        AdminBase.renderTable(data, columns, 'rutas-table');
+        AdminBase.renderTable(data, columns, 'rutas-table', 10);
     }
 
-    /**
-     * CORRECCIÓN: Usar POST en lugar de PUT para la aprobación
-     * El controlador RutasController define el update como POST en /api/rutas/{id}
-     */
-async function approve(id, currentName, empresaId) {
+    async function approve(id, currentName, empresaId) {
         if(!confirm(`¿Aprobar la ruta "${currentName}"?`)) return;
-
         const cleanName = currentName.replace('✅', '').replace('[OK]', '').trim();
         const newName = `${cleanName} ✅`;
-
-        // Usamos FormData para ser consistentes con el endpoint de edición
         const formData = new FormData();
         formData.append('name', newName);
         formData.append('empresa_id', empresaId);
-        
-        // NO agregamos 'file', por lo que el controlador (ya corregido) omitirá la validación de archivo.
-
-        // Usamos POST porque tu controlador Rutas define la edición como POST
         const res = await AdminBase.apiCall(`/rutas/${id}`, 'POST', formData);
-
         if (res && res.status) {
             AdminBase.showNotification('success', 'Aprobada', 'La ruta ha sido verificada exitosamente.');
             load();
         }
     }
 
-    /**
-     * Desaprobar Ruta (Quita el check del nombre)
-     */
     async function reject(id, currentName, empresaId) {
         if(!confirm(`¿Desaprobar la ruta y volverla a estado pendiente?`)) return;
-
-        // Limpiamos cualquier marca de verificación del nombre
         const cleanName = currentName.replace('✅', '').replace('[OK]', '').trim();
-
         const formData = new FormData();
-        formData.append('name', cleanName); // Enviamos el nombre limpio
+        formData.append('name', cleanName);
         formData.append('empresa_id', empresaId);
-
-        // Usamos POST para editar (según tu backend)
         const res = await AdminBase.apiCall(`/rutas/${id}`, 'POST', formData);
-
         if (res && res.status) {
             AdminBase.showNotification('info', 'Estado Actualizado', 'La ruta ha vuelto a estado pendiente.');
             load();
@@ -192,9 +177,11 @@ async function approve(id, currentName, empresaId) {
         await loadEmpresas();
         
         selEmpresa.innerHTML = '<option value="">-- Seleccione Empresa --</option>';
-        empresasList.forEach(e => {
-            selEmpresa.innerHTML += `<option value="${e.id}">${e.name}</option>`;
-        });
+        if (empresasList && empresasList.forEach) {
+            empresasList.forEach(e => {
+                selEmpresa.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+            });
+        }
 
         form.reset();
         modal.style.display = 'flex';
@@ -218,29 +205,20 @@ async function approve(id, currentName, empresaId) {
         editingId = null;
     }
 
-    /**
-     * Guardar Ruta
-     * También corregido para usar POST siempre en Rutas
-     */
     async function save(e) {
         e.preventDefault();
-        
         const formData = new FormData();
         formData.append('name', document.getElementById('ruta-name').value);
         formData.append('empresa_id', document.getElementById('ruta-empresa').value);
-        
         const fileInput = document.getElementById('ruta-file');
         if (fileInput.files[0]) {
             formData.append('file', fileInput.files[0]);
         }
-
         let endpoint = '/rutas';
         if (editingId) endpoint += `/${editingId}`;
-
         const btnSubmit = document.querySelector('#form-ruta button[type="submit"]');
         if (btnSubmit && btnSubmit.disabled) return;
         if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
-
         try {
             const res = await AdminBase.apiCall(endpoint, 'POST', formData);
             if (res && res.status) {

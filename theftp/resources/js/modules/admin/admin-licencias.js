@@ -45,27 +45,53 @@ const AdminLicencias = (function() {
 
     function render(data) {
         const columns = [
-            { header: 'ID', key: 'id' },
-            { header: 'Número', key: 'numero' },
-            { header: 'Categoría', render: (r) => r.categoria ? `${r.categoria.codigo} - ${r.categoria.descripcion}` : '-' },
             { 
-                header: 'Vencimiento', 
+                header: 'ID', 
+                key: 'id', 
+                render: (r) => `<span class="font-mono text-xs text-gray-400">#${r.id}</span>` 
+            },
+            { header: 'Número de Licencia', key: 'numero', render: (r) => `<span class="font-bold text-slate-800">${r.numero}</span>` },
+            { 
+                header: 'Categoría', 
+                filterOptions: ['A1', 'A2', 'B1', 'B2', 'B3', 'C1', 'C2', 'C3'],
+                render: (r) => {
+                    const txt = r.categoria ? r.categoria.codigo : '-';
+                    return `<span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold uppercase border border-slate-200 shadow-sm">${txt}</span>`;
+                }
+            },
+            { 
+                header: 'Estado de Vencimiento', 
+                filterOptions: [
+                    { value: 'VENCIDA', label: 'Vencidas 🔴' },
+                    { value: 'PRÓXIMA', label: 'Próximas a vencer 🟡' },
+                    { value: '20', label: 'Vigentes 🟢' } 
+                ],
                 render: (r) => {
                     if (!r.fecha_vencimiento) return '-';
                     const hoy = new Date();
                     const venc = new Date(r.fecha_vencimiento);
                     const diffDays = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
-                    let color = 'text-green-600';
-                    if (diffDays <= 0) color = 'text-red-600 font-bold';
-                    else if (diffDays <= 30) color = 'text-yellow-600 font-bold';
-                    return `<span class="${color}">${r.fecha_vencimiento}</span>`;
+                    
+                    let classes = 'bg-green-100 text-green-700 border-green-200';
+                    let label = r.fecha_vencimiento;
+
+                    if (diffDays <= 0) {
+                        classes = 'bg-red-100 text-red-700 border-red-200 animate-pulse';
+                        label = `VENCIDA (${r.fecha_vencimiento})`;
+                    } else if (diffDays <= 30) {
+                        classes = 'bg-amber-100 text-amber-700 border-amber-200';
+                        label = `PRÓXIMA (${r.fecha_vencimiento})`;
+                    }
+
+                    return `<span class="px-3 py-1 rounded-full ${classes} text-[10px] font-bold uppercase border shadow-sm inline-block">${label}</span>`;
                 }
             },
             { header: 'Organismo', key: 'organismo_transito' },
             { header: 'Doc. Soporte', render: (r) => r.documento ? `Doc #${r.documento.id}` : '-' },
             { header: 'Acciones', render: (r) => AdminBase.generateActionButtons(r, 'AdminLicencias') }
         ];
-        AdminBase.renderTable(data, columns, 'licencias-table');
+        // Activamos paginación automática (10 por página)
+        AdminBase.renderTable(data, columns, 'licencias-table', 10);
     }
 
     async function loadAuxData() {

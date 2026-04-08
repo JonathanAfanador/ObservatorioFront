@@ -144,74 +144,333 @@ const AdminBase = (function() {
     }
 
     /**
-     * Renderiza una tabla HTML estándar con Tailwind CSS
+     * REGISTRO INTERNO DE ESTADO PARA PAGINACIÓN
      */
-    function renderTable(data, columns, containerId) {
+    const tableRegistry = {};
+
+    /**
+     * Renderiza una tabla HTML con Paginación Automática y Diseño Premium
+     * @param {Array} data - El arreglo completo de datos
+     * @param {Array} columns - Definición de columnas
+     * @param {string} containerId - ID del contenedor DOM
+     * @param {number} perPage - Registros por página (default 10)
+     * @param {Object} options - Opciones adicionales (ej: { hideGlobalSearch: true })
+     */
+    function renderTable(data, columns, containerId, perPage = 10, options = {}) {
         const container = document.getElementById(containerId);
         if (!container) return;
 
         if (!data || data.length === 0) {
-            container.innerHTML = '<div class="p-6 text-center text-gray-500 bg-gray-50 rounded border border-dashed">No hay registros para mostrar.</div>';
+            container.innerHTML = '<div class="p-8 text-center text-gray-400 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 shadow-inner">No hay registros disponibles en este módulo.</div>';
             return;
         }
 
-        let html = `
-            <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-                <table class="min-w-full divide-y divide-gray-200 bg-white text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>`;
+        // Ordenar datos: El más reciente primero (ID descendente)
+        const sortedData = [...data].sort((a, b) => (b.id || 0) - (a.id || 0));
+
+        // Registrar o actualizar el estado de esta tabla
+        tableRegistry[containerId] = {
+            data: sortedData,
+            columns: columns,
+            perPage: perPage,
+            currentPage: 1,
+            filters: {}, // Inicializamos filtros vacíos
+            options: options // Guardamos opciones
+        };
+
+        // Renderizar la página inicial
+        renderTablePage(containerId);
+    }
+
+    /**
+     * Renderiza una página específica en base al registro
+     */
+    function renderTablePage(containerId) {
+        const container = document.getElementById(containerId);
+        const state = tableRegistry[containerId];
+        if (!container || !state) return;
+
+        const { data, columns, perPage, currentPage, filters } = state;
         
-        // Headers
-        columns.forEach(col => {
-            html += `<th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider text-xs">${col.header}</th>`;
+        // 1. Aplicar lógica de Filtrado Profesional (Búsqueda Global + Categorías)
+        const globalTerm = (state.globalSearch || '').toLowerCase().trim();
+        
+        const filteredData = data.filter(row => {
+            // A. Búsqueda Global (Smart Search)
+            if (globalTerm) {
+                const matchesGlobal = columns.some(col => {
+                    if (col.filterOptions) return false; // Las categorías se filtran aparte
+                    const cellContent = col.render ? col.render(row) : (row[col.key] || '');
+                    const cleanText = String(cellContent).replace(/<[^>]*>?/gm, '').toLowerCase();
+                    return cleanText.includes(globalTerm);
+                });
+                if (!matchesGlobal) return false;
+            }
+
+            // B. Filtros de Categoría (AND multidimensional)
+            return Object.keys(filters).every(colIndex => {
+                const term = filters[colIndex].toLowerCase().trim();
+                if (!term) return true;
+
+                const column = columns[colIndex];
+                const cellContent = column.render ? column.render(row) : (row[column.key] || '');
+                const cleanText = String(cellContent).replace(/<[^>]*>?/gm, '').toLowerCase();
+
+                // Para selectores en toolbar, buscamos coincidencia exacta o inclusiva
+                return cleanText.includes(term);
+            });
         });
 
-        html += `</tr></thead><tbody class="divide-y divide-gray-200">`;
+        const total = filteredData.length;
+        const totalPages = Math.ceil(total / perPage);
+        
+        const start = (currentPage - 1) * perPage;
+        const paginatedData = filteredData.slice(start, start + perPage);
 
-        // Rows
-        data.forEach(row => {
-            const rowClass = row.deleted_at ? 'bg-red-50' : 'hover:bg-gray-50';
-            html += `<tr class="${rowClass} transition-colors duration-150">`;
+        // --- CONSTRUCCIÓN DEL TOOLBAR PROFESIONAL ---
+        let toolbarHtml = '';
+        
+        if (!state.options?.hideGlobalSearch) {
+            toolbarHtml = `
+                <div class="admin-toolbar flex flex-wrap items-center justify-between gap-4 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm mb-6">
+                    <div class="flex-1 min-w-[300px] relative group">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-800 transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                    <input type="text" 
+                           placeholder="Búsqueda global (ID, Nombres, Placas...)" 
+                           value="${state.globalSearch || ''}"
+                           onkeyup="AdminBase.applyGlobalSearch('${containerId}', this.value)"
+                           class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-100 focus:border-slate-800 transition-all duration-300 outline-none text-sm font-medium placeholder-slate-400 shadow-inner">
+                </div>
+                
+                <div class="flex items-center gap-3">`;
+        } else {
+            // Si el buscador global está oculto, aun renderizamos el contenedor de selectores si hay alguno
+            const hasSelectors = columns.some(col => col.filterOptions);
+            if (hasSelectors) {
+                toolbarHtml = `
+                    <div class="admin-toolbar flex flex-wrap items-center justify-end gap-3 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm mb-6">
+                        <div class="flex items-center gap-3">`;
+            }
+        }
+
+        // Añadir Selectores de Categoría al Toolbar
+        columns.forEach((col, idx) => {
+            if (col.filterOptions) {
+                const currentVal = filters[idx] || '';
+                let optionsHtml = `<option value="">${col.header} (Todos)</option>`;
+                col.filterOptions.forEach(opt => {
+                    const optVal = typeof opt === 'object' ? opt.value : opt;
+                    const optLabel = typeof opt === 'object' ? opt.label : opt;
+                    const selected = currentVal.toLowerCase() === optVal.toLowerCase() ? 'selected' : '';
+                    optionsHtml += `<option value="${optVal}" ${selected}>${optLabel}</option>`;
+                });
+
+                toolbarHtml += `
+                    <select onchange="AdminBase.applyFilter('${containerId}', ${idx}, this.value)"
+                            class="px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 uppercase tracking-tight focus:ring-4 focus:ring-slate-100 focus:border-slate-800 transition-all duration-200 outline-none cursor-pointer">
+                        ${optionsHtml}
+                    </select>`;
+            }
+        });
+
+        // Botón Limpiar (Solo si hay filtros activos)
+        const hasFilters = globalTerm || Object.keys(filters).length > 0;
+        if (hasFilters) {
+            toolbarHtml += `
+                <button onclick="AdminBase.clearFilters('${containerId}')" 
+                        class="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200 group" 
+                        title="Limpiar filtros">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>`;
+        }
+
+        toolbarHtml += `</div></div>`;
+
+        // 1. Contador Premium
+        const countHtml = `
+            <div class="flex items-center justify-between mb-4 px-2">
+                <div class="flex items-center gap-2">
+                   <span class="w-2 h-2 rounded-full bg-slate-800 animate-pulse"></span>
+                   <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Estado: En Tiempo Real</span>
+                </div>
+                <div class="text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 italic">
+                    Mostrando <span class="text-slate-900 font-bold">${start + 1}-${Math.min(start + perPage, total)}</span> de <span class="text-slate-900 font-bold">${total}</span> registros encontrados
+                </div>
+            </div>
+        `;
+
+        // 2. Tabla Estilizada (Sin buscadores en el header)
+        let html = toolbarHtml + countHtml + `
+            <div class="overflow-x-auto rounded-2xl border border-slate-100 shadow-2xl shadow-slate-200/50 bg-white mb-6">
+                <table class="min-w-full divide-y divide-gray-100 text-sm">
+                    <thead class="bg-slate-50/50">
+                        <tr>`;
+        
+        columns.forEach(col => {
+            html += `<th class="px-6 py-5 text-left font-black text-slate-500 uppercase tracking-widest text-[10px]">${col.header}</th>`;
+        });
+
+        html += `</tr></thead><tbody class="divide-y divide-gray-50 italic-last-child">`;
+
+        paginatedData.forEach(row => {
+            const rowClass = row.deleted_at ? 'bg-red-50/50' : 'hover:bg-gray-50/80';
+            html += `<tr class="${rowClass} transition-all duration-150">`;
             
             columns.forEach(col => {
-                // Si hay función render, la usa, si no, usa la key directa
                 const val = col.render ? col.render(row) : (row[col.key] || '-');
-                html += `<td class="px-4 py-3 text-gray-700 whitespace-nowrap">${val}</td>`;
+                html += `<td class="px-6 py-4 text-gray-700 whitespace-nowrap">${val}</td>`;
             });
 
             html += `</tr>`;
         });
 
         html += `</tbody></table></div>`;
+
+        // 3. Controles de Paginación
+        if (totalPages > 1) {
+            html += `
+                <div class="flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <button onclick="AdminBase.goToPage('${containerId}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Anterior</button>
+                        <button onclick="AdminBase.goToPage('${containerId}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500">Página <span class="font-bold text-slate-900">${currentPage}</span> de <span class="font-bold text-slate-900">${totalPages}</span></p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <button onclick="AdminBase.goToPage('${containerId}', 1)" ${currentPage === 1 ? 'disabled' : ''} class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-30">
+                                    <span class="sr-only">Primero</span>
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+                                </button>
+                                <button onclick="AdminBase.goToPage('${containerId}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-30">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /></svg>
+                                </button>
+                                
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-slate-800 text-xs font-bold text-white">${currentPage}</span>
+
+                                <button onclick="AdminBase.goToPage('${containerId}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-30">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>
+                                </button>
+                                <button onclick="AdminBase.goToPage('${containerId}', ${totalPages})" ${currentPage === totalPages ? 'disabled' : ''} class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-30">
+                                    <span class="sr-only">Último</span>
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
         container.innerHTML = html;
+        
+        // Efecto Premium: Scroll suave arriba al cambiar página si no estamos filtrando
+        if (currentPage > 1 && Object.keys(filters).length === 0) {
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
     /**
-     * Genera botones de acción (Editar/Eliminar/Restaurar) con SVGs
-     * Requiere que el módulo tenga funciones públicas openModal, destroy y restore.
+     * Aplica un filtro a una columna específica
+     */
+    function applyFilter(containerId, colIndex, value) {
+        const state = tableRegistry[containerId];
+        if (!state) return;
+
+        if (!value.trim()) {
+            delete state.filters[colIndex];
+        } else {
+            state.filters[colIndex] = value;
+        }
+
+        // Al filtrar, volvemos a la página 1
+        state.currentPage = 1;
+        renderTablePage(containerId);
+    }
+
+    /**
+     * Motor de Búsqueda Global Inteligente
+     */
+    function applyGlobalSearch(containerId, value) {
+        const state = tableRegistry[containerId];
+        if (!state) return;
+
+        state.globalSearch = value;
+        state.currentPage = 1;
+        renderTablePage(containerId);
+    }
+
+    /**
+     * Limpiador Inteligente de Filtros
+     */
+    function clearFilters(containerId) {
+        const state = tableRegistry[containerId];
+        if (!state) return;
+
+        state.filters = {};
+        state.globalSearch = '';
+        state.currentPage = 1;
+
+        // Limpiar inputs visualmente
+        const toolbar = document.querySelector(`#${containerId}`);
+        if (toolbar) {
+            const globalInput = toolbar.querySelector('input[type="text"]');
+            if (globalInput) globalInput.value = '';
+            
+            const selects = toolbar.querySelectorAll('select');
+            selects.forEach(s => s.value = '');
+        }
+
+        renderTablePage(containerId);
+    }
+
+    /**
+     * Función para cambiar de página
+     */
+    function goToPage(containerId, newPage) {
+        const state = tableRegistry[containerId];
+        if (!state) return;
+        
+        const totalPages = Math.ceil(state.data.length / state.perPage);
+        if (newPage < 1 || newPage > totalPages) return;
+
+        state.currentPage = newPage;
+        renderTablePage(containerId);
+    }
+
+    /**
+     * Genera botones de acción ejecutivos con etiquetas y SVG
      */
     function generateActionButtons(row, moduleName) {
-        // Si el registro está eliminado (Soft Deleted), mostramos el botón de Restaurar con SVG
         if (row.deleted_at) {
             return `
                 <button onclick="${moduleName}.restore(${row.id})" 
-                        class="text-green-600 hover:text-green-800 font-semibold text-xs flex items-center gap-1 transition-colors duration-200" 
-                        title="Restaurar">
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 hover:scale-105 transition-all duration-200 border border-green-200 shadow-sm font-bold text-[10px] uppercase">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
                     Restaurar
                 </button>`;
         }
         
-        // Si el registro está activo, mostramos Editar y Eliminar
         return `
-            <div class="flex gap-3">
-                <button onclick="${moduleName}.openModal(${row.id})" class="text-yellow-600 hover:text-yellow-800 transition-colors duration-200" title="Editar">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            <div class="flex gap-2">
+                <button onclick="${moduleName}.openModal(${row.id})" 
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 hover:scale-105 transition-all duration-200 border border-amber-100 shadow-sm group">
+                    <svg class="w-4 h-4 group-hover:rotate-12 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    <span class="text-[10px] font-bold uppercase tracking-tight">Editar</span>
                 </button>
-                <button onclick="${moduleName}.destroy(${row.id})" class="text-red-600 hover:text-red-800 transition-colors duration-200" title="Eliminar">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <button onclick="${moduleName}.destroy(${row.id})" 
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-105 transition-all duration-200 border border-red-100 shadow-sm group">
+                    <svg class="w-4 h-4 group-hover:shake transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <span class="text-[10px] font-bold uppercase tracking-tight">Eliminar</span>
                 </button>
             </div>
         `;
@@ -223,8 +482,12 @@ const AdminBase = (function() {
         showNotification,
         apiCall,
         renderTable,
+        goToPage, 
+        applyFilter,
+        applyGlobalSearch, // <-- Nueva Búsqueda Global
+        clearFilters,      // <-- Nueva Limpieza de filtros
         generateActionButtons,
-        formatDate // <--- ¡Ahora sí está incluida!
+        formatDate
     };
 })();
 

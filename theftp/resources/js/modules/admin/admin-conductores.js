@@ -69,6 +69,7 @@ const AdminConductores = (function() {
                 // Tu API devuelve paginación: { status: true, data: { data: [...], total: N } }
                 conductoresList = response.data.data || response.data;
                 render(conductoresList);
+                setupConductoresSearch();
             } else {
                 container.innerHTML = '<div class="p-4 text-center text-red-500">No se pudieron cargar los datos.</div>';
             }
@@ -99,9 +100,19 @@ const AdminConductores = (function() {
             },
             { 
                 header: 'Estado', 
-                render: (r) => r.deleted_at 
-                    ? `<span class="px-2 py-1 rounded-full bg-red-100 text-red-800 text-xs font-bold">Eliminado</span>` 
-                    : `<span class="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs font-bold">Activo</span>`
+                filterOptions: ['Habilitado', 'Inactivo'],
+                render: (r) => {
+                    const registroBadge = r.deleted_at 
+                        ? `<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase border border-red-200 shadow-sm">Papelera</span>` 
+                        : `<span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase border border-blue-200 shadow-sm">Presente</span>`;
+                    
+                    const isHabilitado = r.estado !== false && r.estado !== 0 && String(r.estado) !== '0';
+                    const habilitacionBadge = isHabilitado
+                        ? `<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase border border-green-200 shadow-sm">Habilitado</span>`
+                        : `<span class="px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase border border-orange-200 shadow-sm">Inactivo</span>`;
+                        
+                    return `<div class="flex flex-col items-start gap-1.5">${habilitacionBadge} ${registroBadge}</div>`;
+                }
             },
             { 
                 header: 'Acciones', 
@@ -109,7 +120,30 @@ const AdminConductores = (function() {
             }
         ];
 
-        AdminBase.renderTable(data, columns, 'conductores-table');
+        AdminBase.renderTable(data, columns, 'conductores-table', 10, { hideGlobalSearch: true });
+    }
+
+    /**
+     * 3.1 Buscador Local
+     */
+    function setupConductoresSearch() {
+        const input = document.getElementById('search-conductores');
+        if (!input) return;
+        
+        // Clonar para limpiar eventos previos
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        newInput.addEventListener('keyup', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = conductoresList.filter(item => {
+                const persona = item.persona || {};
+                const fullName = `${persona.name} ${persona.last_name}`.toLowerCase();
+                const nui = String(persona.nui || '').toLowerCase();
+                return fullName.includes(term) || nui.includes(term);
+            });
+            render(filtered);
+        });
     }
 
     /**
@@ -161,6 +195,8 @@ const AdminConductores = (function() {
 
             if (conductor) {
                 selectPersona.value = conductor.persona_id;
+                document.getElementById('conductor-estado').value = (conductor.estado == false || conductor.estado == 0) ? '0' : '1';
+                document.getElementById('conductor-motivo').value = conductor.motivo_estado || '';
             }
         }
     }
@@ -222,7 +258,9 @@ const AdminConductores = (function() {
 
         // Payload según [cite: 472]
         const payload = {
-            persona_id: parseInt(personaId)
+            persona_id: parseInt(personaId),
+            estado: parseInt(document.getElementById('conductor-estado').value),
+            motivo_estado: document.getElementById('conductor-motivo').value.trim()
         };
 
         try {

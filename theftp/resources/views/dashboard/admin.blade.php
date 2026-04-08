@@ -178,6 +178,13 @@
     </div>
 
     <div class="content-card bg-white p-4 rounded-lg shadow border border-gray-200">
+        {{-- Buscador Local de Conductores --}}
+        <div class="flex justify-end mb-4">
+            <div class="relative">
+                <input type="text" id="search-conductores" placeholder="Buscar por nombre o NUI..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm w-64 shadow-sm">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+        </div>
         <div id="conductores-table"></div>
     </div>
 </div>
@@ -202,6 +209,29 @@
                 <p class="text-xs text-gray-500 mt-2">
                     * Seleccione la persona física que será registrada como conductor.
                 </p>
+            </div>
+
+            {{-- Estado Operativo y Motivo --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="form-group">
+                    <label for="conductor-estado" class="block text-sm font-medium text-gray-700 mb-1">Estado de Habilitación</label>
+                    <select id="conductor-estado" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <option value="1">Activo / Operando</option>
+                        <option value="0">Inactivo / Suspendido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="conductor-motivo" class="block text-sm font-medium text-gray-700 mb-1">Motivo (Si cambia)</label>
+                    <input type="text" id="conductor-motivo" list="motivos-sugeridos" placeholder="Escriba motivo..." 
+                           class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    <datalist id="motivos-sugeridos">
+                        <option value="Operación Normal">
+                        <option value="Despido / Retiro de la Empresa">
+                        <option value="Despido / Retiro Definitivo">
+                        <option value="Sanción Administrativa">
+                        <option value="Incapacidad Médica">
+                    </datalist>
+                </div>
             </div>
 
             <div class="flex justify-end gap-3 mt-6">
@@ -286,6 +316,30 @@
                     <select id="vehiculo-propietario" required class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
                         <option value="">Cargando...</option>
                     </select>
+                </div>
+            </div>
+
+            {{-- Estado Operativo y Motivo --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                <div class="form-group">
+                    <label for="vehiculo-estado" class="block text-sm font-medium text-gray-700 mb-1">Estado Operativo</label>
+                    <select id="vehiculo-estado" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <option value="1">Habilitado / Activo</option>
+                        <option value="0">Inactivo / Suspendido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="vehiculo-motivo" class="block text-sm font-medium text-gray-700 mb-1">Motivo (Si aplica)</label>
+                    <input type="text" id="vehiculo-motivo" list="motivos-vehiculo" placeholder="Escriba motivo..." 
+                           class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    <datalist id="motivos-vehiculo">
+                        <option value="Operación Normal">
+                        <option value="Mantenimiento Preventivo">
+                        <option value="Mantenimiento Correctivo (Fallo)">
+                        <option value="Sin Documentación Vigente">
+                        <option value="Sanción Administrativa">
+                        <option value="Retiro de la Flota">
+                    </datalist>
                 </div>
             </div>
 

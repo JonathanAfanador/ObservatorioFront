@@ -72,7 +72,7 @@ const AdminPropietarios = (function() {
             { 
                 header: 'ID', 
                 key: 'id',
-                render: (r) => `<span class="font-mono text-xs text-gray-500">#${r.id}</span>`
+                render: (r) => `<span class="font-mono text-xs text-gray-400">#${r.id}</span>`
             },
             { 
                 header: 'Propietario', 
@@ -97,17 +97,18 @@ const AdminPropietarios = (function() {
             },
             { 
                 header: 'Estado', 
+                filterOptions: ['Activo', 'Papelera'],
                 render: (r) => r.deleted_at 
-                    ? `<span class="badge bg-red-100 text-red-800">Eliminado</span>` 
-                    : `<span class="badge bg-green-100 text-green-800">Activo</span>`
+                    ? `<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase border border-red-200 shadow-sm">Papelera</span>` 
+                    : `<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase border border-green-200 shadow-sm">Activo</span>`
             },
             { 
                 header: 'Acciones', 
                 render: (r) => AdminBase.generateActionButtons(r, 'AdminPropietarios') 
             }
         ];
-
-        AdminBase.renderTable(data, columns, 'propietarios-table');
+        // Activamos paginación automática (10 por página)
+        AdminBase.renderTable(data, columns, 'propietarios-table', 10);
     }
 
     /**

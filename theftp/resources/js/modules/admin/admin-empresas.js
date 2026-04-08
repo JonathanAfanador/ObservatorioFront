@@ -58,26 +58,34 @@ const AdminEmpresas = (function() {
 
     function render(data) {
         const columns = [
+            { 
+                header: 'ID', 
+                key: 'id',
+                render: (r) => `<span class="font-mono text-xs text-gray-500">#${r.id}</span>`
+            },
             { header: 'NIT', key: 'nit' },
             { header: 'Nombre Legal', key: 'name', render: (r) => `<span class="font-bold text-gray-800">${r.name}</span>` },
             { 
                 header: 'Tipo', 
+                filterOptions: ['Empresa', 'UPC', 'Individual'],
                 render: (r) => r.tipo_empresa 
-                    ? `<span class="px-2 py-1 text-xs rounded bg-purple-50 text-purple-700 border border-purple-200">${r.tipo_empresa.descripcion}</span>` 
+                    ? `<span class="px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold uppercase border border-purple-200 shadow-sm">${r.tipo_empresa.descripcion}</span>` 
                     : '-' 
             },
             { 
                 header: 'Estado', 
+                filterOptions: ['Activo', 'Papelera'],
                 render: (r) => r.deleted_at 
-                    ? `<span class="badge bg-red-100 text-red-800">Eliminado</span>` 
-                    : `<span class="badge bg-green-100 text-green-800">Activo</span>`
+                    ? `<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase border border-red-200 shadow-sm">Papelera</span>` 
+                    : `<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase border border-green-200 shadow-sm">Activo</span>`
             },
             { 
                 header: 'Acciones', 
                 render: (r) => AdminBase.generateActionButtons(r, 'AdminEmpresas') 
             }
         ];
-        AdminBase.renderTable(data, columns, 'empresas-table');
+        // Activamos paginación automática pasando el límite de 10 como cuarto parámetro
+        AdminBase.renderTable(data, columns, 'empresas-table', 10);
     }
 
     // Cargar Tipos de Empresa para el Select del Modal
