@@ -323,23 +323,42 @@ async function saveAsignacion(e) {
 async function setupAsignacionesFilters() {
   const sv = document.getElementById('filter-asig-vehiculo');
   if (!sv || sv.options.length > 1) return;
-  const [vR, cR, rR] = await Promise.all([apiGet('/vehiculos'), apiGet('/conductores?include=persona,licencias'), apiGet('/rutas')]);
-  normalizeList(vR).forEach(v => { sv.innerHTML += `<option value="${v.id}">${v.placa}</option>`; });
-  
-  // Filtro de búsqueda: Solo mostrar los que están habilitados (Activos + Verificados)
-  normalizeList(cR).filter(c => {
+  const sc = document.getElementById('filter-asig-conductor');
+  const sr = document.getElementById('filter-asig-ruta');
+
+  const [vR, cR, rR] = await Promise.all([
+    apiGet('/vehiculos'),
+    apiGet('/conductores?include=persona,licencias'),
+    apiGet('/rutas')
+  ]);
+
+  // Filtro de búsqueda VEHÍCULO: Mostrar todos (marcar inactivos)
+  normalizeList(vR).forEach(v => {
+    const isActivo = v.estado !== false && v.estado !== 0 && String(v.estado) !== '0';
+    const label = !isActivo ? `[INACTIVO] ${v.placa}` : v.placa;
+    sv.innerHTML += `<option value="${v.id}">${label}</option>`;
+  });
+
+  // Filtro de búsqueda CONDUCTOR: Mostrar todos (marcar inactivos o sin licencia verificada)
+  normalizeList(cR).forEach(c => {
     const isActivo = c.estado !== false && c.estado !== 0 && String(c.estado) !== '0';
     const tieneLicenciaVerificada = (c.licencias || []).some(lic => lic.verificado_secretaria === true || lic.verificado_secretaria === 1);
-    return isActivo && tieneLicenciaVerificada;
-  }).forEach(c => { 
-    document.getElementById('filter-asig-conductor').innerHTML += `<option value="${c.id}">${c.persona?.name || ''} ${c.persona?.last_name || ''}</option>`; 
+    
+    let label = `${c.persona?.name || ''} ${c.persona?.last_name || ''}`.trim();
+    if (!isActivo) {
+      label = `[INACTIVO] ${label}`;
+    } else if (!tieneLicenciaVerificada) {
+      label = `[PEND. VERIF] ${label}`;
+    }
+
+    if (sc) sc.innerHTML += `<option value="${c.id}">${label}</option>`;
   });
-  
-  const sr = document.getElementById('filter-asig-ruta');
+
+  // Filtro de búsqueda RUTA: Mostrar todas
   if (sr) {
-    normalizeList(rR).forEach(r => { 
+    normalizeList(rR).forEach(r => {
       const label = r.estado === false ? `[INACTIVA] ${r.nombre || r.name}` : (r.nombre || r.name);
-      sr.innerHTML += `<option value="${r.id}">${label}</option>`; 
+      sr.innerHTML += `<option value="${r.id}">${label}</option>`;
     });
   }
 }
