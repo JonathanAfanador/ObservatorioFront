@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Scopes\TenantScope;
 
 /**
  * @OA\Schema(
@@ -65,10 +66,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Propietario extends Model implements Auditable
 {
-    /** @use HasFactory<\Database\Factories\PropietariosFactory> */
     use HasFactory;
     use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
+
+    /**
+     * El "booted" method of the model.
+     * Aquí inyectamos el TenantScope (Guardián de Propiedad)
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new TenantScope);
+    }
 
     /**
     * La tabla asociada con el modelo.
@@ -79,7 +88,13 @@ class Propietario extends Model implements Auditable
         'fecha_registro',
         'documento_id',
         'persona_id',
+        'empresa_id',
     ];
+
+    // Relación con el modelo Empresa
+    public function empresa() {
+        return $this->belongsTo(Empresa::class, 'empresa_id');
+    }
 
     // Relación con el modelo documentos
     public function documento(){

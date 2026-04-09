@@ -369,51 +369,35 @@
         </form>
     </div>
 </div>
+
 {{-- VISTA PROPIETARIOS --}}
 <div id="view-propietarios" class="dashboard-view" style="display: none;">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Gestión de Propietarios</h2>
         <div class="flex items-center gap-4">
-            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm">
+            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm hover:bg-gray-50">
                 <input type="checkbox" id="toggle-deleted-propietarios" class="form-checkbox h-4 w-4 text-blue-600">
-                <span class="text-sm font-medium text-gray-700">Ver Eliminados</span>
+                <span class="text-sm font-medium text-gray-700 select-none">Ver Eliminados</span>
             </label>
-            <button id="btn-add-propietario" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700">
-                + Nuevo Propietario
+            
+            <button id="btn-add-propietario" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700 transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Nuevo Propietario
             </button>
         </div>
     </div>
+
     <div class="content-card bg-white p-4 rounded-lg shadow border border-gray-200">
+        {{-- Buscador Local de Propietarios --}}
+        <div class="flex justify-end mb-4">
+            <div class="relative">
+                <input type="text" id="search-propietarios" placeholder="Buscar por nombre o NUI..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm w-64 shadow-sm">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+        </div>
         <div id="propietarios-table"></div>
     </div>
 </div>
-
-{{-- ======================================================================== --}}
-    {{-- SECCIÓN PROPIETARIOS  --}}
-    {{-- ======================================================================== --}}
-
-    {{-- 1. VISTA (TABLA) --}}
-    <div id="view-propietarios" class="dashboard-view" style="display: none;">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">Gestión de Propietarios</h2>
-            <div class="flex items-center gap-4">
-                <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm hover:bg-gray-50">
-                    <input type="checkbox" id="toggle-deleted-propietarios" class="form-checkbox h-4 w-4 text-blue-600">
-                    <span class="text-sm font-medium text-gray-700 select-none">Ver Eliminados</span>
-                </label>
-                
-                <button id="btn-add-propietario" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700 transition flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Nuevo Propietario
-                </button>
-            </div>
-        </div>
-
-        <div class="content-card bg-white p-4 rounded-lg shadow border border-gray-200">
-            {{-- Aquí el JS pintará la tabla --}}
-            <div id="propietarios-table"></div>
-        </div>
-    </div>
 
     {{-- 2. MODAL (FORMULARIO) --}}
     <div id="modal-propietario" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
@@ -433,13 +417,20 @@
                     </select>
                 </div>
 
-                {{-- Select de Documento Soporte --}}
+                {{-- Select de Empresa (Asignación) --}}
                 <div class="form-group">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Documento Soporte</label>
-                    <select id="propietario-documento" required class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Cargando lista...</option>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Empresa Vinculada</label>
+                    <select id="propietario-empresa" required class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Seleccione Empresa --</option>
                     </select>
-                    <p class="text-xs text-gray-500 mt-1">Seleccione el documento legal asociado.</p>
+                </div>
+
+                {{-- Subida de Tarjeta de Propiedad --}}
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tarjeta de Propiedad (Soporte)</label>
+                    <input type="file" id="propietario-archivo" accept=".pdf,image/*" 
+                           class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <p class="text-[10px] text-gray-500 mt-1">Adjunte el escaneo o foto de la tarjeta (PDF, JPG, PNG).</p>
                 </div>
 
                 {{-- Fecha Registro --}}
@@ -647,6 +638,47 @@
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Guardar</button>
             </div>
         </form>
+    </div>
+</div>
+
+{{-- MODAL VISUALIZADOR UNIVERSAL DE DOCUMENTOS --}}
+<div id="modal-preview-doc" class="modal-overlay fixed inset-0 bg-slate-900/95 backdrop-blur-md flex items-center justify-center z-[100]" style="display: none;">
+    <div class="modal-content bg-white shadow-2xl w-full max-w-7xl h-[92vh] flex flex-col overflow-hidden relative mx-4 rounded-xl border border-white/20">
+        
+        <!-- Header del Visualizador -->
+        <div class="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/80">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight" id="modal-preview-title">Visualizador de Soporte</h3>
+                    <p class="text-[10px] text-slate-500 font-medium italic">Documento verificado por el sistema</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <!-- Botón Descargar -->
+                <a id="btn-download-preview" href="#" download class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Descargar
+                </a>
+                
+                <!-- Botón Cerrar -->
+                <button id="btn-close-preview" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Cuerpo / Contenido del Soporte -->
+        <div id="preview-doc-content" class="flex-1 overflow-auto bg-slate-100/50 flex items-center justify-center relative">
+            <div class="animate-pulse text-slate-400 flex flex-col items-center gap-2">
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                <span class="text-xs font-bold uppercase tracking-widest">Cargando Documento...</span>
+            </div>
+        </div>
+
     </div>
 </div>
 

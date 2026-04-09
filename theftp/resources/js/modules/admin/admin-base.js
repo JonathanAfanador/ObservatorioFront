@@ -476,6 +476,63 @@ const AdminBase = (function() {
         `;
     }
 
+    /**
+     * VISUALIZADOR UNIVERSAL DE DOCUMENTOS (IN-APP)
+     * @param {string} url - Ruta del archivo
+     * @param {string} title - Título para el header
+     */
+    function previewDocument(url, title = 'Visualizador de Soporte') {
+        const modal = document.getElementById('modal-preview-doc');
+        const content = document.getElementById('preview-doc-content');
+        const titleEl = document.getElementById('modal-preview-title');
+        const downloadBtn = document.getElementById('btn-download-preview');
+        
+        if (!modal || !content) return;
+
+        titleEl.textContent = title;
+        downloadBtn.href = url;
+        
+        // Detectar extensión
+        const ext = url.split('.').pop().toLowerCase();
+        content.innerHTML = ''; // Limpiar previo
+
+        if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
+            // Es una imagen
+            content.innerHTML = `<img src="${url}" alt="Soporte" class="max-w-full max-h-full object-contain shadow-lg rounded-sm">`;
+        } else if (ext === 'pdf') {
+            // Es un PDF - Forzamos el ajuste de ancho con #view=FitH
+            content.innerHTML = `<iframe src="${url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH" class="w-full h-full border-0 rounded-sm shadow-inner" style="background: #525659;"></iframe>`;
+        } else {
+            // Formato no previsualizable (Word, Excel, etc.)
+            content.innerHTML = `
+                <div class="flex flex-col items-center gap-4 text-slate-500">
+                    <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <p class="font-bold text-sm uppercase tracking-widest text-center">Este tipo de archivo (.${ext}) no permite previsualización directa.<br>Por favor, utilice el botón de descarga.</p>
+                </div>
+            `;
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    // Inicializar cierre y eventos del visualizador al cargar AdminBase
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnClose = document.getElementById('btn-close-preview');
+        const modal = document.getElementById('modal-preview-doc');
+
+        if (btnClose && modal) {
+            btnClose.onclick = () => { 
+                modal.style.display = 'none'; 
+            };
+            // Cerrar al click afuera
+            modal.onclick = (e) => { 
+                if (e.target === modal) {
+                    modal.style.display = 'none'; 
+                }
+            };
+        }
+    });
+
     // EXPORTAR API PÚBLICA
     return {
         getCookie,
@@ -487,6 +544,7 @@ const AdminBase = (function() {
         applyGlobalSearch, // <-- Nueva Búsqueda Global
         clearFilters,      // <-- Nueva Limpieza de filtros
         generateActionButtons,
+        previewDocument,   // <-- Visualizador Universal
         formatDate
     };
 })();
