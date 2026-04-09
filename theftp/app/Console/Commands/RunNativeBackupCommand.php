@@ -32,15 +32,15 @@ class RunNativeBackupCommand extends Command
         $this->info('Iniciando backup nativo de PostgreSQL...');
 
         try {
-            $dbName = env('DB_DATABASE');
-            $password = env('DB_PASSWORD');
+            $dbName = config('database.connections.pgsql.database');
+            $password = config('database.connections.pgsql.password');
             $date = Carbon::now()->format('Y-m-d-H-i-s');
             
-            // Buscar pg_dump activamente ignorando el PATH en caché
+            // Buscar pg_dump activamente
             $pgDumpPathsToTry = [
                 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe',
                 'C:\Program Files\PostgreSQL\16\bin\pg_dump.exe',
-                env('PG_DUMP_PATH', '') !== '' ? rtrim(env('PG_DUMP_PATH', ''), '/\\') . DIRECTORY_SEPARATOR . 'pg_dump.exe' : '',
+                config('backup.pg_dump_path') ? rtrim(config('backup.pg_dump_path'), '/\\') . DIRECTORY_SEPARATOR . 'pg_dump.exe' : '',
                 'pg_dump.exe'
             ];
             
