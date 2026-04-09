@@ -338,5 +338,13 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'thrott
         Route::delete('/users/{id}', [UsersController::class, 'destroy']);
         Route::post('/users/{id}/rehabilitate', [UsersController::class, 'restore']);
         Route::patch('/users/{id}/role', [UsersController::class, 'patch']);
+
+        // Gestión de Backups (S3)
+        Route::prefix('backups')->group(function () {
+            Route::get('/', [\App\Http\Controllers\BackupController::class, 'index']);
+            Route::post('/', [\App\Http\Controllers\BackupController::class, 'create']);
+            Route::get('/download/{file}', [\App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
+            Route::delete('/{file}', [\App\Http\Controllers\BackupController::class, 'destroy']);
+        });
     });
 });

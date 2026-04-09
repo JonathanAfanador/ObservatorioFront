@@ -82,9 +82,15 @@
                     </div>
                     <h3 class="text-xl font-black text-slate-800 leading-tight mb-3">Jurídico y Soporte</h3>
                     <p class="text-sm text-slate-500 font-medium mb-8 flex-1 leading-relaxed">Soporte documental, licencias de conducción y evidencias de auditoría.</p>
-                    <div class="flex gap-3">
-                        <button onclick="showView('licencias')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm">Licencias</button>
-                        <button onclick="showView('auditoria')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm">Auditoría</button>
+                    <div class="grid grid-cols-1 gap-2">
+                        <div class="flex gap-2">
+                            <button onclick="showView('licencias')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm">Licencias</button>
+                            <button onclick="showView('auditoria')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm">Auditoría</button>
+                        </div>
+                        <button onclick="showView('backups')" class="w-full py-4 bg-slate-100 text-slate-800 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-md flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Copias de Seguridad
+                        </button>
                     </div>
                 </div>
             </div>
@@ -795,6 +801,30 @@
     </div>
 </div>
 
+{{-- VISTA COPIAS DE SEGURIDAD --}}
+<div id="view-backups" class="dashboard-view" style="display: none;">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h2 class="text-3xl font-black text-slate-800 tracking-tight">Copias de Seguridad en la Nube</h2>
+            <p class="text-sm text-slate-500 font-medium italic">Gestión de respaldos almacenados en Google Drive.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <span id="backup-disk-name" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-widest border border-slate-200 shadow-inner">Consultando...</span>
+            <button onclick="AdminBackups.createManualBackup()" title="Generar copia de seguridad ahora" class="px-5 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0l-4 4m4-4v12"></path></svg>
+                Generar Copia Manual
+            </button>
+        </div>
+    </div>
+
+    <div class="content-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+        <div id="backups-table-container" class="min-w-full">
+            {{-- Contenido inyectado por JS --}}
+        </div>
+    </div>
+</div>
+
+
 {{-- MODAL VISUALIZADOR UNIVERSAL DE DOCUMENTOS --}}
 <div id="modal-preview-doc" class="modal-overlay fixed inset-0 bg-slate-900/95 backdrop-blur-md flex items-center justify-center z-[100]" style="display: none;">
     <div class="modal-content bg-white shadow-2xl w-full max-w-7xl h-[92vh] flex flex-col overflow-hidden relative mx-4 rounded-xl border border-white/20">
@@ -921,6 +951,7 @@
     @vite('resources/js/modules/admin/admin-rutas.js')
     @vite('resources/js/modules/admin/admin-licencias.js')
     @vite('resources/js/modules/admin/admin-auditoria.js')
+    @vite('resources/js/modules/admin/admin-backups.js')
 
 
 </x-layouts.dashboard>
