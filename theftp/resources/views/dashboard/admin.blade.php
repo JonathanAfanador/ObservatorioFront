@@ -613,14 +613,17 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Licencias de Conducción</h2>
         <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 flex-1 sm:flex-none justify-center">
-                <input type="checkbox" id="toggle-deleted-licencias" class="form-checkbox text-blue-600">
-                <span class="text-sm">Ver Eliminados</span>
+            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 flex-1 sm:flex-none justify-center shadow-sm hover:bg-gray-50 transition">
+                <input type="checkbox" id="toggle-deleted-licencias" class="form-checkbox text-blue-600 rounded">
+                <span class="text-xs font-bold text-gray-700 uppercase tracking-tighter">Ver Papelera</span>
             </label>
-            <button id="btn-add-licencia" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow flex-1 sm:flex-none"><span>+ Nueva Licencia</span></button>
+            <button id="btn-add-licencia" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow-md flex-1 sm:flex-none flex items-center justify-center gap-2">
+                <span class="font-bold">+</span> 
+                <span class="text-xs font-bold uppercase">Nueva Licencia</span>
+            </button>
         </div>
     </div>
-    <div id="licencias-table" class="bg-white p-4 rounded shadow"></div>
+    <div id="licencias-table"></div>
 </div>
 
 {{-- MODAL LICENCIA --}}

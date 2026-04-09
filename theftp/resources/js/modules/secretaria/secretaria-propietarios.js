@@ -120,15 +120,28 @@ function renderPropietariosWithPagination() {
                </button>`;
         }
 
+        const renderPropietario = (r) => {
+            if (!r.persona) {
+                return `
+                    <span style="color: #ff0000; font-weight: bold; font-style: italic; text-transform: uppercase; font-size: 11px; letter-spacing: 0.02em;">
+                        SIN PERSONA ASOCIADA
+                    </span>
+                `;
+            }
+            return `
+                <div class="flex flex-col">
+                    <span class="font-black text-slate-800 uppercase tracking-tight text-[11px] leading-tight">${r.persona.name || ''} ${r.persona.last_name || ''}</span>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${r.persona.tipo_ident?.nombre || 'ID'}: ${r.persona.nui || 'S/N'}</span>
+                </div>
+            `;
+        };
+
         html += `
             <tr class="hover:bg-slate-50/50 transition-colors">
                 <td class="py-4">
-                    <div class="flex flex-col">
-                        <span class="font-bold text-slate-800 text-sm">${nombreCompleto}</span>
-                        <span class="text-[10px] text-slate-400 font-medium uppercase tracking-tight italic">${tipoDoc}</span>
-                    </div>
+                    ${renderPropietario(p)}
                 </td>
-                <td class="font-mono text-xs font-bold text-slate-600">${numeroIdent}</td>
+                <td class="font-mono text-xs font-bold text-slate-600">${getSafeData(p, 'persona.nui', 'N/A')}</td>
                 <td>
                     <div class="flex flex-col">
                         <span class="text-xs font-bold text-slate-700">${nombreEmpresa}</span>
