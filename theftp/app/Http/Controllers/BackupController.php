@@ -74,69 +74,19 @@ class BackupController extends Controller
     public function create()
     {
         try {
-            $dbName = env('DB_DATABASE');
-            $password = env('DB_PASSWORD');
-            $date = \Carbon\Carbon::now()->format('Y-m-d-H-i-s');
-            
-            // Buscar pg_dump activamente ignorando el PATH en caché
-            $pgDumpPathsToTry = [
-                'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe',
-                'C:\Program Files\PostgreSQL\16\bin\pg_dump.exe',
-                env('PG_DUMP_PATH', '') !== '' ? rtrim(env('PG_DUMP_PATH', ''), '/\\') . DIRECTORY_SEPARATOR . 'pg_dump.exe' : '',
-                'pg_dump.exe'
-            ];
-            
-            $finalPgDumpPath = 'pg_dump.exe';
-            foreach ($pgDumpPathsToTry as $path) {
-                if ($path !== '' && (file_exists($path) || $path === 'pg_dump.exe')) {
-                    $finalPgDumpPath = $path;
-                    if (file_exists($path)) break;
-                }
-            }
-            
-            $storageFolder = storage_path('app/backup-manual-nativo');
-            if (!is_dir($storageFolder)) {
-                @mkdir($storageFolder, 0755, true);
-            }
-            
-            $sqlFile = $storageFolder . '/database_' . $date . '.sql';
-            $zipFile = $storageFolder . '/backup-' . $date . '.zip';
-            $googleFolder = config('backup.backup.name', 'Laravel');
-            $googleDestPath = $googleFolder . '/backup-' . $date . '.zip';
+            // Ejecutamos el mismo comando Artisan que corre en el programador de tareas
+            \Illuminate\Support\Facades\Artisan::call('backup:native');
+            $output = \Illuminate\Support\Facades\Artisan::output();
 
-            // 1. Extraer BD nativamente ignorando Spatie y sus bugs de PGPASSFILE en Windows
-            $command = 'set PGPASSWORD=' . $password . ' && "' . $finalPgDumpPath . '" -h 127.0.0.1 -p 5433 -U postgres -F p -f "' . $sqlFile . '" ' . $dbName . ' 2>&1';
-            $output = shell_exec($command);
-            
-            if (!file_exists($sqlFile) || filesize($sqlFile) === 0 || strpos((string)$output, 'error:') !== false || strpos((string)$output, 'FATAL') !== false) {
-                throw new \Exception("Error al dumpear la base de datos desde PostgreSQL:\n" . $output);
+            if (strpos($output, 'exitosamente') !== false) {
+                return response()->json([
+                    'success' => true,
+                    'message' => '¡Respaldo subido con éxito a Google Drive!',
+                    'output' => trim($output)
+                ]);
+            } else {
+                throw new \Exception("Error en el comando:\n" . trim($output));
             }
-
-            // 2. Comprimir el SQL dentro de un archivo ZIP de forma nativa en PHP
-            $zip = new \ZipArchive();
-            if ($zip->open($zipFile, \ZipArchive::CREATE) !== true) {
-                throw new \Exception("No se pudo crear el archivo ZIP temporal en: " . $zipFile);
-            }
-            $zip->addFile($sqlFile, 'db-dumps/postgresql-' . $dbName . '.sql');
-            $zip->close();
-
-            // 3. Subir el ZIP directamente hacia Google Drive
-            $diskName = config('backup.backup.destination.disks')[0] ?? 'google';
-            $disk = \Illuminate\Support\Facades\Storage::disk($diskName);
-            
-            if (!$disk->put($googleDestPath, file_get_contents($zipFile))) {
-                throw new \Exception("Ocurrió un error subiendo el ZIP a Google Drive. Revisa tu token y conexión a internet.");
-            }
-
-            // 4. Limpieza final de los temporales locales
-            @unlink($sqlFile);
-            @unlink($zipFile);
-
-            return response()->json([
-                'success' => true,
-                'message' => '¡Respaldo subido con éxito a Google Drive!',
-                'output' => 'Backup manual nativo ejecutado y transferido exitosamente.'
-            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

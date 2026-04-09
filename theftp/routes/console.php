@@ -10,10 +10,10 @@ Artisan::command('inspire', function () {
 // Programación de Backups Diarios
 use Illuminate\Support\Facades\Schedule;
 
-Schedule::command('backup:run')->daily()->at('04:00')->onSuccess(function () {
-    \Log::info("Backup diario ejecutado con éxito.");
+Schedule::command('backup:native')->daily()->at('02:00')->onSuccess(function () {
+    \Log::info("Backup diario nativo ejecutado con éxito.");
 })->onFailure(function () {
-    \Log::error("Fallo la ejecución del backup diario.");
+    \Log::error("Fallo la ejecución del backup diario nativo.");
 });
 
 Schedule::command('backup:clean')->daily()->at('04:30');
