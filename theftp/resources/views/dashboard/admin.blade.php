@@ -15,29 +15,29 @@
 
     {{-- Vista de gestión de usuarios (listado, búsqueda, alta/baja) --}}
     <div id="view-users" class="dashboard-view" style="display: none;">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h2 class="text-2xl font-bold text-gray-800">Gestión de Usuarios</h2>
 
-            <div class="flex items-center gap-4">
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                 {{-- Checkbox para alternar entre usuarios activos y eliminados (soft delete) --}}
-                <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded-lg border border-gray-300 shadow-sm hover:bg-gray-50 transition">
+                <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded-lg border border-gray-300 shadow-sm hover:bg-gray-50 transition flex-1 sm:flex-none justify-center">
                     <input type="checkbox" id="toggle-deleted-users" class="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300">
                     <span class="text-sm font-medium text-gray-700 select-none">Ver Eliminados</span>
                 </label>
 
                 {{-- Botón para abrir el modal de creación de nuevo usuario --}}
-                <button id="btn-add-user" class="btn-primary flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+                <button id="btn-add-user" class="btn-primary flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all flex-1 sm:flex-none">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Nuevo Usuario
+                    <span>Nuevo Usuario</span>
                 </button>
             </div>
         </div>
 
         <div class="content-card mb-6">
             {{-- Barra de búsqueda de usuarios por nombre o correo --}}
-            <div class="flex justify-end mb-4">
-                <div class="relative">
-                    <input type="text" id="search-users" placeholder="Buscar por nombre o email..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm w-64 shadow-sm">
+            <div class="flex justify-start sm:justify-end mb-4">
+                <div class="relative w-full sm:w-64">
+                    <input type="text" id="search-users" placeholder="Buscar por nombre o email..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm">
                     <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
             </div>
@@ -50,20 +50,20 @@
 
     {{-- Vista de gestión de roles (alta, edición, eliminación) --}}
     <div id="view-roles" class="dashboard-view" style="display: none;">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h2 class="text-2xl font-bold text-gray-800">Gestión de Roles</h2>
             {{-- Botón para abrir el modal de creación de rol --}}
-            <button id="btn-add-role" class="btn-primary flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+            <button id="btn-add-role" class="btn-primary flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Nuevo Rol
+                <span>Nuevo Rol</span>
             </button>
         </div>
 
         <div class="content-card">
             {{-- Campo de búsqueda para filtrar roles por descripción --}}
-            <div class="flex justify-end mb-4">
-                <div class="relative">
-                    <input type="text" id="search-roles" placeholder="Buscar rol..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm w-64 shadow-sm">
+            <div class="flex justify-start sm:justify-end mb-4">
+                <div class="relative w-full sm:w-64">
+                    <input type="text" id="search-roles" placeholder="Buscar rol..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm">
                     <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
             </div>
@@ -163,15 +163,15 @@
     </div>
 {{-- VISTA CONDUCTORES --}}
 <div id="view-conductores" class="dashboard-view" style="display: none;">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Gestión de Conductores</h2>
-        <div class="flex items-center gap-4">
-            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm hover:bg-gray-50">
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm hover:bg-gray-50 flex-1 sm:flex-none justify-center">
                 <input type="checkbox" id="toggle-deleted-conductores" class="form-checkbox h-4 w-4 text-blue-600">
                 <span class="text-sm font-medium text-gray-700">Ver Eliminados</span>
             </label>
             
-            <button id="btn-add-conductor" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700 transition">
+            <button id="btn-add-conductor" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700 transition flex-1 sm:flex-none flex items-center justify-center gap-2">
                 <span class="font-bold">+</span> Nuevo Conductor
             </button>
         </div>
@@ -179,9 +179,9 @@
 
     <div class="content-card bg-white p-4 rounded-lg shadow border border-gray-200">
         {{-- Buscador Local de Conductores --}}
-        <div class="flex justify-end mb-4">
-            <div class="relative">
-                <input type="text" id="search-conductores" placeholder="Buscar por nombre o NUI..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm w-64 shadow-sm">
+        <div class="flex justify-start sm:justify-end mb-4">
+            <div class="relative w-full sm:w-64">
+                <input type="text" id="search-conductores" placeholder="Buscar por nombre o NUI..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm">
                 <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
         </div>
@@ -247,26 +247,26 @@
 </div>
 {{-- VISTA VEHÍCULOS --}}
 <div id="view-vehiculos" class="dashboard-view" style="display: none;">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Parque Automotor (Vehículos)</h2>
-        <div class="flex items-center gap-4">
-            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm hover:bg-gray-50">
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm hover:bg-gray-50 flex-1 sm:flex-none justify-center">
                 <input type="checkbox" id="toggle-deleted-vehiculos" class="form-checkbox h-4 w-4 text-blue-600">
                 <span class="text-sm font-medium text-gray-700">Ver Eliminados</span>
             </label>
             
-            <button id="btn-add-vehiculo" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700 transition flex items-center gap-2">
+            <button id="btn-add-vehiculo" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700 transition flex items-center justify-center gap-2 flex-1 sm:flex-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                Nuevo Vehículo
+                <span>Nuevo Vehículo</span>
             </button>
         </div>
     </div>
 
     <div class="content-card bg-white p-4 rounded-lg shadow border border-gray-200">
         {{-- Buscador Local de Vehículos --}}
-        <div class="flex justify-end mb-4">
-            <div class="relative">
-                <input type="text" id="search-vehiculos" placeholder="Buscar por placa, marca o dueño..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm w-64 shadow-sm">
+        <div class="flex justify-start sm:justify-end mb-4">
+            <div class="relative w-full sm:w-64">
+                <input type="text" id="search-vehiculos" placeholder="Buscar por placa, marca o dueño..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm">
                 <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
         </div>
@@ -372,26 +372,26 @@
 
 {{-- VISTA PROPIETARIOS --}}
 <div id="view-propietarios" class="dashboard-view" style="display: none;">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Gestión de Propietarios</h2>
-        <div class="flex items-center gap-4">
-            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm hover:bg-gray-50">
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm hover:bg-gray-50 flex-1 sm:flex-none justify-center">
                 <input type="checkbox" id="toggle-deleted-propietarios" class="form-checkbox h-4 w-4 text-blue-600">
                 <span class="text-sm font-medium text-gray-700 select-none">Ver Eliminados</span>
             </label>
             
-            <button id="btn-add-propietario" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700 transition flex items-center gap-2">
+            <button id="btn-add-propietario" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700 transition flex items-center justify-center gap-2 flex-1 sm:flex-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Nuevo Propietario
+                <span>Nuevo Propietario</span>
             </button>
         </div>
     </div>
 
     <div class="content-card bg-white p-4 rounded-lg shadow border border-gray-200">
         {{-- Buscador Local de Propietarios --}}
-        <div class="flex justify-end mb-4">
-            <div class="relative">
-                <input type="text" id="search-propietarios" placeholder="Buscar por nombre o NUI..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm w-64 shadow-sm">
+        <div class="flex justify-start sm:justify-end mb-4">
+            <div class="relative w-full sm:w-64">
+                <input type="text" id="search-propietarios" placeholder="Buscar por nombre o NUI..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm">
                 <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
         </div>
@@ -448,24 +448,24 @@
     </div>
 {{-- VISTA EMPRESAS --}}
 <div id="view-empresas" class="dashboard-view" style="display: none;">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Directorio de Empresas</h2>
-        <div class="flex items-center gap-4">
-            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm hover:bg-gray-50">
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 shadow-sm hover:bg-gray-50 flex-1 sm:flex-none justify-center">
                 <input type="checkbox" id="toggle-deleted-empresas" class="form-checkbox h-4 w-4 text-blue-600">
                 <span class="text-sm font-medium text-gray-700">Ver Eliminadas</span>
             </label>
-            <button id="btn-add-empresa" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700 transition flex items-center gap-2">
+            <button id="btn-add-empresa" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow hover:bg-blue-700 transition flex items-center justify-center gap-2 flex-1 sm:flex-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                Nueva Empresa
+                <span>Nueva Empresa</span>
             </button>
         </div>
     </div>
     <div class="content-card bg-white p-4 rounded-lg shadow border border-gray-200">
         {{-- Buscador Local de Empresas --}}
-        <div class="flex justify-end mb-4">
-            <div class="relative">
-                <input type="text" id="search-empresas" placeholder="Buscar por NIT o Razón Social..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm w-64 shadow-sm">
+        <div class="flex justify-start sm:justify-end mb-4">
+            <div class="relative w-full sm:w-64">
+                <input type="text" id="search-empresas" placeholder="Buscar por NIT o Razón Social..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm">
                 <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
         </div>
@@ -503,14 +503,14 @@
 </div>
 {{-- VISTA RUTAS --}}
 <div id="view-rutas" class="dashboard-view" style="display: none;">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Gestión de Rutas</h2>
-        <div class="flex gap-4">
-            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300">
+        <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 flex-1 sm:flex-none justify-center">
                 <input type="checkbox" id="toggle-deleted-rutas" class="form-checkbox text-blue-600">
                 <span class="text-sm">Ver Eliminados</span>
             </label>
-            <button id="btn-add-ruta" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow">+ Nueva Ruta</button>
+            <button id="btn-add-ruta" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow flex-1 sm:flex-none"><span>+ Nueva Ruta</span></button>
         </div>
     </div>
     <div id="rutas-table" class="bg-white p-4 rounded shadow"></div>
@@ -544,17 +544,42 @@
 
 {{-- VISTA DOCUMENTOS --}}
 <div id="view-documentos" class="dashboard-view" style="display: none;">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Documentos Legales</h2>
-        <div class="flex gap-4">
-            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300">
-                <input type="checkbox" id="toggle-deleted-documentos" class="form-checkbox text-blue-600">
-                <span class="text-sm">Ver Eliminados</span>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 tracking-tight">Centro de Evidencias Documentales</h2>
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2.5 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition flex-1 sm:flex-none justify-center">
+                <input type="checkbox" id="toggle-deleted-documentos" class="form-checkbox h-4 w-4 text-sky-600 rounded border-gray-300 focus:ring-sky-500">
+                <span class="text-xs font-bold text-gray-700 select-none uppercase tracking-tighter">Ver Papelera</span>
             </label>
-            <button id="btn-add-documento" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow">+ Nuevo Doc</button>
+            <button id="btn-add-documento" class="btn-primary flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all flex-1 sm:flex-none px-6 py-2.5">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                <span class="text-xs font-bold uppercase">Nuevo Doc</span>
+            </button>
         </div>
     </div>
-    <div id="documentos-table" class="bg-white p-4 rounded shadow"></div>
+
+    <div class="content-card bg-white p-4 sm:p-8 rounded-3xl shadow-sm border border-gray-100">
+        {{-- Buscador Local Exclusivo de Documentos --}}
+        <div class="flex justify-start sm:justify-end mb-8">
+            <div class="relative group w-full sm:w-80">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-sky-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </span>
+                <input type="text" id="search-documentos" 
+                       placeholder="Buscar por ID, nombre..." 
+                       class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-sky-50/50 focus:border-sky-500 transition-all duration-300 outline-none text-sm font-medium placeholder-gray-400 shadow-inner">
+            </div>
+        </div>
+        
+        <div id="documentos-table" class="min-w-full">
+            <div class="flex flex-col items-center justify-center py-12 text-gray-300 italic">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600 mb-3"></div>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Preparando base de datos...</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 {{-- MODAL DOCUMENTO --}}
@@ -585,14 +610,14 @@
 
 {{-- VISTA LICENCIAS --}}
 <div id="view-licencias" class="dashboard-view" style="display: none;">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Licencias de Conducción</h2>
-        <div class="flex gap-4">
-            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300">
+        <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 flex-1 sm:flex-none justify-center">
                 <input type="checkbox" id="toggle-deleted-licencias" class="form-checkbox text-blue-600">
                 <span class="text-sm">Ver Eliminados</span>
             </label>
-            <button id="btn-add-licencia" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow">+ Nueva Licencia</button>
+            <button id="btn-add-licencia" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow flex-1 sm:flex-none"><span>+ Nueva Licencia</span></button>
         </div>
     </div>
     <div id="licencias-table" class="bg-white p-4 rounded shadow"></div>

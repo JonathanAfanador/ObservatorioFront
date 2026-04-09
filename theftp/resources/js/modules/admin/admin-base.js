@@ -232,28 +232,27 @@ const AdminBase = (function() {
         
         if (!state.options?.hideGlobalSearch) {
             toolbarHtml = `
-                <div class="admin-toolbar flex flex-wrap items-center justify-between gap-4 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm mb-6">
-                    <div class="flex-1 min-w-[300px] relative group">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-800 transition-colors">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </span>
-                    <input type="text" 
-                           placeholder="Búsqueda global (ID, Nombres, Placas...)" 
-                           value="${state.globalSearch || ''}"
-                           onkeyup="AdminBase.applyGlobalSearch('${containerId}', this.value)"
-                           class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-100 focus:border-slate-800 transition-all duration-300 outline-none text-sm font-medium placeholder-slate-400 shadow-inner">
-                </div>
+                <div class="admin-toolbar flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl shadow-sm mb-6">
+                    <div class="flex-1 relative group">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-800 transition-colors">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                        <input type="text" 
+                               placeholder="Búsqueda global..." 
+                               value="${state.globalSearch || ''}"
+                               onkeyup="AdminBase.applyGlobalSearch('${containerId}', this.value)"
+                               class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-100 focus:border-slate-800 transition-all duration-300 outline-none text-sm font-medium placeholder-slate-400 shadow-inner">
+                    </div>
                 
-                <div class="flex items-center gap-3">`;
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3">`;
         } else {
             // Si el buscador global está oculto, renderizamos un contenedor minimalista solo para los selectores
             const hasSelectors = columns.some(col => col.filterOptions);
             if (hasSelectors) {
                 toolbarHtml = `
-                    <div class="admin-toolbar flex flex-wrap items-center justify-end gap-3 mb-4">
-                        <div class="flex items-center gap-3">`;
+                    <div class="admin-toolbar flex flex-wrap items-center justify-start sm:justify-end gap-2 sm:gap-3 mb-6">`;
             }
         }
 
@@ -271,7 +270,7 @@ const AdminBase = (function() {
 
                 toolbarHtml += `
                     <select onchange="AdminBase.applyFilter('${containerId}', ${idx}, this.value)"
-                            class="px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 uppercase tracking-tight focus:ring-4 focus:ring-slate-100 focus:border-slate-800 transition-all duration-200 outline-none cursor-pointer">
+                            class="flex-1 sm:flex-none px-4 py-3 bg-white border border-slate-200 rounded-xl text-[10px] sm:text-xs font-black text-slate-600 uppercase tracking-tight focus:ring-4 focus:ring-slate-100 focus:border-slate-800 transition-all duration-200 outline-none cursor-pointer shadow-sm">
                         ${optionsHtml}
                     </select>`;
             }
@@ -290,17 +289,18 @@ const AdminBase = (function() {
                 </button>`;
         }
 
-        toolbarHtml += `</div></div>`;
+        toolbarHtml += `</div>`;
+        if (!state.options?.hideGlobalSearch) toolbarHtml += `</div>`;
 
-        // 1. Contador Premium
+        // 1. Contador Premium (Responsivo)
         const countHtml = `
-            <div class="flex items-center justify-between mb-4 px-2">
-                <div class="flex items-center gap-2">
-                   <span class="w-2 h-2 rounded-full bg-slate-800 animate-pulse"></span>
-                   <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Estado: En Tiempo Real</span>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 px-1">
+                <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">
+                   <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                   <span class="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado En Tiempo Real</span>
                 </div>
-                <div class="text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 italic">
-                    Mostrando <span class="text-slate-900 font-bold">${start + 1}-${Math.min(start + perPage, total)}</span> de <span class="text-slate-900 font-bold">${total}</span> registros encontrados
+                <div class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-tight">
+                    Auditando <span class="text-slate-900">${start + 1}-${Math.min(start + perPage, total)}</span> <span class="mx-1 text-slate-200">/</span> Total <span class="text-slate-900">${total}</span> registros
                 </div>
             </div>
         `;
@@ -478,6 +478,7 @@ const AdminBase = (function() {
 
     /**
      * VISUALIZADOR UNIVERSAL DE DOCUMENTOS (IN-APP)
+     * Soporta: PDF, Imágenes, Audio, Video y Fichas Técnicas para otros formatos.
      * @param {string} url - Ruta del archivo
      * @param {string} title - Título para el header
      */
@@ -494,23 +495,62 @@ const AdminBase = (function() {
         
         // Detectar extensión
         const ext = url.split('.').pop().toLowerCase();
-        content.innerHTML = ''; // Limpiar previo
+        content.innerHTML = '<div class="flex items-center justify-center h-full"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800"></div></div>';
 
-        if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
-            // Es una imagen
-            content.innerHTML = `<img src="${url}" alt="Soporte" class="max-w-full max-h-full object-contain shadow-lg rounded-sm">`;
-        } else if (ext === 'pdf') {
-            // Es un PDF - Forzamos el ajuste de ancho con #view=FitH
-            content.innerHTML = `<iframe src="${url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH" class="w-full h-full border-0 rounded-sm shadow-inner" style="background: #525659;"></iframe>`;
-        } else {
-            // Formato no previsualizable (Word, Excel, etc.)
-            content.innerHTML = `
-                <div class="flex flex-col items-center gap-4 text-slate-500">
-                    <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    <p class="font-bold text-sm uppercase tracking-widest text-center">Este tipo de archivo (.${ext}) no permite previsualización directa.<br>Por favor, utilice el botón de descarga.</p>
-                </div>
-            `;
-        }
+        // Pequeño timeout para suavizar la transición de carga
+        setTimeout(() => {
+            if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
+                content.innerHTML = `<img src="${url}" alt="Soporte" class="max-w-full max-h-full object-contain shadow-2xl rounded-lg border-4 border-white">`;
+            } else if (ext === 'pdf') {
+                content.innerHTML = `<iframe src="${url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH" class="w-full h-full border-0 rounded-sm shadow-inner" style="background: #525659;"></iframe>`;
+            } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
+                content.innerHTML = `
+                    <div class="w-full max-w-3xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
+                        <video controls class="w-full h-full">
+                            <source src="${url}" type="video/${ext === 'mp4' ? 'mp4' : ext}">
+                            Tu navegador no soporta la reproducción de video.
+                        </video>
+                    </div>`;
+            } else if (['mp3', 'wav', 'aac'].includes(ext)) {
+                content.innerHTML = `
+                    <div class="bg-white p-12 rounded-3xl shadow-2xl border border-slate-100 flex flex-col items-center gap-6 max-w-md w-full">
+                        <div class="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-500 animate-pulse">
+                            <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="font-black text-slate-800 uppercase tracking-widest text-sm mb-1">Archivo de Audio</h4>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tight italic">Auditoría de Evidencia Sonora</p>
+                        </div>
+                        <audio controls class="w-full">
+                            <source src="${url}" type="audio/${ext === 'mp3' ? 'mpeg' : ext}">
+                        </audio>
+                    </div>`;
+            } else {
+                // Ficha Técnica para formatos no renderizables (Office, CSV, GeoJSON, KML)
+                const formatIcons = {
+                    xls: 'Excel', xlsx: 'Excel', csv: 'Datos CSV',
+                    doc: 'Word', docx: 'Word',
+                    ppt: 'PowerPoint', pptx: 'PowerPoint',
+                    geojson: 'GeoJSON', kml: 'KML'
+                };
+                const formatLabel = formatIcons[ext] || `Archivo .${ext.toUpperCase()}`;
+                
+                content.innerHTML = `
+                    <div class="bg-white p-10 rounded-3xl shadow-2xl border border-slate-100 flex flex-col items-center gap-6 max-w-sm w-full transition-all hover:scale-[1.02]">
+                        <div class="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100 shadow-inner">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="font-black text-slate-800 uppercase tracking-widest text-sm mb-1">${formatLabel}</h4>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tight italic">Este formato requiere descarga para auditoría</p>
+                        </div>
+                        <a href="${url}" download class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors shadow-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V3"></path></svg>
+                            Descargar Ahora
+                        </a>
+                    </div>`;
+            }
+        }, 300);
 
         modal.style.display = 'flex';
     }

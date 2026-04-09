@@ -104,13 +104,21 @@ function renderPropietariosWithPagination() {
         const nitEmpresa = getSafeData(p, 'empresa.nit');
         const nombreEmpresa = getSafeData(p, 'empresa.name');
         
-        let docHtml = p.documento 
-            ? `<button onclick="previewDocument('/storage/${p.documento.url}', 'Tarjeta de Propiedad - ${nombreCompleto}')" 
+        let docHtml = '<span class="text-slate-300 text-[10px] italic">Sin soporte cargado</span>';
+        
+        if (p.documento && p.documento.url) {
+            let fileUrl = p.documento.url;
+            if (!fileUrl.startsWith('http')) {
+                const cleanPath = fileUrl.replace(/^\/?storage\//, '');
+                fileUrl = `/storage/${cleanPath}`;
+            }
+
+            docHtml = `<button onclick="previewDocument('${fileUrl}', 'Tarjeta de Propiedad - ${nombreCompleto}')" 
                        class="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-black text-[10px] uppercase tracking-wider group transition-all">
                    <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                    Consultar Soporte
-               </button>`
-            : '<span class="text-slate-300 text-[10px] italic">Sin soporte cargado</span>';
+               </button>`;
+        }
 
         html += `
             <tr class="hover:bg-slate-50/50 transition-colors">
