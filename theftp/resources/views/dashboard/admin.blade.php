@@ -506,11 +506,20 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Gestión de Rutas</h2>
         <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 flex-1 sm:flex-none justify-center">
-                <input type="checkbox" id="toggle-deleted-rutas" class="form-checkbox text-blue-600">
+            {{-- Buscador Local Propio de Rutas --}}
+            <div class="relative w-full sm:w-64">
+                <input type="text" id="search-rutas" placeholder="Buscar por nombre o empresa..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm" onkeyup="AdminRutas.handleSearch(this.value)">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+
+            <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-2 rounded border border-gray-300 flex-1 sm:flex-none justify-center shadow-sm hover:bg-gray-50 transition">
+                <input type="checkbox" id="toggle-deleted-rutas" class="form-checkbox text-blue-600 rounded">
                 <span class="text-sm">Ver Eliminados</span>
             </label>
-            <button id="btn-add-ruta" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow flex-1 sm:flex-none"><span>+ Nueva Ruta</span></button>
+            <button id="btn-add-ruta" class="btn-primary px-4 py-2 rounded bg-blue-600 text-white shadow-md flex-1 sm:flex-none flex items-center justify-center gap-2">
+                <span class="font-bold">+</span> 
+                <span>Nueva Ruta</span>
+            </button>
         </div>
     </div>
     <div id="rutas-table" class="bg-white p-4 rounded shadow"></div>

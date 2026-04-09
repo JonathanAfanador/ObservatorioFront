@@ -1,15 +1,16 @@
 /**
  * ============================================
- * ADMIN RUTAS MODULE (CORREGIDO POST/PUT)
+ * ADMIN RUTAS MODULE (AUDIT VISTA)
  * ============================================
- * Gestión de rutas, subida de archivos y validación.
- * Nota: El backend usa POST para actualizaciones debido a manejo de archivos.
+ * Herramienta de supervisión técnica de trazados.
+ * La validación legal es competencia de la Secretaría de Tránsito.
  */
 const AdminRutas = (function() {
     'use strict';
 
     let isInitialized = false;
     let rutasList = [];
+    let filteredList = [];
     let empresasList = [];
     let editingId = null;
 
@@ -30,22 +31,45 @@ const AdminRutas = (function() {
         const container = document.getElementById('rutas-table');
         if (!container) return;
         
-        container.innerHTML = '<div class="p-4 text-center text-gray-500">Cargando rutas...</div>';
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-3"></div>
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Sincronizando Base de Datos...</p>
+            </div>
+        `;
         const showDeleted = document.getElementById('toggle-deleted-rutas')?.checked || false;
 
         const params = {
             limit: 100,
-            include: 'empresa',
+            include: 'empresas,paraderos',
             ...(showDeleted ? { onlySoftDeleted: 'true' } : {})
         };
 
         const res = await AdminBase.apiCall('/rutas', 'GET', params);
         if (res && res.data) {
             rutasList = res.data.data || res.data;
-            render(rutasList);
+            filteredList = [...rutasList];
+            render(filteredList);
         } else {
-            container.innerHTML = '<div class="p-4 text-center text-red-500">Error cargando rutas.</div>';
+            container.innerHTML = '<div class="p-8 text-center text-red-500 font-black uppercase tracking-widest text-xs">Error al Cargar Datos de Ruta</div>';
         }
+    }
+
+    /**
+     * Maneja el buscador local del módulo
+     */
+    function handleSearch(query) {
+        if (!query) {
+            filteredList = [...rutasList];
+        } else {
+            const q = query.toLowerCase();
+            filteredList = rutasList.filter(r => {
+                const nameMatch = r.name.toLowerCase().includes(q);
+                const empresaMatch = r.empresas && r.empresas.some(e => e.name.toLowerCase().includes(q));
+                return nameMatch || empresaMatch;
+            });
+        }
+        render(filteredList);
     }
 
     function render(data) {
@@ -53,109 +77,85 @@ const AdminRutas = (function() {
             { 
                 header: 'ID', 
                 key: 'id',
-                render: (r) => `<span class="font-mono text-xs text-gray-400">#${r.id}</span>`
+                render: (r) => `<span class="font-mono text-[10px] font-bold text-slate-400">#${r.id}</span>`
             },
             { 
-                header: 'Empresa', 
-                render: (r) => r.empresa 
-                    ? `<span class="text-sm font-medium text-gray-700">${r.empresa.name}</span>` 
-                    : '<span class="text-xs text-red-400">Sin empresa</span>'
-            },
-            { 
-                header: 'Nombre Ruta', 
+                header: 'Nombre de Ruta / Trazado', 
                 render: (r) => {
+                    // Saneamiento de nombre (quitar emojis residuales si existen)
                     const cleanName = r.name.replace('✅', '').replace('[OK]', '').trim();
-                    return `<span class="font-bold text-gray-800">${cleanName}</span>`;
+                    const paraderosCount = r.paraderos ? r.paraderos.length : 0;
+                    return `
+                        <div class="flex flex-col">
+                            <span class="font-black text-slate-800 uppercase tracking-tight text-[11px] leading-tight">${cleanName}</span>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="text-[9px] font-bold text-indigo-500 uppercase tracking-widest bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 italic">
+                                   Puntos de Parada: ${paraderosCount}
+                                </span>
+                            </div>
+                        </div>
+                    `;
                 }
             },
             { 
-                header: 'Archivo', 
-                render: (r) => r.file_name 
-                    ? `<a href="/api/rutas/${r.id}/file" target="_blank" 
-                          class="inline-flex items-center px-2 py-1 rounded border border-blue-200 bg-blue-50 text-blue-700 text-xs hover:bg-blue-100 transition">
-                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                          Descargar
-                       </a>` 
-                    : '<span class="text-gray-400 text-xs italic">Sin archivo</span>' 
+                header: 'Operadores Autorizados', 
+                render: (r) => {
+                    if (!r.empresas || r.empresas.length === 0) {
+                        return '<span class="text-[10px] text-red-500 italic font-black uppercase tracking-tighter decoration-double underline">Sin Asignación</span>';
+                    }
+                    
+                    return `
+                        <div class="flex flex-wrap gap-1 max-w-[200px]">
+                            ${r.empresas.map(e => `
+                                <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[9px] font-black uppercase border border-slate-200 shadow-sm whitespace-nowrap">
+                                    ${e.name}
+                                </span>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            },
+            { 
+                header: 'Visualización', 
+                render: (r) => {
+                    if (!r.file_name) return '<span class="text-[10px] text-slate-300 italic uppercase">Sin Trazado Cargado</span>';
+                    
+                    return `
+                        <button onclick="window.open('/geovisor?route_id=${r.id}', '_blank')" 
+                           class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-black hover:bg-indigo-100 transition-all border border-indigo-100 shadow-sm uppercase tracking-widest group">
+                            <svg class="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 20l-5.447-2.724A2 2 0 013 15.488V5.13a2 2 0 011.106-1.789L9 1m0 19l6-2m-6 2V1m6 17l5.447 2.724A2 2 0 0021 18.87V8.512a2 2 0 00-1.106-1.789L15 4m0 14V4m0 0L9 1"></path></svg>
+                            VER MAPA
+                        </button>
+                    `;
+                }
             },
             {
-                header: 'Gobernanza / Estado',
-                filterOptions: [
-                    { value: 'Verificada', label: 'Verificadas ✅' },
-                    { value: 'Pendiente', label: 'Pendientes ⏳' },
-                    { value: 'Papelera', label: 'En Papelera 🗑️' }
-                ],
+                header: 'Estado de Trazado',
                 render: (r) => {
-                    if (r.deleted_at) return '<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase border border-red-200 shadow-sm">Papelera / Eliminado</span>';
+                    if (r.deleted_at) return '<span class="px-3 py-1 rounded-xl bg-orange-50 text-orange-800 border-orange-200 text-[10px] font-black uppercase border shadow-sm opacity-70">Deshabilitada</span>';
                     
-                    const isVerified = r.name.includes('✅') || r.name.includes('[OK]');
-                    return isVerified
-                        ? `<span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-green-100 text-green-700 border border-green-200 shadow-sm">
-                             <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg> Verificada
+                    // CORRECCIÓN: El estado ahora depende de si tiene trazado cargado (file_name)
+                    const hasTrace = r.file_name !== null && r.file_name !== '';
+                    return hasTrace
+                        ? `<span class="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-800 border-emerald-200 text-[10px] font-black uppercase border shadow-sm inline-flex items-center gap-1.5 ring-2 ring-emerald-50/50">
+                             VERIFICADA
                            </span>`
-                        : `<span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-700 border border-amber-200 shadow-sm">
-                             <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Pendiente Revisión
+                        : `<span class="px-3 py-1 rounded-xl bg-slate-50 text-slate-500 border-slate-200 text-[10px] font-black uppercase border shadow-sm inline-flex items-center gap-1.5">
+                             PENDIENTE
                            </span>`;
                 }
             },
             { 
                 header: 'Acciones', 
                 render: (r) => {
-                    let buttons = AdminBase.generateActionButtons(r, 'AdminRutas');
-                    const isVerified = r.name.includes('✅') || r.name.includes('[OK]');
-                    const safeName = r.name.replace(/'/g, "\\'"); 
-
-                    if (!r.deleted_at) {
-                        if (!isVerified) {
-                            const btnApprove = `
-                                <button onclick="AdminRutas.approve(${r.id}, '${safeName}', ${r.empresa_id})" 
-                                        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:scale-105 transition-all duration-200 border border-indigo-100 shadow-sm group">
-                                    <svg class="w-4 h-4 group-hover:rotate-12 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <span class="text-[10px] font-bold uppercase tracking-tight">Aprobar</span>
-                                </button>`;
-                            buttons = buttons.replace('<div class="flex gap-2">', '<div class="flex gap-2">' + btnApprove);
-                        } else {
-                            const btnReject = `
-                                <button onclick="AdminRutas.reject(${r.id}, '${safeName}', ${r.empresa_id})" 
-                                        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 hover:scale-105 transition-all duration-200 border border-rose-100 shadow-sm group">
-                                    <svg class="w-4 h-4 group-hover:-rotate-12 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <span class="text-[10px] font-bold uppercase tracking-tight">Rechazar</span>
-                                </button>`;
-                            buttons = buttons.replace('<div class="flex gap-2">', '<div class="flex gap-2">' + btnReject);
-                        }
-                    }
-                    return buttons;
+                    // El administrador NO valida, solo puede Editar registros básicos o eliminar
+                    return AdminBase.generateActionButtons(r, 'AdminRutas');
                 }
             }
         ];
-        AdminBase.renderTable(data, columns, 'rutas-table', 10);
-    }
-
-    async function approve(id, currentName, empresaId) {
-        if(!confirm(`¿Aprobar la ruta "${currentName}"?`)) return;
-        const cleanName = currentName.replace('✅', '').replace('[OK]', '').trim();
-        const newName = `${cleanName} ✅`;
-        const formData = new FormData();
-        formData.append('name', newName);
-        formData.append('empresa_id', empresaId);
-        const res = await AdminBase.apiCall(`/rutas/${id}`, 'POST', formData);
-        if (res && res.status) {
-            AdminBase.showNotification('success', 'Aprobada', 'La ruta ha sido verificada exitosamente.');
-            load();
-        }
-    }
-
-    async function reject(id, currentName, empresaId) {
-        if(!confirm(`¿Desaprobar la ruta y volverla a estado pendiente?`)) return;
-        const cleanName = currentName.replace('✅', '').replace('[OK]', '').trim();
-        const formData = new FormData();
-        formData.append('name', cleanName);
-        formData.append('empresa_id', empresaId);
-        const res = await AdminBase.apiCall(`/rutas/${id}`, 'POST', formData);
-        if (res && res.status) {
-            AdminBase.showNotification('info', 'Estado Actualizado', 'La ruta ha vuelto a estado pendiente.');
-            load();
-        }
+        
+        // Renderizado de tabla con buscador global oculto (usamos el propio del módulo)
+        AdminBase.renderTable(data, columns, 'rutas-table', 10, { hideGlobalSearch: true });
     }
 
     async function loadEmpresas() {
@@ -173,35 +173,36 @@ const AdminRutas = (function() {
 
         if (!modal) return;
 
-        selEmpresa.innerHTML = '<option>Cargando...</option>';
+        selEmpresa.innerHTML = '<option italic text-slate-400 uppercase>Cargando Operadores...</option>';
         await loadEmpresas();
         
-        selEmpresa.innerHTML = '<option value="">-- Seleccione Empresa --</option>';
+        selEmpresa.innerHTML = '<option value="">-- Seleccione Empresa Operadora --</option>';
         if (empresasList && empresasList.forEach) {
             empresasList.forEach(e => {
-                selEmpresa.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+                selEmpresa.innerHTML += `<option value="${e.id}">${e.name} [NIT: ${e.nit || 'S/N'}]</option>`;
             });
         }
 
         form.reset();
         modal.style.display = 'flex';
-        document.getElementById('modal-ruta-title').textContent = id ? 'Editar Ruta' : 'Nueva Ruta';
+        document.getElementById('modal-ruta-title').textContent = id ? 'Editar Registro de Ruta' : 'Nueva Ruta del Sistema';
 
         if (id) {
             const item = rutasList.find(r => r.id === id);
             if (item) {
                 const cleanName = item.name.replace('✅', '').replace('[OK]', '').trim();
                 document.getElementById('ruta-name').value = cleanName;
-                selEmpresa.value = item.empresa_id;
-                document.getElementById('ruta-file-help').textContent = "Dejar vacío para mantener el archivo actual.";
+                selEmpresa.value = item.empresas && item.empresas.length > 0 ? item.empresas[0].id : '';
+                document.getElementById('ruta-file-help').innerHTML = `<span class="text-slate-500">El trazado cartográfico ya está asociado. Cargue uno nuevo solo para actualizarlo.</span>`;
             }
         } else {
-            document.getElementById('ruta-file-help').textContent = "Archivo requerido (GeoJSON/KML).";
+            document.getElementById('ruta-file-help').textContent = "Seleccione archivo de trazado (KMZ / GeoJSON).";
         }
     }
 
     function closeModal() {
-        document.getElementById('modal-ruta').style.display = 'none';
+        const modal = document.getElementById('modal-ruta');
+        if(modal) modal.style.display = 'none';
         editingId = null;
     }
 
@@ -211,41 +212,58 @@ const AdminRutas = (function() {
         formData.append('name', document.getElementById('ruta-name').value);
         formData.append('empresa_id', document.getElementById('ruta-empresa').value);
         const fileInput = document.getElementById('ruta-file');
+        
         if (fileInput.files[0]) {
             formData.append('file', fileInput.files[0]);
         }
-        let endpoint = '/rutas';
-        if (editingId) endpoint += `/${editingId}`;
+
         const btnSubmit = document.querySelector('#form-ruta button[type="submit"]');
         if (btnSubmit && btnSubmit.disabled) return;
-        if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Guardando...'; }
+        
+        if (btnSubmit) { 
+            btnSubmit.disabled = true; 
+            btnSubmit.innerHTML = `<div class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>`; 
+        }
+
         try {
+            let endpoint = '/rutas';
+            if (editingId) endpoint += `/${editingId}`;
+            
             const res = await AdminBase.apiCall(endpoint, 'POST', formData);
             if (res && res.status) {
-                AdminBase.showNotification('success', 'Éxito', 'Ruta guardada.');
+                AdminBase.showNotification('success', 'Éxito', 'Información de ruta actualizada correctamente.');
                 closeModal();
                 load();
             }
+        } catch (err) {
+            AdminBase.showNotification('error', 'Error', 'No se pudo procesar la solicitud.');
         } finally {
-            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
+            if (btnSubmit) { 
+                btnSubmit.disabled = false; 
+                btnSubmit.textContent = 'Guardar'; 
+            }
         }
     }
 
     async function destroy(id) {
-        if (confirm('¿Eliminar ruta?')) {
-            await AdminBase.apiCall(`/rutas/${id}`, 'DELETE');
+        if (!confirm('¿Desea deshabilitar este registro de ruta?')) return;
+        const res = await AdminBase.apiCall(`/rutas/${id}`, 'DELETE');
+        if (res) {
+            AdminBase.showNotification('success', 'Eliminado', 'La ruta ya no será visible.');
             load();
         }
     }
 
     async function restore(id) {
-        if (confirm('¿Restaurar ruta?')) {
-            await AdminBase.apiCall(`/rutas/${id}/rehabilitate`, 'POST');
+        if (!confirm('¿Reactivar este registro?')) return;
+        const res = await AdminBase.apiCall(`/rutas/${id}/rehabilitate`, 'POST');
+        if (res) {
+            AdminBase.showNotification('success', 'Reactivado', 'Ruta habilitada nuevamente.');
             load();
         }
     }
 
-    return { init, load, openModal, destroy, restore, approve, reject };
+    return { init, load, openModal, destroy, restore, handleSearch };
 })();
 
 window.AdminRutas = AdminRutas;
