@@ -1,6 +1,6 @@
 // ============================================================
 // secretaria-vehiculos.js
-// Auditoría Clínica de Vehículos (Veredicto Único)
+// Auditoría de Vehículos (Veredicto Único)
 // ============================================================
 
 let allVehiculosReview = []; // Cache local para búsqueda instantánea

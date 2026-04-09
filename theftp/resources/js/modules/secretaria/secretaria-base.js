@@ -148,7 +148,82 @@ window.getSafeData = function (obj, path, defaultValue = 'N/A') {
   return result || defaultValue;
 };
 
-// Backwards compatibility con la nueva arquitectura
+// --- Utilidad para formatear fechas ---
+window.formatDate = function (dateStr) {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+// --- Búsqueda Global en Tablas ---
+window.applyGlobalSearch = function (query, tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const rows = table.querySelectorAll('tbody tr');
+    const q = query.toLowerCase();
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+    });
+};
+
+// --- Visualizador Universal de Documentos ---
+window.previewDocument = function (url, title = 'Documento de Soporte') {
+    const modal = document.getElementById('modal-preview-doc');
+    const content = document.getElementById('preview-doc-content');
+    const titleEl = document.getElementById('modal-preview-title');
+    const downloadBtn = document.getElementById('btn-download-preview');
+
+    if (!modal || !content) return;
+
+    // Configurar Header y descarga
+    if (titleEl) titleEl.textContent = title;
+    if (downloadBtn) {
+        downloadBtn.href = url;
+        downloadBtn.className = downloadBtn.className.replace('pointer-events-none opacity-50', '');
+    }
+
+    // Identificar extensión
+    const ext = url.split('.').pop().toLowerCase();
+    content.innerHTML = '<div class="flex items-center justify-center h-full"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>';
+
+    setTimeout(() => {
+        if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
+            content.innerHTML = `<img src="${url}" alt="Soporte" class="max-w-full max-h-full object-contain shadow-lg rounded-sm">`;
+        } else if (ext === 'pdf') {
+            content.innerHTML = `<iframe src="${url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH" class="w-full h-full border-0 rounded-sm shadow-inner" style="background: #525659;"></iframe>`;
+        } else {
+            content.innerHTML = `
+                <div class="text-center p-8 bg-white rounded-xl shadow-xl border border-slate-200 mx-4 max-w-sm">
+                    <div class="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 mx-auto mb-4">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
+                    <p class="font-bold text-sm uppercase tracking-widest text-center">Este tipo de archivo (.${ext}) no permite previsualización directa.<br>Por favor, utilice el botón de descarga.</p>
+                </div>`;
+        }
+    }, 400);
+
+    modal.style.display = 'flex';
+};
+
+// Inicializar eventos del visualizador al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    const btnClose = document.getElementById('btn-close-preview');
+    const modal = document.getElementById('modal-preview-doc');
+
+    if (btnClose && modal) {
+        btnClose.onclick = () => { modal.style.display = 'none'; };
+        modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+    }
+});
+
+// Backwards compatibility
 window.apiGet = async function (path) { return window.apiCall(path, 'GET'); };
 window.apiPost = async function (path, data) { return window.apiCall(path, 'POST', data); };
 window.apiPut = async function (path, data) { return window.apiCall(path, 'PUT', data); };
+
+// Exponer AdminBase name-spacing para compatibilidad con las llamadas desde el HTML
+window.AdminBase = {
+    applyGlobalSearch: window.applyGlobalSearch,
+    previewDocument: window.previewDocument
+};
