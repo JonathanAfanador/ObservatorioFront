@@ -222,7 +222,7 @@ window.downloadGeneralReport = function() {
     setTimeout(() => URL.revokeObjectURL(url), 100);
 };
 
-// --- Buscador en tiempo real ---
+// --- Buscador dinámico ---
 window.filterEmpresasTable = function (query) {
     if (!window.allEmpresasAudit) return;
     

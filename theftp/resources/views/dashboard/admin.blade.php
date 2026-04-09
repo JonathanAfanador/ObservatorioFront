@@ -13,7 +13,7 @@
                     <span class="px-3 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-blue-200">Panel Global</span>
                 </div>
                 <h2 class="text-5xl font-black text-slate-900 tracking-tight leading-none mb-3">Centro de Mando</h2>
-                <p class="text-slate-500 font-bold text-base leading-relaxed max-w-2xl">Gestiona la identidad, flota y cumplimiento legal de toda la red operativa en tiempo real.</p>
+                <p class="text-slate-500 font-bold text-base leading-relaxed max-w-2xl">Gestiona la identidad, flota y cumplimiento legal de toda la red operativa sincronizada.</p>
             </div>
         </div>
 

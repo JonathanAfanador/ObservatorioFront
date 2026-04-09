@@ -304,7 +304,7 @@ const AdminBase = (function() {
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 px-1">
                 <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">
                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                   <span class="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado En Tiempo Real</span>
+                   <span class="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Sincronización Activa</span>
                 </div>
                 <div class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-tight">
                     Auditando <span class="text-slate-900">${start + 1}-${Math.min(start + perPage, total)}</span> <span class="mx-1 text-slate-200">/</span> Total <span class="text-slate-900">${total}</span> registros

@@ -185,7 +185,7 @@ window.changeLicenciasAuditPage = function (page) {
 };
 
 /**
- * Filtro de búsqueda en tiempo real
+ * Filtro de búsqueda dinámico
  */
 window.filterLicenciasAudit = function (query) {
     const q = query.toLowerCase().trim();

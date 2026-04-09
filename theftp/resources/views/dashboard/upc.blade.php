@@ -43,7 +43,7 @@
             <!-- Sección 2: Análisis Visual e Interactivo -->
             <div style="margin-top: 3rem;">
                 <h3 class="text-lg font-bold text-gray-800 mb-6" style="display: flex; align-items: center; gap: 0.5rem;">
-                    Analítica Operativa en Tiempo Real
+                    Analítica Operativa Dinámica
                 </h3>
                 
                 <div id="estadisticas-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">

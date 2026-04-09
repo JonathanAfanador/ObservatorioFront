@@ -1,7 +1,7 @@
 // ============================================================
 // app-ui.js
-// UI de la página principal: carrusel Swiper, reloj en tiempo
-// real, menú móvil offcanvas y control de interfaz por sesión.
+// UI de la página principal: carrusel Swiper, reloj del
+// sistema, menú móvil offcanvas y control de interfaz por sesión.
 // ============================================================
 import Swiper from 'swiper';
 import { Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules';
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' }
     });
 
-    // ======================== RELOJ EN TIEMPO REAL ========================
+    // ======================== RELOJ DEL SISTEMA ========================
     const timeElement = document.getElementById('current-time');
 
     function updateClock() {

@@ -131,7 +131,7 @@ function renderVehiculosTable(list) {
 }
 
 /**
- * Filtrado de vehículos en tiempo real por placa o nombre de empresa
+ * Filtrado de vehículos dinámico por placa o nombre de empresa
  */
 window.filterVehiculosReview = function (val) {
     const q = val.toLowerCase().trim();

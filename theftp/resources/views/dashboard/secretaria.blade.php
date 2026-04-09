@@ -115,7 +115,7 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-600"></span>
                 </span>
-                <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-widest">Sincronizado en tiempo real</span>
+                <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-widest">Sincronizado remotamente</span>
             </div>
         </div>
 
@@ -284,7 +284,7 @@
                 <div>
                     <h3 class="font-bold text-slate-800" style="font-size: 1.25rem;">Gestor Maestro Cartográfico</h3>
                     <p class="text-sm text-slate-500 mt-1">
-                        Cargue, oficialice y asigne las rutas operativas a las empresas. Todos los cambios impactarán en tiempo real a los ciudadanos (Landing/App) y Empresas.
+                        Cargue, oficialice y asigne las rutas operativas a las empresas. Todos los cambios impactarán de forma inmediata a los ciudadanos (Landing/App) y Empresas.
                     </p>
                 </div>
                 <div style="display: flex; gap: 0.75rem;">
