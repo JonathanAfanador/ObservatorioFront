@@ -21,6 +21,14 @@ const AdminLicencias = (function() {
         document.getElementById('btn-cancel-licencia')?.addEventListener('click', closeModal);
         document.getElementById('toggle-deleted-licencias')?.addEventListener('change', load);
 
+        // Vincular Buscador
+        const searchInput = document.getElementById('search-licencias');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', (e) => {
+                AdminBase.applyGlobalSearch('licencias-table', e.target.value);
+            });
+        }
+
         isInitialized = true;
     }
 

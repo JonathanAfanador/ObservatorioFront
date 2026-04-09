@@ -18,7 +18,7 @@ const AdminConductores = (function() {
     function init() {
         if (isInitialized) return; // Si ya se inició, no hace nada.
 
-        console.log('🚀 Inicializando listeners de Conductores...');
+        console.log('Inicializando listeners de Conductores...');
 
         // Listener para abrir modal nuevo
         const btnAdd = document.getElementById('btn-add-conductor');

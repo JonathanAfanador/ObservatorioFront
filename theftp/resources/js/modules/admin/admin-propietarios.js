@@ -17,7 +17,7 @@ const AdminPropietarios = (function() {
      * 1. Inicialización
      */
     function init() {
-        console.log(' Inicializando AdminPropietarios...');
+        console.log('Inicializando AdminPropietarios...');
 
         // Listeners de botones (Asegúrate que los IDs existan en tu HTML)
         const btnAdd = document.getElementById('btn-add-propietario');

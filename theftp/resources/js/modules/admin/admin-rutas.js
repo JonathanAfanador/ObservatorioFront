@@ -17,12 +17,18 @@ const AdminRutas = (function() {
     function init() {
         if (isInitialized) return;
 
-        console.log('🚀 Inicializando AdminRutas...');
+        console.log('Inicializando AdminRutas...');
 
         document.getElementById('btn-add-ruta')?.addEventListener('click', () => openModal());
         document.getElementById('form-ruta')?.addEventListener('submit', save);
         document.getElementById('btn-cancel-ruta')?.addEventListener('click', closeModal);
         document.getElementById('toggle-deleted-rutas')?.addEventListener('change', load);
+
+        // Vincular Buscador Local
+        const searchInput = document.getElementById('search-rutas');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', (e) => handleSearch(e.target.value));
+        }
 
         isInitialized = true;
     }

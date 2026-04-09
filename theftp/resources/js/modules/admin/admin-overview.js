@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (typeof setupPersonaFilter === 'function') setupPersonaFilter();
     
-    console.log('🛡️ Centro de Control Administrativo Sincronizado.');
+    console.log('Centro de Control Administrativo Sincronizado.');
 });
 
 window.AdminOverview = AdminOverview;

@@ -15,7 +15,7 @@ const AdminEmpresas = (function() {
     function init() {
         if (isInitialized) return;
 
-        console.log('🚀 Inicializando AdminEmpresas...');
+        console.log('Inicializando AdminEmpresas...');
 
         const btnAdd = document.getElementById('btn-add-empresa');
         if (btnAdd) btnAdd.addEventListener('click', () => openModal());

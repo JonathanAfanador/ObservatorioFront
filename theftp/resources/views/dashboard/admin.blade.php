@@ -84,7 +84,7 @@
                     <p class="text-sm text-slate-500 font-medium mb-8 flex-1 leading-relaxed">Soporte documental, licencias de conducción y evidencias de auditoría.</p>
                     <div class="flex gap-3">
                         <button onclick="showView('licencias')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm">Licencias</button>
-                        <button onclick="showView('documentos')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm">Expediente</button>
+                        <button onclick="showView('auditoria')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm">Auditoría</button>
                     </div>
                 </div>
             </div>
@@ -758,6 +758,43 @@
     </div>
 </div>
 
+{{-- VISTA AUDITORÍA (Centro de Rastreo) --}}
+<div id="view-auditoria" class="dashboard-view" style="display: none;">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h2 class="text-3xl font-black text-slate-800 tracking-tight">Centro de Auditoría</h2>
+            <p class="text-sm text-slate-500 font-medium italic">Rastreo de actividades.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-2xl px-4 py-2 shadow-sm text-sm">
+                <label for="audit-date-start" class="font-bold text-slate-500 hidden sm:inline">Desde:</label>
+                <input type="date" id="audit-date-start" class="border-none bg-transparent outline-none text-slate-700 focus:ring-0 cursor-pointer p-0" onchange="AdminAuditoria.filterByDate()">
+                <span class="text-slate-300 font-light hidden sm:inline">|</span>
+                <label for="audit-date-end" class="font-bold text-slate-500 hidden sm:inline">Hasta:</label>
+                <input type="date" id="audit-date-end" class="border-none bg-transparent outline-none text-slate-700 focus:ring-0 cursor-pointer p-0" onchange="AdminAuditoria.filterByDate()">
+                <button onclick="AdminAuditoria.clearDateFilter()" title="Limpiar Fechas" class="text-slate-400 hover:text-rose-500 ml-1 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <button onclick="AdminAuditoria.load()" title="Recargar Registros" class="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 text-slate-500 transition-all shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="content-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+
+        <div id="auditoria-table" class="min-w-full">
+            <div class="flex flex-col items-center justify-center py-20 text-slate-300">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-rose-600 mb-4"></div>
+                <span class="text-xs font-black uppercase tracking-widest">Sincronizando Expedientes...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- MODAL VISUALIZADOR UNIVERSAL DE DOCUMENTOS --}}
 <div id="modal-preview-doc" class="modal-overlay fixed inset-0 bg-slate-900/95 backdrop-blur-md flex items-center justify-center z-[100]" style="display: none;">
     <div class="modal-content bg-white shadow-2xl w-full max-w-7xl h-[92vh] flex flex-col overflow-hidden relative mx-4 rounded-xl border border-white/20">
@@ -799,6 +836,76 @@
     </div>
 </div>
 
+{{-- MODAL VISUALIZADOR DE CAMBIOS DETALLADOS (DIFF VIEW) --}}
+<div id="modal-audit-detail" class="modal-overlay fixed inset-0 bg-slate-900/95 backdrop-blur-md flex items-center justify-center z-[100]" style="display: none;">
+    <div class="modal-content bg-white shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden relative mx-4 rounded-3xl border border-white/20">
+        
+        <!-- Header del Visualizador de Auditoría -->
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-slate-50">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-600 shadow-inner">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-black text-slate-800 uppercase tracking-widest" id="modal-audit-title">Reporte de Trazabilidad</h3>
+                    <p class="text-xs text-slate-500 font-bold tracking-tight" id="modal-audit-subtitle">Inspección de Alteración Criptográfica</p>
+                </div>
+            </div>
+            
+            <button onclick="document.getElementById('modal-audit-detail').style.display='none'" class="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all shadow-sm bg-white border border-slate-100">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Cuerpo / Contenido del Diff -->
+        <div class="flex-1 overflow-auto bg-slate-50 p-6 sm:p-10">
+            <!-- Metadatos de la Acción -->
+            <div id="audit-metadata" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <!-- Se llenará desde JS -->
+            </div>
+
+            <!-- Tabla de Diferencias (Diff) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="bg-slate-900 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                    <h4 class="text-white font-black uppercase tracking-widest text-xs">Mapeo de Alteraciones</h4>
+                    <span id="audit-event-badge" class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        CREATION
+                    </span>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-100">
+                                <th class="px-6 py-4 text-[10px] font-black w-1/3 uppercase tracking-widest text-slate-400">Punto de Dato (Campo)</th>
+                                <th class="px-6 py-4 text-[10px] font-black w-1/3 uppercase tracking-widest text-rose-500 border-l border-r border-slate-100 bg-rose-50/30">Valor Residual (Anterior)</th>
+                                <th class="px-6 py-4 text-[10px] font-black w-1/3 uppercase tracking-widest text-emerald-500 bg-emerald-50/30">Valor Actual (Nuevo)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-diff-body" class="divide-y divide-slate-100">
+                            <!-- Se llenará desde JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="audit-no-changes" class="hidden p-12 text-center flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h5 class="text-slate-600 font-bold uppercase tracking-widest text-sm mb-1">Sin Alteraciones Directas</h5>
+                    <p class="text-slate-400 text-xs font-medium">Este evento registró actividad pero no hay mutación de valores en los datos persistentes.</p>
+                </div>
+            </div>
+            
+            <div id="audit-system-note" class="mt-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <svg class="w-3 h-3 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Los identificadores internos (id, password, timestamps) pueden haber sido omitidos del Diff.
+            </div>
+        </div>
+
+    </div>
+</div>
+
     {{-- ======================================================================== --}}
     {{-- INCLUSIÓN DE SCRIPTS ESPECÍFICOS DEL DASHBOARD DE ADMINISTRACIÓN --}}
     {{-- ======================================================================== --}}
@@ -813,6 +920,7 @@
     @vite('resources/js/modules/admin/admin-propietarios.js')
     @vite('resources/js/modules/admin/admin-rutas.js')
     @vite('resources/js/modules/admin/admin-licencias.js')
+    @vite('resources/js/modules/admin/admin-auditoria.js')
 
 
 </x-layouts.dashboard>

@@ -86,7 +86,7 @@ const AdminBase = (function() {
      * @param {string} method - 'GET', 'POST', 'PUT', 'DELETE'
      * @param {Object|FormData} data - Datos a enviar (Body) o Parámetros (si es GET)
      */
-    async function apiCall(endpoint, method = 'GET', data = null) {
+    async function apiCall(endpoint, method = 'GET', data = null, retries = 3) {
         const csrfToken = getCookie('XSRF-TOKEN');
         let url = `${API_PREFIX}${endpoint}`;
         
@@ -107,15 +107,14 @@ const AdminBase = (function() {
                     params.append(key, data[key]);
                 }
             });
-            url += `?${params.toString()}`;
+            const separator = url.includes('?') ? '&' : '?';
+            url += `${separator}${params.toString()}`;
         } 
         // Manejo de Body (POST/PUT)
         else if (data) {
             if (data instanceof FormData) {
-                // Si es FormData, NO ponemos Content-Type (el navegador lo gestiona)
                 config.body = data;
             } else {
-                // Si es JSON normal
                 headers['Content-Type'] = 'application/json';
                 config.body = JSON.stringify(data);
             }
@@ -123,12 +122,12 @@ const AdminBase = (function() {
 
         try {
             const response = await fetch(url, config);
+            
+            // Si la respuesta es 404 o similar pero JSON
             const json = await response.json();
 
             if (!response.ok) {
-                // Manejo específico de errores de validación Laravel (422)
                 if (response.status === 422 && json.errors) {
-                    // Concatenar todos los mensajes de error en un solo string
                     const errorMsg = Object.values(json.errors).flat().join('\n');
                     throw new Error(errorMsg);
                 }
@@ -137,9 +136,16 @@ const AdminBase = (function() {
 
             return json;
         } catch (error) {
+            // Lógica de Reintento para errores de red (ERR_NETWORK_CHANGED, Failed to fetch, etc)
+            if (retries > 0 && (error instanceof TypeError || error.name === 'AbortError' || error.message.includes('fetch'))) {
+                console.warn(`Error de red detectado. Reintentando... (${retries} restantes) para ${endpoint}`);
+                await new Promise(res => setTimeout(res, 1000)); // Esperar 1s antes de reintentar
+                return apiCall(endpoint, method, data, retries - 1);
+            }
+
             console.error('API Error:', error);
             showNotification('error', 'Error de Operación', error.message);
-            return null; // Retorna null para indicar fallo
+            return null;
         }
     }
 
@@ -240,9 +246,10 @@ const AdminBase = (function() {
                             </svg>
                         </span>
                         <input type="text" 
+                               id="${containerId}-search-input"
                                placeholder="Búsqueda global..." 
                                value="${state.globalSearch || ''}"
-                               onkeyup="AdminBase.applyGlobalSearch('${containerId}', this.value)"
+                               oninput="AdminBase.applyGlobalSearch('${containerId}', this.value)"
                                class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-100 focus:border-slate-800 transition-all duration-300 outline-none text-sm font-medium placeholder-slate-400 shadow-inner">
                     </div>
                 
@@ -369,7 +376,28 @@ const AdminBase = (function() {
                 </div>`;
         }
 
+        // --- PRESERVACIÓN DE FOCO ---
+        const activeId = document.activeElement ? document.activeElement.id : null;
+        let cursorStart = 0;
+        let cursorEnd = 0;
+        
+        if (activeId === `${containerId}-search-input`) {
+            cursorStart = document.activeElement.selectionStart;
+            cursorEnd = document.activeElement.selectionEnd;
+        }
+
         container.innerHTML = html;
+        
+        // --- RESTAURACIÓN DE FOCO ---
+        if (activeId) {
+            const el = document.getElementById(activeId);
+            if (el) {
+                el.focus();
+                if (activeId === `${containerId}-search-input`) {
+                    el.setSelectionRange(cursorStart, cursorEnd);
+                }
+            }
+        }
         
         // Efecto Premium: Scroll suave arriba al cambiar página si no estamos filtrando
         if (currentPage > 1 && Object.keys(filters).length === 0) {
@@ -396,15 +424,21 @@ const AdminBase = (function() {
     }
 
     /**
-     * Motor de Búsqueda Global Inteligente
+     * Motor de Búsqueda Global Inteligente con Debounce
      */
+    let searchTimeout = null;
     function applyGlobalSearch(containerId, value) {
         const state = tableRegistry[containerId];
         if (!state) return;
 
         state.globalSearch = value;
         state.currentPage = 1;
-        renderTablePage(containerId);
+
+        // Debounce de 300ms para no saturar el DOM mientras el usuario escribe
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            renderTablePage(containerId);
+        }, 300);
     }
 
     /**

@@ -133,4 +133,12 @@ class Audit extends Model{
         'tags',
     ];
 
+    /**
+     * Relación con el usuario que ejecutó la acción
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
 }

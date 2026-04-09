@@ -10,7 +10,7 @@ let adminRolesStore = [];
 let editingRoleId = null;
 
 async function initAdminRoles() {
-    console.log('🚀 Inicializando Módulo de Roles...');
+    console.log('Inicializando Módulo de Roles...');
     const btnAdd = document.getElementById('btn-add-role');
     if (btnAdd) btnAdd.onclick = () => openModalRole();
 

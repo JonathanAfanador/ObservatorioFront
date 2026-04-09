@@ -18,7 +18,7 @@ const AdminVehiculos = (function() {
     function init() {
         if (isInitialized) return;
 
-        console.log('🚀 Inicializando AdminVehiculos...');
+        console.log('Inicializando AdminVehiculos...');
 
         const btnAdd = document.getElementById('btn-add-vehiculo');
         if (btnAdd) btnAdd.addEventListener('click', () => openModal());
