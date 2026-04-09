@@ -2,15 +2,95 @@
 
     {{-- Contenedor global de notificaciones para el dashboard de administración --}}
     <div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
-
-    {{-- Vista principal del panel de administración (overview) --}}
+    {{-- Vista principal del panel de administración (CENTRO DE MANDO 2.0) --}}
     <div id="view-overview" class="dashboard-view">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">Panel de Administración</h2>
-
-        {{-- Grid donde se cargan las tarjetas de estadísticas (usuarios, roles, etc.) --}}
-        <div class="stat-grid" id="admin-stats">
-            <div class="loading-state"><p>Cargando estadísticas...</p></div>
+        
+        {{-- Hero Section: Bienvenida y Estado del Sistema --}}
+        <div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-blue-50/50 rounded-full blur-3xl"></div>
+            <div class="relative z-10">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="px-3 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-blue-200">Panel Global</span>
+                </div>
+                <h2 class="text-5xl font-black text-slate-900 tracking-tight leading-none mb-3">Centro de Mando</h2>
+                <p class="text-slate-500 font-bold text-base leading-relaxed max-w-2xl">Gestiona la identidad, flota y cumplimiento legal de toda la red operativa en tiempo real.</p>
+            </div>
         </div>
+
+        {{-- Nivel 1: KPIs de Alto Impacto (Métricas Maestras) --}}
+        <div id="admin-stats" class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+            {{-- Se rellena dinámicamente vía AdminOverview.loadStats() --}}
+            <div class="animate-pulse bg-slate-100 h-24 rounded-3xl col-span-4"></div>
+        </div>
+
+        {{-- Nivel 2: LOS 4 PILARES DE CONTROL (Hubs Interactivos) --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+            
+            {{-- Pilar 1: Seguridad e Identidad --}}
+            <div class="group relative">
+                <div class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 cursor-default h-full flex flex-col">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500 shadow-sm">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 leading-tight mb-3">Identidad Digital</h3>
+                    <p class="text-sm text-slate-500 font-medium mb-8 flex-1 leading-relaxed">Gestión de acceso, perfiles de usuario y roles de seguridad del sistema.</p>
+                    <div class="flex gap-3">
+                        <button onclick="showView('users')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">Usuarios</button>
+                        <button onclick="showView('roles')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">Roles</button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Pilar 2: Operación Estratégica --}}
+            <div class="group relative">
+                <div class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 cursor-default h-full flex flex-col">
+                    <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 border border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-500 shadow-sm">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 leading-tight mb-3">Red Operativa</h3>
+                    <p class="text-sm text-slate-500 font-medium mb-8 flex-1 leading-relaxed">Administración de empresas operadoras y trazado de rutas geográficas.</p>
+                    <div class="flex gap-3">
+                        <button onclick="showView('empresas')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm">Empresas</button>
+                        <button onclick="showView('rutas')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm">Rutas</button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Pilar 3: Activos de Transporte --}}
+            <div class="group relative">
+                <div class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 cursor-default h-full flex flex-col">
+                    <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-6 border border-amber-100 group-hover:bg-amber-600 group-hover:text-white transition-colors duration-500 shadow-sm">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 leading-tight mb-3">Parque Automotor</h3>
+                    <p class="text-sm text-slate-500 font-medium mb-8 flex-1 leading-relaxed">Control integral de vehículos, propietarios y conductores activos.</p>
+                    <div class="flex flex-col gap-3">
+                        <button onclick="showView('vehiculos')" class="w-full py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-amber-600 hover:text-white transition-all shadow-sm">Gestión de Vehículos</button>
+                        <div class="flex gap-3">
+                            <button onclick="showView('propietarios')" class="flex-1 py-3 bg-slate-50 text-slate-700 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-200 transition-all">Dueños</button>
+                            <button onclick="showView('conductores')" class="flex-1 py-3 bg-slate-50 text-slate-700 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-200 transition-all">Conductores</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Pilar 4: Centro de Auditoría --}}
+            <div class="group relative">
+                <div class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 cursor-default h-full flex flex-col">
+                    <div class="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-6 border border-rose-100 group-hover:bg-rose-600 group-hover:text-white transition-colors duration-500 shadow-sm">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 leading-tight mb-3">Jurídico y Soporte</h3>
+                    <p class="text-sm text-slate-500 font-medium mb-8 flex-1 leading-relaxed">Soporte documental, licencias de conducción y evidencias de auditoría.</p>
+                    <div class="flex gap-3">
+                        <button onclick="showView('licencias')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm">Licencias</button>
+                        <button onclick="showView('documentos')" class="flex-1 py-4 bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm">Expediente</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
     {{-- Vista de gestión de usuarios (listado, búsqueda, alta/baja) --}}

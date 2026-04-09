@@ -74,9 +74,19 @@ function setupNavigation() {
 }
 
 async function loadViewData(view) {
+    // 1. Visibilidad de Vistas
     document.querySelectorAll('.dashboard-view').forEach(el => el.style.display = 'none');
     const activeView = document.getElementById('view-' + view);
     if (activeView) activeView.style.display = 'block';
+
+    // 2. Sincronización de Barra Lateral
+    const links = document.querySelectorAll('.sidebar-nav .nav-link');
+    links.forEach(l => {
+        l.classList.remove('active');
+        if (l.getAttribute('data-view') === view) {
+            l.classList.add('active');
+        }
+    });
 
     const headerTitle = document.getElementById('header-title');
     if (headerTitle) headerTitle.textContent = 'Administracion - ' + view.charAt(0).toUpperCase() + view.slice(1);

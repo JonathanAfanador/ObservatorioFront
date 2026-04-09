@@ -204,15 +204,23 @@ const AdminDocumentos = (function() {
 
     async function destroy(id) {
         if (confirm('¿Mover este documento a la papelera?')) {
-            await AdminBase.apiCall(`/documentos/${id}`, 'DELETE');
-            load();
+            const res = await AdminBase.apiCall(`/documentos/${id}`, 'DELETE');
+            if (res) {
+                AdminBase.showNotification('success', 'Eliminado', 'El registro ha sido movido a la papelera.');
+                if (typeof AdminOverview !== 'undefined') AdminOverview.loadStats();
+                load();
+            }
         }
     }
 
     async function restore(id) {
         if (confirm('¿Restaurar acceso a esta evidencia?')) {
-            await AdminBase.apiCall(`/documentos/${id}/rehabilitate`, 'POST');
-            load();
+            const res = await AdminBase.apiCall(`/documentos/${id}/rehabilitate`, 'POST');
+            if (res) {
+                AdminBase.showNotification('success', 'Restaurado', 'El documento vuelve a estar activo.');
+                if (typeof AdminOverview !== 'undefined') AdminOverview.loadStats();
+                load();
+            }
         }
     }
 
