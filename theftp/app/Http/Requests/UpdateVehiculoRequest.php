@@ -32,9 +32,10 @@ class UpdateVehiculoRequest extends FormRequest
         $id = $this->route('id') ?? $this->route('vehiculo');
 
         return [
-            'color'          => 'required|string|max:255',
-            'marca'          => 'required|string|max:255',
+            'color'          => 'sometimes|required|string|max:255',
+            'marca'          => 'sometimes|required|string|max:255',
             'placa'          => [
+                'sometimes',
                 'required',
                 'string',
                 'max:255',
@@ -42,10 +43,10 @@ class UpdateVehiculoRequest extends FormRequest
                     ->ignore($id)
                     ->whereNull('deleted_at'),
             ],
-            'modelo'         => 'required|string|max:255',
+            'modelo'         => 'sometimes|required|string|max:255',
             'servicio'       => 'nullable|boolean',
-            'propietario_id' => 'required|integer|exists:propietarios,id',
-            'tipo_veh_id'    => 'required|integer|exists:tipo_vehiculo,id',
+            'propietario_id' => 'sometimes|required|integer|exists:propietarios,id',
+            'tipo_veh_id'    => 'sometimes|required|integer|exists:tipo_vehiculo,id',
             'fecha_matricula'        => 'nullable|date',
             'fecha_expedicion_soat'  => 'nullable|date',
             'fecha_vencimiento_soat' => 'nullable|date',

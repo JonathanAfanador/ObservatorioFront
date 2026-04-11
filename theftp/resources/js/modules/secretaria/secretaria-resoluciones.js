@@ -1,6 +1,6 @@
 // ============================================================
 // secretaria-resoluciones.js
-// Gestión de Resoluciones: listar, subir y descargar documentos
+// Gestión de Resoluciones: listar, subir y visualizar documentos
 // ============================================================
 
 // --- Cargar listado de resoluciones ---
@@ -24,7 +24,7 @@ window.loadResoluciones = async function () {
     }
 
     let html = `<table class="modern-table">
-        <thead><tr><th>ID</th><th>Detalle / Asunto</th><th>Empresa Asignada</th><th>Fecha</th><th>Acción</th></tr></thead>
+        <thead><tr><th>Detalle / Asunto</th><th>Empresa Asignada</th><th>Fecha</th><th class="text-right">Acción</th></tr></thead>
         <tbody>`;
 
     res.data.data.forEach(doc => {
@@ -35,14 +35,13 @@ window.loadResoluciones = async function () {
 
         html += `
             <tr>
-                <td>${doc.id}</td>
-                <td>${doc.observaciones || 'Sin detalle'}</td>
+                <td class="font-medium">${doc.observaciones || 'Sin detalle'}</td>
                 <td>${nombreEmpresa}</td>
                 <td>${fecha}</td>
-                <td>
-                    <button onclick="downloadDocumento(${doc.id})" class="btn-action text-blue-600 hover:text-blue-800" title="Ver PDF">
-                        <svg style="width:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        Ver
+                <td class="text-right">
+                    <button onclick="viewDocumento(${doc.id}, '${doc.observaciones || 'Resolución'}')" class="btn-action text-blue-600 hover:text-blue-800 flex items-center gap-1 ml-auto" title="Ver PDF">
+                        <svg style="width:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        Ver Documento
                     </button>
                 </td>
             </tr>
@@ -72,27 +71,50 @@ window.loadEmpresasSelect = async function () {
     }
 };
 
-// --- Descargar / ver documento PDF ---
-window.downloadDocumento = async function (id) {
-    showNotification('info', 'Descargando', 'Obteniendo archivo seguro...');
+// Global para limpiar el URL del blob al cerrar
+let currentPdfUrl = null;
+
+// --- Visualizar documento PDF en modal interno ---
+window.viewDocumento = async function (id, title) {
+    showNotification('info', 'Cargando', 'Preparando vista previa...');
     try {
         const response = await fetch(`/api/documentos/${id}/file`, {
             method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            },
+            headers: { 'Accept': 'application/json' },
             credentials: 'same-origin'
         });
 
         if (!response.ok) throw new Error('No se pudo acceder al archivo.');
 
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+        if (currentPdfUrl) window.URL.revokeObjectURL(currentPdfUrl);
+        
+        currentPdfUrl = window.URL.createObjectURL(blob);
+        
+        const modal = document.getElementById('modal-view-pdf');
+        const frame = document.getElementById('pdf-viewer-frame');
+        const titleEl = document.getElementById('pdf-viewer-title');
+
+        titleEl.textContent = title;
+        frame.src = currentPdfUrl;
+        modal.style.display = 'flex';
+
     } catch (err) {
-        showNotification('error', 'Error', 'No se pudo abrir el documento.');
+        showNotification('error', 'Error', 'No se pudo cargar el documento.');
         console.error(err);
+    }
+};
+
+window.closePdfViewer = function() {
+    const modal = document.getElementById('modal-view-pdf');
+    const frame = document.getElementById('pdf-viewer-frame');
+    
+    modal.style.display = 'none';
+    frame.src = 'about:blank';
+
+    if (currentPdfUrl) {
+        window.URL.revokeObjectURL(currentPdfUrl);
+        currentPdfUrl = null;
     }
 };
 
@@ -119,11 +141,17 @@ window.handleSubirResolucion = async function (e) {
         formData.append('empresa_id', empresaInput.value);
     }
 
+    showNotification('info', 'Subiendo', 'Procesando documento oficial...');
     const result = await apiCall('/documentos', 'POST', formData, true);
 
     if (result && result.status) {
-        showNotification('success', 'Éxito', 'Resolución subida correctamente.');
+        showNotification('success', 'Éxito', 'Resolución publicada correctamente.');
         document.getElementById('form-resolucion').reset();
+        
+        // Cerrar modal de carga
+        document.getElementById('modal-upload-resolucion').style.display = 'none';
+        
         loadResoluciones();
     }
 };
+

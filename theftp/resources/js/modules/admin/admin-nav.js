@@ -24,6 +24,14 @@ function buildAdminMenu() {
             <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
             <span>Roles y Permisos</span>
         </a>
+        <a href="#auditoria" class="nav-link" data-view="auditoria">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span>Auditoría</span>
+        </a>
+        <a href="#backups" class="nav-link" data-view="backups">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Copias de Seguridad</span>
+        </a>
         <p class="nav-section-title mt-4">Gestion de Transporte</p>
         <a href="#conductores" class="nav-link" data-view="conductores">
             <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
@@ -53,6 +61,7 @@ function buildAdminMenu() {
             <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2"></path></svg>
             <span>Licencias</span>
         </a>
+
     `;
 
     setupNavigation();
@@ -74,9 +83,19 @@ function setupNavigation() {
 }
 
 async function loadViewData(view) {
+    // 1. Visibilidad de Vistas
     document.querySelectorAll('.dashboard-view').forEach(el => el.style.display = 'none');
     const activeView = document.getElementById('view-' + view);
     if (activeView) activeView.style.display = 'block';
+
+    // 2. Sincronización de Barra Lateral
+    const links = document.querySelectorAll('.sidebar-nav .nav-link');
+    links.forEach(l => {
+        l.classList.remove('active');
+        if (l.getAttribute('data-view') === view) {
+            l.classList.add('active');
+        }
+    });
 
     const headerTitle = document.getElementById('header-title');
     if (headerTitle) headerTitle.textContent = 'Administracion - ' + view.charAt(0).toUpperCase() + view.slice(1);
@@ -111,6 +130,12 @@ async function loadViewData(view) {
             break;
         case 'licencias':
             if (window.AdminLicencias) { AdminLicencias.init(); await AdminLicencias.load(); }
+            break;
+        case 'auditoria':
+            if (window.AdminAuditoria) { AdminAuditoria.init(); await AdminAuditoria.load(); }
+            break;
+        case 'backups':
+            if (window.AdminBackups) { AdminBackups.init(); await AdminBackups.load(); }
             break;
     }
 }

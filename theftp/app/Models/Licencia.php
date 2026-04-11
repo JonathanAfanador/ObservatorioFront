@@ -171,6 +171,14 @@ class Licencia extends Model implements Auditable
         return $this->hasMany(NovedadLicencia::class, 'licencia_id');
     }
 
+    // Función para definir la relación con el modelo conductores a través de la tabla pivote
+    public function conductores()
+    {
+        return $this->belongsToMany(Conductor::class, 'conductores_licencias', 'licencia_id', 'conductor_id')
+                    ->withTimestamps()
+                    ->whereNull('conductores_licencias.deleted_at');
+    }
+
     // Función para definir la relación con el modelo documentos
     public function documento(){
         return $this->belongsTo(Documento::class, 'documento_id'); // Relación con el modelo documentos

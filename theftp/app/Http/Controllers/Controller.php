@@ -143,7 +143,7 @@ abstract class Controller{
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
 
         $datos = $request->all();
@@ -423,7 +423,7 @@ abstract class Controller{
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
 
         $datos = $request->all();
@@ -579,7 +579,7 @@ abstract class Controller{
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
 
         // -- Lógica
@@ -601,7 +601,7 @@ abstract class Controller{
                 'status' => false,
                 'message' => 'Error al crear el registro.',
                 'error' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
     }
 
@@ -614,7 +614,7 @@ abstract class Controller{
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
 
         // -- Lógica
@@ -643,7 +643,7 @@ abstract class Controller{
                 'status' => false,
                 'message' => 'Error al actualizar el registro.',
                 'error' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
 
     }
@@ -657,7 +657,7 @@ abstract class Controller{
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
 
         // -- Lógica
@@ -691,7 +691,7 @@ abstract class Controller{
                 'status' => false,
                 'message' => 'Error al deshabilitar el registro.',
                 'error' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
     }
 
@@ -704,7 +704,7 @@ abstract class Controller{
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
 
         // -- LÓGICA
@@ -744,7 +744,7 @@ abstract class Controller{
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
 
         // -- Lógica
@@ -822,7 +822,7 @@ abstract class Controller{
                 'status' => false,
                 'message' => 'Error al actualizar el registro.',
                 'error' => $e->getMessage(),
-            ], $e->getCode() ?: 400);
+            ], ( (int) $e->getCode() >= 100 && (int) $e->getCode() <= 599) ? (int) $e->getCode() : 400);
         }
     }
 

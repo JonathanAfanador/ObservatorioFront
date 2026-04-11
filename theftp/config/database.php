@@ -95,6 +95,11 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'prefer',
+            'dump' => [
+                'dump_binary_path' => env('PG_DUMP_PATH', ''), // Set PG_DUMP_PATH in .env like: C:\Program Files\PostgreSQL\16\bin
+                'use_inserts' => false,
+                'dump_command_timeout' => 60 * 10, // 10 minute timeout
+            ]
         ],
 
         'sqlsrv' => [

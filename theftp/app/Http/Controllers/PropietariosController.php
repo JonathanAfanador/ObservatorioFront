@@ -6,8 +6,11 @@ use App\Http\Requests\StorePropietariosRequest;
 use App\Http\Requests\UpdatePropietariosRequest;
 
 use App\Enums\Tablas;
+use App\Enums\RolesEnum;
 use App\Models\Propietario;
+use App\Models\Documento;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PropietariosController extends Controller
 {
@@ -110,8 +113,37 @@ class PropietariosController extends Controller
      */
     public function store(StorePropietariosRequest $request)
     {
+        $user = auth()->user();
+        $payload = $request->validated();
 
-        return parent::baseStore($request);
+        // 1. Procesar el archivo de la Tarjeta de Propiedad
+        if ($request->hasFile('archivo_tarjeta')) {
+            $file = $request->file('archivo_tarjeta');
+            $path = $file->store('documentos/propietarios', 'public');
+
+            // Crear el registro en la tabla documentos
+            $documento = Documento::create([
+                'url' => $path,
+                'observaciones' => 'Tarjeta de Propiedad - Generada automáticamente',
+                'tipo_doc_id' => 1, // Asumimos 1 (PDF) o 6 (Imagen) según el seeder, mapearemos a 1 por ahora
+                'empresa_id' => $user->empresa_id ?? $request->empresa_id
+            ]);
+
+            $payload['documento_id'] = $documento->id;
+        }
+
+        // 2. Forzar la empresa si no es admin
+        if ($user && !in_array($user->rol_id, [RolesEnum::ADMIN->value, RolesEnum::SUBADMIN->value, RolesEnum::SECRETARIA->value])) {
+            $payload['empresa_id'] = $user->empresa_id;
+        }
+
+        $item = Propietario::create($payload);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Propietario creado con éxito',
+            'data' => $item->load('persona', 'documento', 'empresa')
+        ], 201);
     }
     /**
      * @OA\Put(
@@ -135,8 +167,31 @@ class PropietariosController extends Controller
      */
     public function edit(string $id, UpdatePropietariosRequest $request)
     {
+        $item = Propietario::findOrFail($id);
+        $payload = $request->validated();
 
-        return parent::baseUpdate($id, $request);
+        // Si se sube un nuevo archivo, actualizamos el documento
+        if ($request->hasFile('archivo_tarjeta')) {
+            $file = $request->file('archivo_tarjeta');
+            $path = $file->store('documentos/propietarios', 'public');
+
+            $documento = Documento::create([
+                'url' => $path,
+                'observaciones' => 'Tarjeta de Propiedad - Actualizada',
+                'tipo_doc_id' => 1,
+                'empresa_id' => auth()->user()->empresa_id ?? $request->empresa_id
+            ]);
+
+            $payload['documento_id'] = $documento->id;
+        }
+
+        $item->update($payload);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Propietario actualizado con éxito',
+            'data' => $item->load('persona', 'documento', 'empresa')
+        ]);
     }
     /**
      * @OA\Delete(

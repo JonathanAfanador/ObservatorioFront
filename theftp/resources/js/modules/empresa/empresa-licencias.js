@@ -185,6 +185,20 @@ async function loadLicencias() {
         }
       }
 
+      // --- NUEVO: Estado de Auditoría de Secretaría ---
+      let auditBadgeHtml = '';
+      const verificado = licObj.verificado_secretaria;
+      const condObj = l.conductor || {};
+      const esRechazada = (condObj.estado === false || condObj.estado === 0) && (condObj.motivo_estado || '').toUpperCase().includes('AUDITORÍA');
+
+      if (verificado === true || verificado === 1) {
+          auditBadgeHtml = `<div class="audit-badge verified" title="Verificada por Secretaría de Tránsito">VERIFICADA</div>`;
+      } else if (esRechazada) {
+          auditBadgeHtml = `<div class="audit-badge rejected" title="Rechazada por Secretaría de Tránsito">RECHAZADA</div>`;
+      } else {
+          auditBadgeHtml = `<div class="audit-badge pending" title="Pendiente de Auditoría por Secretaría">PENDIENTE</div>`;
+      }
+
       html += `
                 <div class="licencia-card" data-licencia-id="${l.id}">
                     <div class="licencia-card-header">
@@ -194,6 +208,7 @@ async function loadLicencias() {
                         <div class="licencia-card-title">
                             <h4 data-tooltip="${nombreCompleto}">${nombreCompleto}</h4>
                             <span class="licencia-badge">Licencia #${numero}</span>
+                            ${auditBadgeHtml}
                         </div>
                         <div class="licencia-estado" style="background: ${estadoColor};">
                             ${estadoTexto}
@@ -225,6 +240,13 @@ async function loadLicencias() {
                             <span class="info-label">Organismo:</span>
                             <span class="info-value text-sm">${licObj.organismo_transito || '—'}</span>
                         </div>
+                        
+                        ${esRechazada ? `
+                        <div class="rejection-reason-box">
+                            <span class="reason-label">OBSERVACIONES DE AUDITORÍA:</span>
+                            <p class="reason-text">${condObj.motivo_estado || 'Consulte con la Secretaría'}</p>
+                        </div>
+                        ` : ''}
                     </div>
 
                     <div class="licencia-card-footer">
@@ -390,17 +412,15 @@ async function openModalLicencia() {
   selectCat.innerHTML = '<option value="">Seleccione Categoría</option>';
 
   const categoriasAdmitidas = normalizeList(categorias).filter(cat => {
-      const desc = cat.descripcion.toLowerCase();
-      // En Colombia, C1, C2 (Servicio Público) corresponden a licencias de servicio público.
-      return desc.includes('público') || desc.includes('publico') || desc.includes('c1') || desc.includes('c2');
+      const code = (cat.codigo || '').toUpperCase();
+      const desc = (cat.descripcion || '').toLowerCase();
+      // Solo permitimos categorías de servicio público (C1, C2)
+      return code === 'C1' || code === 'C2' || desc.includes('público') || desc.includes('publico');
   });
 
   categoriasAdmitidas.forEach(cat => {
-    let label = cat.descripcion;
-    // Agregar códigos sugeridos si no los tiene en la base de datos
-    if (label.toLowerCase().includes('público') && !label.includes('C1')) {
-         label = `(C1 / C2) ${label}`;
-    }
+    // Mostrar formato: "C1 - Livianos/Público"
+    const label = `${cat.codigo} - ${cat.descripcion}`;
     selectCat.innerHTML += `<option value="${cat.id}">${label}</option>`;
   });
 
@@ -495,6 +515,12 @@ async function saveLicencia(e) {
     return;
   }
 
+  // Validación de tamaño de archivo (Límite por defecto de PHP: 2MB)
+  if (archivo && archivo.size > 2 * 1024 * 1024) {
+      showNotification('error', 'Archivo demasiado grande', 'El archivo seleccionado excede los 2MB permitidos por la configuración actual del servidor. Intenta con un archivo más ligero o solicita ampliar el límite.');
+      return;
+  }
+
   const expDateObj = new Date(fechaExpedicion);
   if (expDateObj > new Date()) {
       showNotification('error', 'Fecha Inválida', 'La fecha de expedición no puede estar en el futuro.');
@@ -522,8 +548,9 @@ async function saveLicencia(e) {
   const catId = selectCat.value;
   const catText = selectCat.options[selectCat.selectedIndex].text.toUpperCase();
   
-  // ID 2 es Servicio Público y ID 3 es Carga (Profesionales en esta DB)
-  const esProfesional = catId == '2' || catId == '3' || catText.includes('C1') || catText.includes('C2') || catText.includes('C3');
+  // ID 2 (C1) y ID 3 (C2) son las categorías permitidas para este panel
+  const code = (selectCat.options[selectCat.selectedIndex].text.split(' - ')[0] || '').toUpperCase();
+  const esProfesional = catId == '2' || catId == '3' || code === 'C1' || code === 'C2' || code === 'C3';
 
   if (!esProfesional) {
     showNotification('error', 'Categoría No Válida', 'Para transporte público colectivo solo se permiten categorías profesionales (Servicio Público o Carga).');
@@ -561,18 +588,26 @@ async function saveLicencia(e) {
       const formData = new FormData();
       formData.append('file', archivo);
       formData.append('observaciones', `Licencia #${numero} - Conductor ID: ${conductorId}`);
-      formData.append('tipo_doc_id', 1);
+      formData.append('tipo_doc_id', 1); // PDF / Escaneo
+      
+      // Enviamos el empresa_id para que el TenantScope lo asocie correctamente
+      if (window.myEmpresaId) {
+          formData.append('empresa_id', window.myEmpresaId);
+      }
 
       const documentoResult = await apiPostFile('/documentos', formData);
-      if (documentoResult && documentoResult.data) {
-        documentoId = documentoResult.data.id;
+      
+      // ERROR CRÍTICO: Si no hay resultado, el proceso debe abortar para no crear licencias corruptas
+      if (!documentoResult || !documentoResult.data) {
+        showNotification('error', 'Fallo de Carga', 'No se pudo subir el archivo de la licencia. El proceso se ha detenido.');
+        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Guardar'; }
+        return; 
       }
+      
+      documentoId = documentoResult.data.id;
     }
 
-    // El estado de la licencia ahora se gestiona exclusivamente por el Modal de Novedades (Historial)
-    // Para nuevas licencias el estado por defecto del servidor es true (Activo)
-    
-    // Paso 2: Crear o Actualizar la licencia
+    // Paso 2: Preparar los datos de la licencia
     const licenciaData = {
       numero: numero,
       categoria_lic_id: categoriaId,
@@ -581,7 +616,10 @@ async function saveLicencia(e) {
       fecha_vencimiento: fechaVencimiento,
       organismo_transito: organismo
     };
-    if (documentoId) licenciaData.documento_id = documentoId;
+    
+    if (documentoId) {
+        licenciaData.documento_id = documentoId;
+    }
 
     let targetLicenciaId = null;
 

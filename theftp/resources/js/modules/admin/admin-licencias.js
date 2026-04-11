@@ -21,6 +21,14 @@ const AdminLicencias = (function() {
         document.getElementById('btn-cancel-licencia')?.addEventListener('click', closeModal);
         document.getElementById('toggle-deleted-licencias')?.addEventListener('change', load);
 
+        // Vincular Buscador
+        const searchInput = document.getElementById('search-licencias');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', (e) => {
+                AdminBase.applyGlobalSearch('licencias-table', e.target.value);
+            });
+        }
+
         isInitialized = true;
     }
 
@@ -32,7 +40,7 @@ const AdminLicencias = (function() {
         const showDeleted = document.getElementById('toggle-deleted-licencias')?.checked || false;
         const params = {
             limit: 100,
-            include: 'categoria,restriccion,documento', // Nombres de las relaciones en el modelo
+            include: 'categoria,restriccion,documento,conductores.persona', // Nombres de las relaciones en el modelo
             ...(showDeleted ? { onlySoftDeleted: 'true' } : {})
         };
 
@@ -45,27 +53,84 @@ const AdminLicencias = (function() {
 
     function render(data) {
         const columns = [
-            { header: 'ID', key: 'id' },
-            { header: 'Número', key: 'numero' },
-            { header: 'Categoría', render: (r) => r.categoria ? `${r.categoria.codigo} - ${r.categoria.descripcion}` : '-' },
             { 
-                header: 'Vencimiento', 
+                header: 'ID', 
+                key: 'id', 
+                render: (r) => `<span class="font-mono text-[10px] text-gray-400">#${r.id}</span>` 
+            },
+            { 
+                header: 'Titular de Licencia', 
+                render: (r) => {
+                    // Verificamos si existe la relación conductores (belongsToMany)
+                    const conductor = r.conductores && r.conductores.length > 0 ? r.conductores[0] : null;
+                    if (!conductor || !conductor.persona) return '<span class="text-xs text-red-500 italic font-bold uppercase tracking-tighter">Sin Asignar</span>';
+                    
+                    const p = conductor.persona;
+                    return `
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-700 uppercase tracking-tight text-[11px] leading-tight">${p.name || ''} ${p.last_name || ''}</span>
+                            <span class="text-[9px] font-semibold text-slate-400 uppercase tracking-widest">${p.nui || 'Auditoría NBI'}</span>
+                        </div>
+                    `;
+                }
+            },
+            { header: 'Número de Licencia', key: 'numero', render: (r) => `<span class="font-bold text-slate-700 tracking-tight">${r.numero}</span>` },
+            { 
+                header: 'Categoría', 
+                filterOptions: ['C1', 'C2'],
+                render: (r) => {
+                    const txt = r.categoria ? r.categoria.codigo : '-';
+                    return `<span class="px-2.5 py-0.5 rounded-lg bg-sky-50 text-sky-700 text-[10px] font-bold uppercase border border-sky-100 shadow-sm">${txt}</span>`;
+                }
+            },
+            { 
+                header: 'Estado de Vencimiento', 
+                filterOptions: [
+                    { value: 'VENCIDA', label: 'Vencidas' },
+                    { value: 'PRÓXIMA', label: 'Próximas a vencer' },
+                    { value: 'VIGENTE', label: 'Vigentes' } 
+                ],
                 render: (r) => {
                     if (!r.fecha_vencimiento) return '-';
                     const hoy = new Date();
                     const venc = new Date(r.fecha_vencimiento);
                     const diffDays = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
-                    let color = 'text-green-600';
-                    if (diffDays <= 0) color = 'text-red-600 font-bold';
-                    else if (diffDays <= 30) color = 'text-yellow-600 font-bold';
-                    return `<span class="${color}">${r.fecha_vencimiento}</span>`;
+                    
+                    let classes = 'bg-emerald-50 text-emerald-800 border-emerald-200 ring-2 ring-emerald-50/50';
+                    let label = `VIGENTE | ${r.fecha_vencimiento}`;
+
+                    if (diffDays <= 0) {
+                        classes = 'bg-rose-50 text-rose-800 border-rose-200 ring-4 ring-rose-500/10 animate-pulse';
+                        label = `VENCIDA: ${r.fecha_vencimiento}`;
+                    } else if (diffDays <= 30) {
+                        classes = 'bg-amber-50 text-amber-800 border-amber-200 ring-2 ring-amber-50/50';
+                        label = `PRÓXIMA: ${r.fecha_vencimiento}`;
+                    }
+
+                    return `<span class="px-4 py-1.5 rounded-xl ${classes} text-[11px] font-bold uppercase border shadow-sm inline-flex items-center gap-1.5 leading-none transition-all hover:scale-105 cursor-default tracking-wide">${label}</span>`;
                 }
             },
-            { header: 'Organismo', key: 'organismo_transito' },
-            { header: 'Doc. Soporte', render: (r) => r.documento ? `Doc #${r.documento.id}` : '-' },
+            { header: 'Organismo', key: 'organismo_transito', render: (r) => `<span class="text-[11px] font-medium text-slate-500 italic">${r.organismo_transito || '-'}</span>` },
+            { 
+                header: 'Doc. Soporte', 
+                render: (r) => {
+                    if (!r.documento) return '<span class="text-xs text-gray-300 italic">Sin soporte</span>';
+                    
+                    const path = r.documento.url;
+                    
+                    return `
+                        <button onclick="AdminBase.previewDocument('${path}', 'Licencia #${r.numero}')" 
+                                class="flex items-center gap-2 px-5 py-2 bg-sky-50 text-sky-700 rounded-full text-[10px] font-bold hover:bg-sky-100 hover:scale-105 transition-all border border-sky-100 shadow-sm uppercase tracking-widest group">
+                            <svg class="w-4 h-4 text-sky-600 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            VER EVIDENCIA
+                        </button>
+                    `;
+                }
+            },
             { header: 'Acciones', render: (r) => AdminBase.generateActionButtons(r, 'AdminLicencias') }
         ];
-        AdminBase.renderTable(data, columns, 'licencias-table');
+        
+        AdminBase.renderTable(data, columns, 'licencias-table', 10);
     }
 
     async function loadAuxData() {

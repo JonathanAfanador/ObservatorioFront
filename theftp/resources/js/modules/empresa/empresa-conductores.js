@@ -148,7 +148,7 @@ function validatePhoneNumber(telefono) {
   return null; // Sin errores
 }
 
-// Función para mostrar/actualizar el mensaje de validación en tiempo real
+// Función para mostrar/actualizar el mensaje de validación de forma dinámica
 function updateValidationMessage() {
   const tipoIdentSelect = document.getElementById('conductor-tipo-ident');
   const nui = document.getElementById('conductor-nui').value;
@@ -174,7 +174,7 @@ function updateValidationMessage() {
   }
 }
 
-// Función para mostrar/actualizar el mensaje de validación del teléfono en tiempo real
+// Función para mostrar/actualizar el mensaje de validación del teléfono de forma dinámica
 function updatePhoneValidationMessage() {
   const telefono = document.getElementById('conductor-telefono').value;
   const validationMessageDiv = document.getElementById('telefono-validation-message');
@@ -215,7 +215,7 @@ function validatePlaca(placa) {
   return null;
 }
 
-// Actualizar mensaje de validación de placa en tiempo real
+// Actualizar mensaje de validación de placa de forma dinámica
 function updatePlacaValidationMessage() {
   const placa = document.getElementById('vehiculo-placa').value;
   const validationMessageDiv = document.getElementById('placa-validation-message');
@@ -261,7 +261,7 @@ async function openModalConductor() {
     selectTipo.innerHTML += `<option value="${t.id}">${t.descripcion}</option>`;
   });
 
-  // Event listeners de validación en tiempo real
+  // Event listeners de validación dinámica
   document.getElementById('conductor-tipo-ident').addEventListener('change', updateValidationMessage);
   document.getElementById('conductor-nui').addEventListener('input', updateValidationMessage);
   document.getElementById('conductor-telefono').addEventListener('input', updatePhoneValidationMessage);

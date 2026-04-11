@@ -14,7 +14,7 @@ class RolesMenusController extends Controller
     // Constructor
     public function __construct()
     {
-        parent::__construct(new RolMenu(), Tablas::ROLES_MENUS);
+        parent::__construct(new Roles_menus(), Tablas::ROLES_MENUS);
     }
 
     /**

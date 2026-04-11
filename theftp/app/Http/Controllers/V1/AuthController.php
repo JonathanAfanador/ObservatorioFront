@@ -203,14 +203,22 @@ class AuthController extends Controller{
     public function logout(Request $request){
         $user = $request->user();
 
-        // Revocar el token actual
-        $user->currentAccessToken()->delete();
-
+        // 1. Guardar auditoría de cierre ANTES de destruir la sesión
         CierreSesion::create([
             'direccion_ip' => $request->ip(),
             'fecha_hora_cierre' => now(),
             'usuario_id' => $user->id,
         ]);
+
+        // 2. Revocar token de API solo si existe (compatibilidad con Mobile/Bearer)
+        if ($user->currentAccessToken()) {
+            $user->currentAccessToken()->delete();
+        }
+
+        // 3. Cierre de sesión de Web/SPA (Sanctum)
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Cierre de sesión exitoso'], 200);
     }
@@ -230,14 +238,20 @@ class AuthController extends Controller{
     public function globalLogout(Request $request){
         $user = $request->user();
 
-        // Revocar todos los tokens del usuario
-        $user->tokens()->delete();
-
+        // 1. Guardar auditoría de cierre
         CierreSesion::create([
             'direccion_ip' => $request->ip(),
             'fecha_hora_cierre' => now(),
             'usuario_id' => $user->id,
         ]);
+
+        // 2. Revocar todos los tokens
+        $user->tokens()->delete();
+
+        // 3. Cierre de sesión web
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Cierre de sesión global exitoso'], 200);
     }

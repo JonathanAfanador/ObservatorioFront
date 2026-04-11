@@ -3,13 +3,64 @@
 // Almacén de datos global, notificaciones y llamada a API (GET)
 // ============================================================
 
+/**
+ * Función maestra de navegación autónoma para el panel UPC
+ * Permite cambiar entre vistas de reporte y entrar al Geovisor de forma segura.
+ */
+window.navigateToView = function(viewName) {
+    console.log(`[UPC Router] Navegando a vista: ${viewName}`);
+    
+    // 1. Intentar disparar el clic del enlace real en el sidebar UPC
+    const link = document.querySelector(`.nav-link[data-view="${viewName}"], a[href="#${viewName}"]`);
+    if (link) {
+        link.click();
+    } else {
+        // 2. Fallback manual: Cambio de estado directo en el DOM si el link no está disponible
+        document.querySelectorAll('.dashboard-view').forEach(v => v.style.display = 'none');
+        const target = document.getElementById(`view-${viewName}`);
+        if (target) {
+            target.style.display = 'block';
+            
+            // Actualizar el título del header para feedback visual
+            const headerTitle = document.getElementById('header-title');
+            if (headerTitle) {
+                const names = {
+                    'overview': 'Resumen',
+                    'empresas': 'Reporte de Empresas',
+                    'conductores': 'Reporte de Conductores',
+                    'vehiculos': 'Reporte de Vehículos',
+                    'rutas': 'Reporte de Rutas Autorizadas',
+                    'documentos': 'Reporte de Resoluciones',
+                    'estadisticas': 'Estadísticas'
+                };
+                headerTitle.textContent = names[viewName] || viewName;
+            }
+
+            // Sincronizar estado visual del menú
+            document.querySelectorAll('.nav-link').forEach(l => {
+                if (l.getAttribute('data-view') === viewName) l.classList.add('is-active');
+                else l.classList.remove('is-active');
+            });
+        }
+    }
+};
+
 // --- Almacén compartido de datos para todas las vistas ---
 window.dashboardDataStore = {
     empresas: [],
     conductores: [],
     vehiculos: [],
     rutas: [],
-    documentos: []
+    documentos: [],
+
+    // Paginación por módulo
+    pagination: {
+        empresas: { current: 1, perPage: 10 },
+        conductores: { current: 1, perPage: 10 },
+        vehiculos: { current: 1, perPage: 10 },
+        rutas: { current: 1, perPage: 10 },
+        documentos: { current: 1, perPage: 10 }
+    }
 };
 
 // --- Almacén de instancias de gráficos (para destruirlos antes de recrear) ---
@@ -96,6 +147,46 @@ window.getDeepValue = function (obj, path) {
     } catch (e) {
         return '-';
     }
+};
+
+// --- Helper para renderizar la paginación con números específicos ---
+window.renderPagination = function (totalItems, currentPage, itemsPerPage, onPageChangeName) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (totalPages <= 1) return '';
+
+    let html = '<div class="pagination-container">';
+
+    // Botón Anterior
+    html += `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} 
+                onclick="${onPageChangeName}(${currentPage - 1})" title="Anterior">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+    `;
+
+    // Lógica para mostrar números (1, ..., curr-1, curr, curr+1, ..., total)
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            html += `<button class="pagination-btn ${i === currentPage ? 'is-active' : ''}" onclick="${onPageChangeName}(${i})">${i}</button>`;
+        } else if (i === currentPage - 2 || i === currentPage + 2) {
+            html += `<span class="pagination-ellipsis">...</span>`;
+        }
+    }
+
+    // Botón Siguiente
+    html += `
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} 
+                onclick="${onPageChangeName}(${currentPage + 1})" title="Siguiente">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+    `;
+
+    html += '</div>';
+    return html;
 };
 
 // --- Generador genérico de tablas HTML ---

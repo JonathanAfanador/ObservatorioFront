@@ -10,14 +10,14 @@ const AdminPropietarios = (function() {
     // Estado local
     let propietariosList = [];
     let personasList = [];     // Para el select de Personas
-    let documentosList = [];   // Para el select de Documentos
+    let empresasList = [];     // Para el select de Empresas
     let editingId = null;
 
     /**
      * 1. Inicialización
      */
     function init() {
-        console.log(' Inicializando AdminPropietarios...');
+        console.log('Inicializando AdminPropietarios...');
 
         // Listeners de botones (Asegúrate que los IDs existan en tu HTML)
         const btnAdd = document.getElementById('btn-add-propietario');
@@ -47,10 +47,12 @@ const AdminPropietarios = (function() {
         container.innerHTML = '<div class="p-4 text-center text-gray-500">Cargando propietarios...</div>';
         const showDeleted = document.getElementById('toggle-deleted-propietarios')?.checked || false;
 
-        // Pedimos relaciones: persona (para el nombre) y documento (para referencia)
+        // Pedimos relaciones y ordenamos por updated_at de forma descendente (último modificado primero)
         const params = {
             limit: 100,
-            include: 'persona,documento',
+            include: 'persona,documento,empresa',
+            orderBy: 'updated_at',
+            orderDir: 'desc',
             ...(showDeleted ? { onlySoftDeleted: 'true' } : {})
         };
 
@@ -59,6 +61,7 @@ const AdminPropietarios = (function() {
         if (response && response.data) {
             propietariosList = response.data.data || response.data;
             render(propietariosList);
+            setupPropietariosSearch();
         } else {
             container.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar datos.</div>';
         }
@@ -72,7 +75,7 @@ const AdminPropietarios = (function() {
             { 
                 header: 'ID', 
                 key: 'id',
-                render: (r) => `<span class="font-mono text-xs text-gray-500">#${r.id}</span>`
+                render: (r) => `<span class="font-mono text-xs text-gray-400">#${r.id}</span>`
             },
             { 
                 header: 'Propietario', 
@@ -83,31 +86,62 @@ const AdminPropietarios = (function() {
                        </div>`
                     : '<span class="text-red-400 italic text-xs">Sin persona asociada</span>'
             },
-            { 
-                header: 'Documento Soporte', 
-                render: (r) => r.documento 
-                    ? `<span class="text-sm text-blue-600 truncate max-w-xs block" title="${r.documento.observaciones || 'Sin obs'}">
-                        Doc #${r.documento.id}
-                       </span>`
-                    : '-'
+            {
+                header: 'Empresa',
+                render: (r) => r.empresa 
+                    ? `<span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-[10px] font-bold border border-blue-100 uppercase">${r.empresa.name}</span>`
+                    : '<span class="text-gray-400 italic text-[10px]">Sin asignar</span>'
             },
             { 
-                header: 'Fecha Registro', 
-                render: (r) => AdminBase.formatDate(r.fecha_registro)
+                header: 'Tarjeta Propiedad', 
+                render: (r) => r.documento 
+                    ? `<button onclick="AdminBase.previewDocument('/storage/${r.documento.url}', 'Tarjeta de Propiedad - ${r.persona ? r.persona.name : 'S/N'}')" 
+                               class="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-black text-[11px] uppercase tracking-wider group transition-all">
+                        <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        Ver Soporte
+                       </button>`
+                    : '<span class="text-red-400 text-[10px] italic">Sin tarjeta</span>'
+            },
+            { 
+                header: 'Fecha Reg.', 
+                render: (r) => `<span class="text-xs text-gray-500">${AdminBase.formatDate(r.fecha_registro)}</span>`
             },
             { 
                 header: 'Estado', 
                 render: (r) => r.deleted_at 
-                    ? `<span class="badge bg-red-100 text-red-800">Eliminado</span>` 
-                    : `<span class="badge bg-green-100 text-green-800">Activo</span>`
+                    ? `<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase border border-red-200 shadow-sm">Papelera</span>` 
+                    : `<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase border border-green-200 shadow-sm">Activo</span>`
             },
             { 
                 header: 'Acciones', 
                 render: (r) => AdminBase.generateActionButtons(r, 'AdminPropietarios') 
             }
         ];
+        // Activamos paginación automática con Toolbar minimalista y búsqueda global oculta
+        AdminBase.renderTable(data, columns, 'propietarios-table', 10, { hideGlobalSearch: true });
+    }
 
-        AdminBase.renderTable(data, columns, 'propietarios-table');
+    /**
+     * 3.1 Buscador Local
+     */
+    function setupPropietariosSearch() {
+        const input = document.getElementById('search-propietarios');
+        if (!input) return;
+
+        // Clonar para limpiar eventos
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+
+        newInput.addEventListener('keyup', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = propietariosList.filter(item => {
+                const persona = item.persona || {};
+                const fullName = `${persona.name} ${persona.last_name}`.toLowerCase();
+                const nui = String(persona.nui || '').toLowerCase();
+                return fullName.includes(term) || nui.includes(term);
+            });
+            render(filtered);
+        });
     }
 
     /**
@@ -120,10 +154,10 @@ const AdminPropietarios = (function() {
             if (res && res.data) personasList = res.data.data || res.data;
         }
         
-        // Cargar Documentos (requisito del modelo)
-        if (documentosList.length === 0) {
-            const res = await AdminBase.apiCall('/documentos', 'GET', { limit: 100 });
-            if (res && res.data) documentosList = res.data.data || res.data;
+        // Cargar Empresas (para asignación)
+        if (empresasList.length === 0) {
+            const res = await AdminBase.apiCall('/empresas', 'GET', { limit: 100 });
+            if (res && res.data) empresasList = res.data.data || res.data;
         }
     }
 
@@ -140,21 +174,18 @@ const AdminPropietarios = (function() {
 
         // Estado de carga visual
         const selPersona = document.getElementById('propietario-persona');
-        const selDoc = document.getElementById('propietario-documento');
-        selPersona.innerHTML = '<option>Cargando...</option>';
-        selDoc.innerHTML = '<option>Cargando...</option>';
+        if (selPersona) selPersona.innerHTML = '<option>Cargando...</option>';
 
         await loadAuxData();
 
-        // Llenar Select Personas (usamos función helper para filtrar luego)
+        // Llenar Select Personas
         populatePersonas(personasList);
 
-        // Llenar Select Documentos
-        selDoc.innerHTML = '<option value="">-- Seleccione Documento --</option>';
-        documentosList.forEach(d => {
-            // Mostramos ID y un trozo de la observación
-            const obs = d.observaciones ? d.observaciones.substring(0, 30) + '...' : 'Sin obs';
-            selDoc.innerHTML += `<option value="${d.id}">Doc #${d.id} - ${obs}</option>`;
+        // Llenar Select Empresas
+        const selEmp = document.getElementById('propietario-empresa');
+        selEmp.innerHTML = '<option value="">-- Seleccione Empresa --</option>';
+        empresasList.forEach(e => {
+            selEmp.innerHTML += `<option value="${e.id}">${e.name}</option>`;
         });
 
         // Resetear y mostrar
@@ -178,8 +209,8 @@ const AdminPropietarios = (function() {
 
             if (item) {
                 selPersona.value = item.persona_id;
-                selDoc.value = item.documento_id;
-                // Formatear fecha para input datetime-local (YYYY-MM-DDTHH:mm)
+                document.getElementById('propietario-empresa').value = item.empresa_id || '';
+                // Formatear fecha para input datetime-local
                 if (item.fecha_registro) {
                     document.getElementById('propietario-fecha').value = item.fecha_registro.substring(0, 16);
                 }
@@ -224,14 +255,26 @@ const AdminPropietarios = (function() {
     async function save(e) {
         e.preventDefault();
         
-        const payload = {
-            persona_id: document.getElementById('propietario-persona').value,
-            documento_id: document.getElementById('propietario-documento').value,
-            fecha_registro: document.getElementById('propietario-fecha').value
-        };
+        const persona_id = document.getElementById('propietario-persona').value;
+        const empresa_id = document.getElementById('propietario-empresa').value;
+        const fecha_registro = document.getElementById('propietario-fecha').value;
+        const fileInput = document.getElementById('propietario-archivo');
 
-        if (!payload.persona_id || !payload.documento_id) {
-            AdminBase.showNotification('warning', 'Datos incompletos', 'Seleccione persona y documento.');
+        if (!persona_id || !empresa_id) {
+            AdminBase.showNotification('warning', 'Datos incompletos', 'Seleccione persona y empresa.');
+            return;
+        }
+
+        // Usamos FormData para enviar el archivo
+        const formData = new FormData();
+        formData.append('persona_id', persona_id);
+        formData.append('empresa_id', empresa_id);
+        formData.append('fecha_registro', fecha_registro);
+
+        if (fileInput.files[0]) {
+            formData.append('archivo_tarjeta', fileInput.files[0]);
+        } else if (!editingId) {
+            AdminBase.showNotification('warning', 'Archivo requerido', 'Debe subir la tarjeta de propiedad.');
             return;
         }
 
@@ -242,12 +285,14 @@ const AdminPropietarios = (function() {
         try {
             let res;
             if (editingId) {
-                res = await AdminBase.apiCall(`/propietarios/${editingId}`, 'PUT', payload);
+                // Laravel requiere _method=PUT para FormData
+                formData.append('_method', 'PUT');
+                res = await AdminBase.apiCall(`/propietarios/${editingId}`, 'POST', formData);
             } else {
-                res = await AdminBase.apiCall('/propietarios', 'POST', payload);
+                res = await AdminBase.apiCall('/propietarios', 'POST', formData);
             }
             if (res && res.status) {
-                AdminBase.showNotification('success', 'Éxito', 'Propietario guardado.');
+                AdminBase.showNotification('success', 'Éxito', 'Propietario guardado correctamente.');
                 closeModal();
                 load();
             }

@@ -94,4 +94,8 @@ class Empresa extends Model implements Auditable
     public function rutas(){
         return $this->belongsToMany(Ruta::class, 'empresa_ruta', 'empresa_id', 'ruta_id')->withTimestamps();
     }
+
+    public function vehiculos(){
+        return $this->hasMany(Vehiculo::class, 'empresa_id');
+    }
 }

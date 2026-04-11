@@ -14,10 +14,10 @@ class UpdatePropietariosRequest extends FormRequest
     public function rules(): array
     {
         return [
-
-            'fecha_registro' => 'nullable|date',
-            'documento_id'   => 'required|integer|exists:documentos,id',
-            'persona_id'     => 'required|integer|exists:personas,id' // <--- NUEVA REGLA
+            'fecha_registro'  => 'nullable|date',
+            'persona_id'      => 'nullable|integer|exists:personas,id',
+            'empresa_id'      => 'nullable|integer|exists:empresas,id',
+            'archivo_tarjeta' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
         ];
     }
 

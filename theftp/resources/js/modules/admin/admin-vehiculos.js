@@ -18,7 +18,7 @@ const AdminVehiculos = (function() {
     function init() {
         if (isInitialized) return;
 
-        console.log('🚀 Inicializando AdminVehiculos...');
+        console.log('Inicializando AdminVehiculos...');
 
         const btnAdd = document.getElementById('btn-add-vehiculo');
         if (btnAdd) btnAdd.addEventListener('click', () => openModal());
@@ -46,8 +46,6 @@ const AdminVehiculos = (function() {
         
         const showDeleted = document.getElementById('toggle-deleted-vehiculos')?.checked || false;
 
-        // PEDIMOS LA RELACIÓN ANIDADA: propietario.persona
-        // Esto permite acceder a r.propietario.persona.name
         const params = {
             limit: 100,
             include: 'tipo,propietario.persona', 
@@ -60,6 +58,7 @@ const AdminVehiculos = (function() {
             if (response && response.data) {
                 vehiculosList = response.data.data || response.data;
                 render(vehiculosList);
+                setupVehiculosSearch();
             } else {
                 container.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar datos.</div>';
             }
@@ -74,6 +73,11 @@ const AdminVehiculos = (function() {
      */
     function render(data) {
         const columns = [
+            { 
+                header: 'ID', 
+                key: 'id',
+                render: (r) => `<span class="font-mono text-xs text-gray-400">#${r.id}</span>`
+            },
             { 
                 header: 'Placa', 
                 render: (r) => `<span class="font-bold text-gray-900 uppercase bg-gray-100 px-2 py-1 rounded border border-gray-300">${r.placa}</span>`
@@ -96,7 +100,6 @@ const AdminVehiculos = (function() {
             },
             { 
                 header: 'Propietario', 
-                // AQUI MOSTRAMOS EL NOMBRE SI EXISTE
                 render: (r) => {
                     if (r.propietario && r.propietario.persona) {
                         return `
@@ -106,7 +109,6 @@ const AdminVehiculos = (function() {
                             </div>
                         `;
                     }
-                    // Fallback al ID si no hay persona asociada
                     return r.propietario_id 
                         ? `<span class="font-mono text-xs text-gray-500">ID Prop.: ${r.propietario_id}</span>` 
                         : '<span class="text-xs text-red-400 italic">Sin asignar</span>';
@@ -114,15 +116,26 @@ const AdminVehiculos = (function() {
             },
             { 
                 header: 'Servicio', 
+                filterOptions: ['Público', 'Particular'],
                 render: (r) => r.servicio 
                     ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Público</span>' 
                     : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Particular</span>'
             },
             { 
                 header: 'Estado', 
-                render: (r) => r.deleted_at 
-                    ? `<span class="px-2 py-1 rounded-full bg-red-100 text-red-800 text-xs font-bold">Eliminado</span>` 
-                    : `<span class="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs font-bold">Activo</span>`
+                filterOptions: ['Habilitado', 'Inactivo'],
+                render: (r) => {
+                    const registroBadge = r.deleted_at 
+                        ? `<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase border border-red-200 shadow-sm">Papelera</span>` 
+                        : `<span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase border border-blue-200 shadow-sm">Presente</span>`;
+                    
+                    const isHabilitado = r.estado !== false && r.estado !== 0 && String(r.estado) !== '0';
+                    const habilitacionBadge = isHabilitado
+                        ? `<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase border border-green-200 shadow-sm">Habilitado</span>`
+                        : `<span class="px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase border border-orange-200 shadow-sm">Inactivo</span>`;
+                        
+                    return `<div class="flex flex-col items-start gap-1.5">${habilitacionBadge} ${registroBadge}</div>`;
+                }
             },
             { 
                 header: 'Acciones', 
@@ -130,21 +143,42 @@ const AdminVehiculos = (function() {
             }
         ];
 
-        AdminBase.renderTable(data, columns, 'vehiculos-table');
+        AdminBase.renderTable(data, columns, 'vehiculos-table', 10, { hideGlobalSearch: true });
+    }
+
+    /**
+     * 3.1 Buscador Local Multi-campo
+     */
+    function setupVehiculosSearch() {
+        const input = document.getElementById('search-vehiculos');
+        if (!input) return;
+        
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        newInput.addEventListener('keyup', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = vehiculosList.filter(v => {
+                const placa = (v.placa || '').toLowerCase();
+                const marca = (v.marca || '').toLowerCase();
+                const modelo = (v.modelo || '').toLowerCase();
+                const prop = v.propietario && v.propietario.persona 
+                    ? `${v.propietario.persona.name} ${v.propietario.persona.last_name}`.toLowerCase()
+                    : '';
+                return placa.includes(term) || marca.includes(term) || modelo.includes(term) || prop.includes(term);
+            });
+            render(filtered);
+        });
     }
 
     /**
      * Carga datos auxiliares para los Selects del Modal
      */
     async function loadAuxData() {
-        // 1. Tipos de Vehículo
         if (tiposList.length === 0) {
             const res = await AdminBase.apiCall('/tipo-vehiculo', 'GET', { limit: 100 });
             if (res && res.data) tiposList = res.data.data || res.data;
         }
-        
-        // 2. Propietarios CON Persona
-        // Pedimos include=persona para ver el nombre en el select
         if (propietariosList.length === 0) {
             const res = await AdminBase.apiCall('/propietarios', 'GET', { limit: 1000, include: 'persona' });
             if (res && res.data) propietariosList = res.data.data || res.data;
@@ -162,7 +196,6 @@ const AdminVehiculos = (function() {
 
         if (!modal) return;
 
-        // Estados de carga visual
         const selectTipo = document.getElementById('vehiculo-tipo');
         const selectProp = document.getElementById('vehiculo-propietario');
         selectTipo.innerHTML = '<option>Cargando...</option>';
@@ -170,7 +203,6 @@ const AdminVehiculos = (function() {
 
         await loadAuxData(); 
 
-        // Llenar Select Tipos
         selectTipo.innerHTML = '<option value="">-- Seleccione Tipo --</option>';
         if (tiposList.length > 0) {
             tiposList.forEach(t => {
@@ -181,25 +213,20 @@ const AdminVehiculos = (function() {
             });
         }
 
-        // Llenar Select Propietarios (Con nombres)
         selectProp.innerHTML = '<option value="">-- Seleccione Propietario --</option>';
         if (propietariosList.length > 0) {
             propietariosList.forEach(p => {
                 const option = document.createElement('option');
                 option.value = p.id;
-                
-                // Lógica para mostrar nombre si existe la relación persona
                 let label = `Propietario #${p.id}`;
                 if (p.persona) {
                     label += ` - ${p.persona.name} ${p.persona.last_name} (${p.persona.nui})`;
                 } else {
-                    // Si no hay persona, mostramos la fecha como referencia
                     const fecha = (typeof AdminBase.formatDate === 'function' && p.fecha_registro) 
                         ? AdminBase.formatDate(p.fecha_registro) 
                         : '-';
                     label += ` (Reg: ${fecha})`;
                 }
-
                 option.textContent = label;
                 selectProp.appendChild(option);
             });
@@ -209,7 +236,6 @@ const AdminVehiculos = (function() {
         modal.style.display = 'flex';
         title.textContent = id ? `Editar Vehículo #${id}` : 'Nuevo Vehículo';
 
-        // Si es edición
         if (id) {
             let item = vehiculosList.find(v => v.id === id);
             if (!item) {
@@ -225,6 +251,8 @@ const AdminVehiculos = (function() {
                 document.getElementById('vehiculo-tipo').value = item.tipo_veh_id || '';
                 document.getElementById('vehiculo-propietario').value = item.propietario_id || '';
                 document.getElementById('vehiculo-servicio').checked = (item.servicio == 1 || item.servicio === true);
+                document.getElementById('vehiculo-estado').value = (item.estado == false || item.estado == 0) ? '0' : '1';
+                document.getElementById('vehiculo-motivo').value = item.motivo_estado || '';
             }
         }
     }
@@ -234,12 +262,8 @@ const AdminVehiculos = (function() {
         editingId = null;
     }
 
-    /**
-     * 5. Guardar
-     */
     async function save(e) {
         e.preventDefault();
-        
         const payload = {
             placa: document.getElementById('vehiculo-placa').value,
             marca: document.getElementById('vehiculo-marca').value,
@@ -247,7 +271,9 @@ const AdminVehiculos = (function() {
             color: document.getElementById('vehiculo-color').value,
             tipo_veh_id: document.getElementById('vehiculo-tipo').value,
             propietario_id: document.getElementById('vehiculo-propietario').value,
-            servicio: document.getElementById('vehiculo-servicio').checked
+            servicio: document.getElementById('vehiculo-servicio').checked,
+            estado: parseInt(document.getElementById('vehiculo-estado').value),
+            motivo_estado: document.getElementById('vehiculo-motivo').value.trim()
         };
 
         if (!payload.tipo_veh_id || !payload.propietario_id) {

@@ -428,7 +428,7 @@ async function loadInformeConductores() {
     return [];
   };
 
-  const conductoresList = normalizeList(conductoresResp);
+  const conductoresList = normalizeList(conductoresResp).sort((a, b) => (b.id || 0) - (a.id || 0));
   const licenciasList = normalizeList(licenciasResp);
   const licenciasCatalogList = normalizeList(licenciasCatalogResp);
 
@@ -839,7 +839,11 @@ async function loadInformeVehiculosRuta() {
     apiGet('/tipo-vehiculo')
   ]);
 
-  const asignacionesList = normalizeList(asignacionesResp);
+  const asignacionesList = normalizeList(asignacionesResp).sort((a, b) => {
+    const dateA = a.fecha_hora || '';
+    const dateB = b.fecha_hora || '';
+    return dateB.localeCompare(dateA);
+  });
   const rutasList = normalizeList(rutasResp);
   const vehiculosList = normalizeList(vehiculosResp);
   const tiposVehList = normalizeList(tiposResp);
@@ -973,7 +977,7 @@ async function loadInformeVehiculosRuta() {
                 </select>
             </div>
             <div class="export-buttons">
-                <button id="btn-export-vehiculos-ruta" class="btn-export btn-export--primary"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M4 17.5C4 16.672 4.672 16 5.5 16h13c.828 0 1.5.672 1.5 1.5V18a2 2 0 01-2 2H6a2 2 0 01-2-2v-.5Z'/><path d='M12 3v11'/><path d='M8 10.5l4 3.5 4-3.5'/></svg> Exportar CSV</button>
+                <button id="btn-export-vehiculos-ruta" class="btn-primary"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' style="width:18px; height:18px;"><path d='M4 17.5C4 16.672 4.672 16 5.5 16h13c.828 0 1.5.672 1.5 1.5V18a2 2 0 01-2 2H6a2 2 0 01-2-2v-.5Z'/><path d='M12 3v11'/><path d='M8 10.5l4 3.5 4-3.5'/></svg> Exportar CSV</button>
             </div>
         </div>
     </div>`;
