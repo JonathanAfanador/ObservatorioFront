@@ -6,7 +6,7 @@
 // Para emulador Android Studio usa: 10.0.2.2 (apunta a localhost del PC)
 // const DEV_URL = 'http://10.0.2.2:8000'; // Emulador Android Studio (solo cuando no usas celular físico)
 const DEV_URL = 'http://192.168.1.41:8000'; // Celular físico en la misma red WiFi
-const PROD_URL = 'https://tudominio.com';
+const PROD_URL = 'http://192.168.1.41:8000'; // (TEMPORAL) Usar IP local también en el APK de producción
 
 export const API_BASE_URL = __DEV__ ? DEV_URL : PROD_URL;
 

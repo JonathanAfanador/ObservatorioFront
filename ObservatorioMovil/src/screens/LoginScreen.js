@@ -216,7 +216,7 @@ export default function LoginScreen({ navigation }) {
                 resizeMode="contain"
               />
             </View>
-            <Text style={s.systemTitle}>Observatorio de Transporte</Text>
+            <Text style={s.systemTitle}>Observatorio de Movilidad</Text>
             <Text style={s.systemSub}>Girardot · Cundinamarca</Text>
           </View>
 
@@ -262,6 +262,11 @@ export default function LoginScreen({ navigation }) {
                 </TouchableOpacity>
               }
             />
+
+            {/* Enlace de Olvidaste tu contraseña */}
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={s.forgotLink}>
+              <Text style={s.forgotText}>¿Olvidaste tu contraseña?</Text>
+            </TouchableOpacity>
 
             {/* Botón principal */}
             <TouchableOpacity
@@ -441,6 +446,19 @@ const s = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     letterSpacing: 0.4,
+  },
+
+  // Recuperar contraseña
+  forgotLink: {
+    alignSelf: 'flex-end',
+    marginBottom: 16,
+    marginTop: -8,
+    paddingVertical: 4,
+  },
+  forgotText: {
+    color: C.primary,
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   // Link registro

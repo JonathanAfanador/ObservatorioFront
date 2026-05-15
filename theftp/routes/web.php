@@ -28,6 +28,10 @@ Route::get('/register', function () {
     return view('auth.register', ['tipos_ident' => $tipos_ident]);
 })->name('register');
 
+Route::get('/forgot-password', function () {
+    return view('auth.forgot-password');
+})->name('forgot-password');
+
 // ─────────────────────────────────────────────
 //  Rutas del Dashboard 
 // ─────────────────────────────────────────────

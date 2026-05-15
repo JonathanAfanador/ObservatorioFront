@@ -7,6 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import GeovisorScreen from '../screens/GeovisorScreen';
 import SplashScreen from '../screens/SplashScreen';
 
@@ -22,6 +23,11 @@ function AuthStack() {
       <Stack.Screen
         name="Register"
         component={RegisterScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
         options={{ animation: 'slide_from_right' }}
       />
     </Stack.Navigator>

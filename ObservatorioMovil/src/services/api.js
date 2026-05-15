@@ -105,3 +105,33 @@ export const logout = async () => {
     await clearSession();
   }
 };
+
+/**
+ * Solicitar código de recuperación de contraseña
+ */
+export const forgotPassword = async (email) => {
+  const response = await apiFetch('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Error al solicitar el código de recuperación');
+  }
+  return data;
+};
+
+/**
+ * Restablecer contraseña con el código
+ */
+export const resetPassword = async (email, token, password, password_confirmation) => {
+  const response = await apiFetch('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ email, token, password, password_confirmation }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Error al restablecer la contraseña');
+  }
+  return data;
+};

@@ -1,0 +1,4 @@
+../theftp/
+../theftp/*
+.git/
+node_modules/
