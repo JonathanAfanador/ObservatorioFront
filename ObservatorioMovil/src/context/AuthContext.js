@@ -1,5 +1,7 @@
 // AuthContext — Maneja el estado global de autenticación con Bearer token
-import React, { createContext, useContext, useState, useEffect } from 'react';
+// Incluye: persistencia de sesión, verificación al inicio y cierre por inactividad
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { AppState } from 'react-native';
 import {
   login as apiLogin,
   register as apiRegister,
@@ -8,9 +10,14 @@ import {
   getToken,
   saveToken,
   saveUser,
-  getUser,
   clearSession,
 } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// ── Límite de inactividad ─────────────────────────────────────────────────────
+// Si la app estuvo en segundo plano más de este tiempo, se cierra la sesión.
+const INACTIVITY_LIMIT_MS = 20 * 60 * 1000; // 20 minutos (limite definitivo)
+const BACKGROUND_TIME_KEY = '@observatorio_bg_time';
 
 const AuthContext = createContext(null);
 
@@ -19,51 +26,111 @@ export function AuthProvider({ children }) {
   const [token, setToken]     = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Al iniciar la app: verificar si hay token guardado y si sigue siendo válido
-  useEffect(() => {
-    checkSession();
+  // Usamos ref para el appState para no perder el valor entre renders
+  const appStateRef = useRef(AppState.currentState);
+
+  // ── Logout completo: notifica al backend (auditoría) + limpia local ───────
+  const performFullLogout = useCallback(async () => {
+    try {
+      await apiLogout(); // → Laravel registra 'CierreSesion' en la auditoría
+    } catch (e) {
+      console.warn('[Auth] Error al notificar logout al servidor:', e.message);
+      await clearSession(); // Si falla el servidor, igual limpiamos local
+    } finally {
+      await AsyncStorage.removeItem(BACKGROUND_TIME_KEY);
+      setToken(null);
+      setUser(null);
+    }
   }, []);
 
-  const checkSession = async () => {
+  // ── Verificar sesión guardada al inicio de la app ─────────────────────────
+  const checkSession = useCallback(async () => {
     try {
       const savedToken = await getToken();
       if (savedToken) {
         setToken(savedToken);
-        // Verificar con el servidor que el token sigue siendo válido
-        const userData = await getMe();
+        const userData = await getMe(); // Valida con el servidor
         setUser(userData);
         await saveUser(userData);
       }
     } catch (e) {
-      // Token inválido o expirado — limpiar todo
-      console.log('Sesión inválida:', e.message);
-      await clearSession();
-      setToken(null);
-      setUser(null);
+      console.log('[Auth] Sesión inválida al iniciar:', e.message);
+      await performFullLogout();
     } finally {
       setLoading(false);
     }
-  };
+  }, [performFullLogout]);
 
+  // ── Al iniciar la app: cargar sesión ─────────────────────────────────────
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  // ── Detector de inactividad via AppState ──────────────────────────────────
+  useEffect(() => {
+    const handleAppStateChange = async (nextState) => {
+      const prevState = appStateRef.current;
+      appStateRef.current = nextState;
+
+      if (nextState === 'background' || nextState === 'inactive') {
+        // App va al fondo → guardar timestamp exacto
+        await AsyncStorage.setItem(BACKGROUND_TIME_KEY, Date.now().toString());
+        console.log('[Auth] App en fondo, guardando timestamp...');
+
+      } else if (nextState === 'active' && (prevState === 'background' || prevState === 'inactive')) {
+        // App vuelve al frente → calcular tiempo en segundo plano
+        const savedToken = await getToken();
+        if (!savedToken) return; // Ya no hay sesión activa
+
+        const bgTimeStr = await AsyncStorage.getItem(BACKGROUND_TIME_KEY); // ← lectura correcta
+        if (bgTimeStr) {
+          const elapsed = Date.now() - parseInt(bgTimeStr, 10);
+          console.log(`[Auth] Tiempo en fondo: ${elapsed}ms (límite: ${INACTIVITY_LIMIT_MS}ms)`);
+
+          if (elapsed > INACTIVITY_LIMIT_MS) {
+            // Superó el límite → cerrar sesión con registro en auditoría
+            console.log('[Auth] Inactividad superada → cerrando sesión...');
+            await performFullLogout();
+            return;
+          }
+        }
+
+        // Dentro del límite → re-validar token con el servidor
+        try {
+          const userData = await getMe();
+          setUser(userData);
+        } catch (e) {
+          console.log('[Auth] Token expirado al volver del fondo:', e.message);
+          await performFullLogout();
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, [performFullLogout]); // dependencia estable via useCallback
+
+  // ── Login ─────────────────────────────────────────────────────────────────
   const signIn = async (email, password) => {
     const data = await apiLogin(email, password);
-    // El backend devuelve { token, user, message }
     setToken(data.token);
     setUser(data.user);
+    await AsyncStorage.removeItem(BACKGROUND_TIME_KEY); // reset inactividad
   };
 
+  // ── Registro + login automático ───────────────────────────────────────────
   const signUp = async (userData) => {
-    // 1. Crear cuenta
     await apiRegister(userData);
-    // 2. Iniciar sesión automáticamente
     await signIn(userData.email, userData.password);
   };
 
+  // ── Logout manual ─────────────────────────────────────────────────────────
   const signOut = async () => {
     setLoading(true);
     try {
       await apiLogout();
     } finally {
+      await AsyncStorage.removeItem(BACKGROUND_TIME_KEY);
       setToken(null);
       setUser(null);
       setLoading(false);
