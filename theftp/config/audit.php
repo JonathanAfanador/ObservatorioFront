@@ -28,7 +28,7 @@ return [
         'morph_prefix' => 'user',
         'guards' => [
             'web',
-            'api',
+            'sanctum',  // Guard real de Sanctum para Bearer tokens (móvil/API)
         ],
         'resolver' => OwenIt\Auditing\Resolvers\UserResolver::class,
     ],

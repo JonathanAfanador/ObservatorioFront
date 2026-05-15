@@ -79,6 +79,13 @@
                 <span id="error-password" class="text-xs text-red-600 hidden"></span>
             </div>
 
+            {{-- Enlace para recuperar contraseña --}}
+            <div class="forgot-password-row">
+                <a href="{{ route('forgot-password') }}" class="forgot-password-link">
+                    ¿Olvidaste tu contraseña?
+                </a>
+            </div>
+
             {{-- Botón principal del formulario --}}
             <button type="submit" id="submit-button" class="btn-auth-primary">
                 Entrar

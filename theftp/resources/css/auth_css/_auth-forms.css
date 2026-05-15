@@ -143,3 +143,34 @@
 .auth-bottom-link a:hover {
   text-decoration: underline; /* Subrayado solo en hover */
 }
+
+/* ── Recuperación de contraseña ── */
+.auth-subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+  text-align: center;
+  margin-top: -0.75rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.forgot-password-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.25rem;
+}
+
+.forgot-password-link {
+  font-size: 0.875rem;
+  color: var(--accent-green);
+  font-weight: 600;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
+}

@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
-use Spatie\Backup\BackupDestination\Backup;
-use Spatie\Backup\BackupDestination\BackupDestination;
 use Carbon\Carbon;
 
 class BackupController extends Controller
@@ -26,8 +23,8 @@ class BackupController extends Controller
     {
         try {
             $diskName = config('backup.backup.destination.disks')[0] ?? 'google';
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
             $disk = Storage::disk($diskName);
-            $adapter = $disk->getAdapter();
             
             // Usamos el listado de archivos del disco. 
             // Si la carpeta (eg. "Laravel") aún no ha sido creada por un primer backup, Flysystem lanza un error. Lo atrapamos e inicializamos en vacío.
@@ -74,9 +71,9 @@ class BackupController extends Controller
     public function create()
     {
         try {
-            // Ejecutamos el mismo comando Artisan que corre en el programador de tareas
-            \Illuminate\Support\Facades\Artisan::call('backup:native');
-            $output = \Illuminate\Support\Facades\Artisan::output();
+            // Ejecutamos el comando Artisan que centraliza la lógica nativa
+            Artisan::call('backup:native');
+            $output = Artisan::output();
 
             if (strpos($output, 'exitosamente') !== false) {
                 return response()->json([
@@ -94,15 +91,15 @@ class BackupController extends Controller
             ], 500);
         }
     }
-
     /**
      * Descarga un archivo de backup específico desde Google Drive.
      */
-    public function download($fileBase64)
+    public function download($file)
     {
         try {
-            $file = base64_decode($fileBase64);
+            $file = base64_decode($file);
             $diskName = config('backup.backup.destination.disks')[0] ?? 'google';
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
             $disk = Storage::disk($diskName);
 
             if (!$disk->exists($file)) {
@@ -117,15 +114,15 @@ class BackupController extends Controller
             ], 500);
         }
     }
-
     /**
      * Elimina un backup antiguo.
      */
-    public function destroy($fileBase64)
+    public function destroy($file)
     {
         try {
-            $file = base64_decode($fileBase64);
+            $file = base64_decode($file);
             $diskName = config('backup.backup.destination.disks')[0] ?? 'google';
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
             $disk = Storage::disk($diskName);
 
             if ($disk->exists($file)) {

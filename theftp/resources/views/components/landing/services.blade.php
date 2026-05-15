@@ -35,20 +35,24 @@
 
         <h3>Aplicación Móvil</h3>
 
-        <a href="#" class="service-image-link">
-
+        <a href="{{ asset('downloads/observatorio-transporte.apk') }}"
+           class="service-image-link"
+           aria-label="Descargar la aplicación móvil Observatorio de Transporte"
+           download>
           <img src="{{ asset('images/app-portada.jpg') }}" alt="Aplicación móvil Viaja!" />
-
         </a>
 
-        <h4>Ingresa a la Aplicación móvil y “Viaja!”</h4>
+        <h4>Ingresa a la Aplicación móvil y &ldquo;Viaja!&rdquo;</h4>
 
         <p>Descárgala y disfruta de sus funcionalidades.</p>
 
         <div class="btn-row">
-
-          <a href="#" class="btn btn-primary">Descargar Android</a>
-
+          <a href="{{ asset('downloads/observatorio-transporte.apk') }}"
+             class="btn btn-primary"
+             download
+             aria-label="Descargar APK para Android">
+             Descarga Android APK  
+          </a>
         </div>
 
       </div>

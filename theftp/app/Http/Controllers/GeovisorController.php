@@ -26,6 +26,24 @@ class GeovisorController extends BaseController
     }
 
     /**
+     * Vista del Geovisor para la app móvil.
+     * Devuelve SOLO el mapa, sin navbar, footer ni elementos de la web.
+     * Detectado por el header X-App-Client: ObservatorioMovil
+     */
+    public function mobile()
+    {
+        $mapCenter = [
+            'lat'  => 4.3042,
+            'lng'  => -74.8014,
+            'zoom' => 14,
+        ];
+
+        return view('geovisor.geovisor_mobile', [
+            'mapCenter' => $mapCenter
+        ]);
+    }
+
+    /**
      * Sirve un archivo KMZ con headers correctos.
      */
     public function serveKmz(string $filename)

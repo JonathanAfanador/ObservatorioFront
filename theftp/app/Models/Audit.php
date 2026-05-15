@@ -134,6 +134,15 @@ class Audit extends Model{
     ];
 
     /**
+     * Serializar old_values y new_values como objetos JSON (no strings crudos)
+     * Esto garantiza que la API devuelva los valores ya parseados
+     */
+    protected $casts = [
+        'old_values' => 'array',
+        'new_values' => 'array',
+    ];
+
+    /**
      * Relación con el usuario que ejecutó la acción
      */
     public function user()

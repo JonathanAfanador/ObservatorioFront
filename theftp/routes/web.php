@@ -28,6 +28,10 @@ Route::get('/register', function () {
     return view('auth.register', ['tipos_ident' => $tipos_ident]);
 })->name('register');
 
+Route::get('/forgot-password', function () {
+    return view('auth.forgot-password');
+})->name('forgot-password');
+
 // ─────────────────────────────────────────────
 //  Rutas del Dashboard 
 // ─────────────────────────────────────────────
@@ -45,6 +49,10 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth', 'dashboard_acces
 
 Route::get('/geovisor', [GeovisorController::class, 'index'])
      ->name('geovisor_vite.blade');
+
+// Ruta exclusiva para la app móvil — devuelve solo el mapa sin navbar/footer
+Route::get('/geovisor/mobile', [GeovisorController::class, 'mobile'])
+     ->name('geovisor.mobile');
 
 
 Route::get('/geovisor/kmz/{filename}', [GeovisorController::class, 'serveKmz'])

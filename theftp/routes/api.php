@@ -53,6 +53,14 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'throttle:60,1']], func
     });
 });
 
+// Recuperación de contraseña — throttle estricto: 5 intentos por minuto
+Route::group(['middleware' => [ForceJsonResponse::class, 'throttle:5,1']], function (){
+    Route::prefix('auth')->group(function (){
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+        Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
+    });
+});
+
 // Rutas protegidas por Sanctum y Throttle estándar (200 requests por minuto)
 Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'throttle:200,1']], function (){
     // -- Auth Routes

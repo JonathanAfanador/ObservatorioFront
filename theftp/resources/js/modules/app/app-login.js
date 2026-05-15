@@ -31,6 +31,15 @@ if (loginFormEl) {
         }
     }
 
+    // Aviso de contraseña restablecida exitosamente
+    if (urlParams.get('status') === 'password_reset') {
+        const successMessage = document.getElementById('form-success-message');
+        if (successMessage) {
+            successMessage.textContent = '✓ Contraseña actualizada correctamente. Ya puedes iniciar sesión.';
+            successMessage.classList.remove('hidden');
+        }
+    }
+
     // =========== Envío del formulario de login ===========
     loginFormEl.addEventListener('submit', async (e) => {
         e.preventDefault();

@@ -86,6 +86,7 @@ class CierreSesion extends Model implements Auditable
         'usuario_id',
         'fecha_hora_cierre',
         'direccion_ip',
+        'plataforma',
     ];
 
     public function usuario(){
