@@ -95,6 +95,7 @@ class InicioSesion extends Model implements Auditable
         'fecha_hora_inicio',
         'fecha_ultima_actividad',
         'direccion_ip',
+        'plataforma',
     ];
 
     public function usuario(){

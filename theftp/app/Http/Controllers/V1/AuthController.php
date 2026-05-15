@@ -169,12 +169,16 @@ class AuthController extends Controller{
 
         if(Auth::attempt(['email'=> $datos['email'],'password'=> $datos['password']])){
 
+            $isMobile = $request->hasHeader('X-App-Client');
+            $plataforma = $isMobile ? 'Móvil' : 'Web';
+
             // --- CORRECCIÓN AUDITORÍA: InicioSesion se registra SOLO tras login exitoso ---
             InicioSesion::create([
                 'direccion_ip' => $request->ip(),
                 'fecha_hora_inicio' => now(),
                 'fecha_ultima_actividad' => now(),
                 'usuario_id' => $usuario->id,
+                'plataforma' => $plataforma,
             ]);
 
             // --- SOPORTE MÓVIL ---
@@ -217,21 +221,31 @@ class AuthController extends Controller{
      * )
      */
     public function logout(Request $request){
-        $user = $request->user();
+        // Bearer token (móvil) tiene prioridad; sesión web como fallback
+        $user = $request->user() ?? Auth::guard('web')->user();
 
-        // 1. Guardar auditoría de cierre ANTES de destruir la sesión
+        if (!$user) {
+            return response()->json(['message' => 'No autenticado'], 401);
+        }
+
+        $isMobile   = $request->hasHeader('X-App-Client');
+        $plataforma = $isMobile ? 'Móvil' : 'Web';
+
+        // 1. Guardar auditoría ANTES de destruir la sesión
+        // Owen-IT Auditing ahora resuelve el usuario via guard 'sanctum' (config/audit.php)
         CierreSesion::create([
-            'direccion_ip' => $request->ip(),
+            'direccion_ip'      => $request->ip(),
             'fecha_hora_cierre' => now(),
-            'usuario_id' => $user->id,
+            'usuario_id'        => $user->id,
+            'plataforma'        => $plataforma,
         ]);
 
-        // 2. Revocar token de API solo si existe (compatibilidad con Mobile/Bearer)
+        // 2. Revocar token Bearer si existe (Móvil)
         if ($user->currentAccessToken()) {
             $user->currentAccessToken()->delete();
         }
 
-        // 3. Cierre de sesión de Web/SPA (Sanctum)
+        // 3. Cierre de sesión SPA/Web
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -252,13 +266,21 @@ class AuthController extends Controller{
      * )
      */
     public function globalLogout(Request $request){
-        $user = $request->user();
+        $user = $request->user() ?? Auth::guard('web')->user();
 
-        // 1. Guardar auditoría de cierre
+        if (!$user) {
+            return response()->json(['message' => 'No autenticado'], 401);
+        }
+
+        $isMobile   = $request->hasHeader('X-App-Client');
+        $plataforma = $isMobile ? 'Móvil' : 'Web';
+
+        // 1. Guardar auditoría
         CierreSesion::create([
-            'direccion_ip' => $request->ip(),
+            'direccion_ip'      => $request->ip(),
             'fecha_hora_cierre' => now(),
-            'usuario_id' => $user->id,
+            'usuario_id'        => $user->id,
+            'plataforma'        => $plataforma,
         ]);
 
         // 2. Revocar todos los tokens
