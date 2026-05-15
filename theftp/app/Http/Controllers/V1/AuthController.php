@@ -177,8 +177,23 @@ class AuthController extends Controller{
                 'usuario_id' => $usuario->id,
             ]);
 
+            // --- SOPORTE MÓVIL ---
+            // Si la petición viene de la app móvil, devolver token Bearer (Sanctum API Token)
+            // Las apps móviles no pueden manejar cookies HttpOnly como los navegadores web
+            $isMobile = $request->hasHeader('X-App-Client');
+            if ($isMobile) {
+                // Revocar tokens anteriores de la misma app para no acumularlos
+                $usuario->tokens()->where('name', 'mobile')->delete();
+                $token = $usuario->createToken('mobile')->plainTextToken;
+
+                return response()->json([
+                    'message' => 'Inicio de sesión exitoso',
+                    'token'   => $token,
+                    'user'    => $usuario->load(['persona', 'rol']),
+                ], 200);
+            }
+
             // Sanctum SPA: la sesión se establece automáticamente via cookie HttpOnly.
-            // Ya no se genera ni expone un token Bearer para evitar vectores de ataque XSS.
             return response()->json([
                 'message' => 'Inicio de sesión exitoso',
             ], 200);
@@ -187,6 +202,7 @@ class AuthController extends Controller{
 
         return response()->json(['message' => 'Credenciales incorrectas'], 401);
     }
+
 
     /**
      * @OA\Post(

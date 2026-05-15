@@ -481,7 +481,12 @@ async function toggleRoute(route, index, isVisible) {
         
         try {
             // Cargar KMZ dinámicamente si no está en cache de MapCore
-            if (!core.overlayGroups[route.name]) {
+            if (!route.file_name || route.file_name.trim() === "") {
+                console.warn(`[Geovisor] La ruta "${route.name}" no tiene archivo de trazado (.kmz) asignado.`);
+                if (window.showNotification) {
+                    window.showNotification('warning', 'Trazado no disponible', `La ruta "${route.name}" no cuenta con archivo KMZ en base de datos.`);
+                }
+            } else if (!core.overlayGroups[route.name]) {
                 await core.loadKmz(route.file_name, route.name, index, {}, { onlyLines: true });
             } else {
                 core.overlayGroups[route.name].addTo(core.map);
@@ -919,4 +924,10 @@ async function initPublicGeovisor() {
     console.info('[Geovisor] Público Dinámico Listo (Restaurado).');
 }
 
-document.addEventListener('DOMContentLoaded', initPublicGeovisor);
+// Geovisor Mobile Ready Check
+console.log('[Geovisor] Script cargado, readyState:', document.readyState);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPublicGeovisor);
+} else {
+    initPublicGeovisor();
+}

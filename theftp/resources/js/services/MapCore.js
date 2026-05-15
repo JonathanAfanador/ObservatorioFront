@@ -197,6 +197,12 @@ export default class MapCore {
             center: [center.lat, center.lng],
             zoom: center.zoom,
             zoomControl: false,
+            preferCanvas: true,          // Renderizado hiper-rápido usando HTML5 Canvas en vez de SVG (ideal para móviles y KMZs)
+            zoomAnimation: true,         // Animaciones de zoom fluidas
+            markerZoomAnimation: true,   // Animar marcadores durante el zoom
+            fadeAnimation: true,         // Transición suave entre tiles de mapas
+            inertia: true,               // Paneo inercial (suavizado al deslizar el dedo)
+            bounceAtZoomLimits: false    // Evitar rebotes molestos en los límites de zoom en móvil
         });
 
         // Crear capas base
@@ -630,13 +636,26 @@ export default class MapCore {
     }
 
     _createBaseLayers() {
+        const tileOptions = {
+            maxZoom: 19,
+            updateWhenZooming: false,    // NO intentar descargar tiles MIENTRAS haces zoom (evita tirones)
+            updateWhenIdle: true,       // Esperar a que termines de mover el mapa para pintar los tiles nuevos
+            keepBuffer: 3,              // Mantiene en caché los bordes para que al mover no veas cuadros grises
+        };
+
         const osm = L.tileLayer(
             'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            { attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom:19 }
+            { 
+                ...tileOptions,
+                attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }
         );
         const cartoLight = L.tileLayer(
             'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-            { attribution:'© <a href="https://carto.com/">CARTO</a>', maxZoom:19 }
+            { 
+                ...tileOptions,
+                attribution:'© <a href="https://carto.com/">CARTO</a>' 
+            }
         );
         
         return {
@@ -673,6 +692,9 @@ export default class MapCore {
      * Recibe la ruta remota a un archivo KMZ, la descarga e importa como GeoJSON
      */
     async loadKmz(url, label, colorIndex = 0, fetchOptions = {}, options = {}) {
+        if (!url || url.trim() === "") {
+            throw new Error('URL de KMZ no especificada o vacía');
+        }
         try {
             const res = await fetch(url, fetchOptions);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
