@@ -288,7 +288,7 @@ export default function LoginScreen({ navigation }) {
 
           {/* Pie institucional */}
           <Text style={s.footer}>
-            Secretaría de Tránsito y Transporte · 2025
+            Secretaría de Tránsito y Transporte · 2026
           </Text>
 
         </ScrollView>

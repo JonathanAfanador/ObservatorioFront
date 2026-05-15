@@ -45,6 +45,7 @@ export function AuthProvider({ children }) {
 
   // ── Verificar sesión guardada al inicio de la app ─────────────────────────
   const checkSession = useCallback(async () => {
+    const startTime = Date.now(); // Para forzar tiempo mínimo de Splash Screen
     try {
       const savedToken = await getToken();
       if (savedToken) {
@@ -57,6 +58,13 @@ export function AuthProvider({ children }) {
       console.log('[Auth] Sesión inválida al iniciar:', e.message);
       await performFullLogout();
     } finally {
+      // Forzar que la Splash Screen dure al menos 2.8 segundos para ver la animación fluida
+      const elapsed = Date.now() - startTime;
+      const minSplashDuration = 2800; 
+      const remaining = minSplashDuration - elapsed;
+      if (remaining > 0) {
+        await new Promise(resolve => setTimeout(resolve, remaining));
+      }
       setLoading(false);
     }
   }, [performFullLogout]);

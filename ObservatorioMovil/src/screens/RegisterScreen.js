@@ -294,7 +294,7 @@ export default function RegisterScreen({ navigation }) {
 
           </View>
 
-          <Text style={s.footer}>Secretaría de Tránsito y Transporte · 2025</Text>
+          <Text style={s.footer}>Secretaría de Tránsito y Transporte · 2026</Text>
 
         </ScrollView>
       </KeyboardAvoidingView>
