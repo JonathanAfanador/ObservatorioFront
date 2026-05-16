@@ -29,11 +29,8 @@ RUN docker-php-ext-install \
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
-# Habilitar mod_rewrite de Apache y CORREGIR conflicto de MPM
-RUN a2enmod rewrite \
-    && a2dismod mpm_event || true \
-    && a2dismod mpm_worker || true \
-    && a2enmod mpm_prefork || true
+# Habilitar mod_rewrite de Apache
+RUN a2enmod rewrite
 
 # Configurar directorio de trabajo
 WORKDIR /var/www/html
@@ -63,5 +60,5 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # Exponer el puerto 80
 EXPOSE 80
 
-# Ejecutar migraciones automáticas y encender el servidor en primer plano
-CMD php artisan migrate --force && apache2-foreground
+# PARCHE EN TIEMPO DE EJECUCIÓN (CMD): Desactiva módulos duplicados al arrancar el contenedor, migra y enciende Apache
+CMD ["/bin/sh", "-c", "a2dismod mpm_event || true && a2dismod mpm_worker || true && a2enmod mpm_prefork || true && php artisan migrate --force && apache2-foreground"]
