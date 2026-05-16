@@ -10,6 +10,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/alert.js',
                 'resources/css/geovisor.css',
                 'resources/js/geovisor.js',
             ],
