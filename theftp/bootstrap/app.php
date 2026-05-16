@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // 1. AGREGA ESTA LÍNEA AL INICIO PARAPlataformas como Railway:
+        $middleware->trustProxies(at: '*');
+
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);

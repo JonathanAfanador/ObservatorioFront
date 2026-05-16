@@ -19,8 +19,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // PARCHE: Fuerza a Laravel a generar todos los enlaces (Vite, CSS, JS, imágenes) usando HTTPS en producción
+        if (config('app.env') === 'production' || env('APP_ENV') === 'production') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         try {
-            \Illuminate\Support\Facades\Storage::extend('google', function($app, $config) {
+            \Illuminate\Support\Facades\Storage::extend('google', function ($app, $config) {
                 $options = [];
 
                 if (!empty($config['teamDriveId'] ?? null)) {
@@ -35,14 +40,14 @@ class AppServiceProvider extends ServiceProvider
                 $client->setClientId($config['clientId']);
                 $client->setClientSecret($config['clientSecret']);
                 $client->refreshToken($config['refreshToken']);
-                
+
                 $service = new \Google\Service\Drive($client);
                 $adapter = new \Masbug\Flysystem\GoogleDriveAdapter($service, $config['folder'] ?? '/', $options);
                 $driver = new \League\Flysystem\Filesystem($adapter);
 
                 return new \Illuminate\Filesystem\FilesystemAdapter($driver, $adapter);
             });
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             // Manejo silencioso de la falla en boot (opcional logging config)
             \Illuminate\Support\Facades\Log::error("Fallo al inicializar driver Google Drive: " . $e->getMessage());
         }
