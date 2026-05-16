@@ -94,7 +94,7 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
             'dump' => [
                 'dump_binary_path' => env('PG_DUMP_PATH', ''), // Set PG_DUMP_PATH in .env like: C:\Program Files\PostgreSQL\16\bin
                 'use_inserts' => false,
