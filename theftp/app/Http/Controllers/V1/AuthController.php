@@ -175,6 +175,12 @@ class AuthController extends Controller{
                 $isMobile = $request->hasHeader('X-App-Client');
                 $plataforma = $isMobile ? 'Móvil' : 'Web';
 
+                // Autenticar la sesión web para que los middlewares 'auth' y 'dashboard_access' de routes/web.php funcionen
+                if (!$isMobile) {
+                    Auth::login($usuario);
+                    $request->session()->regenerate();
+                }
+
                 InicioSesion::create([
                     'direccion_ip'          => $request->ip(),
                     'fecha_hora_inicio'     => now(),
@@ -183,7 +189,7 @@ class AuthController extends Controller{
                     'plataforma'            => $plataforma,
                 ]);
 
-                // ✅ PARCHE ESTRATÉGICO: Siempre generar token Bearer para limpiar conflictos de cookies
+                // ✅ PARCHE ESTRATÉGICO: Siempre generar token Bearer para limpiar conflictos de cookies en las API
                 if ($isMobile) {
                     $usuario->tokens()->where('name', 'mobile')->delete();
                     $token = $usuario->createToken('mobile')->plainTextToken;
@@ -241,6 +247,12 @@ class AuthController extends Controller{
         // ✅ Revocar solo el token actual
         $user->currentAccessToken()->delete();
 
+        Auth::guard('web')->logout();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         return response()->json(['message' => 'Cierre de sesión exitoso'], 200);
     }
 
@@ -277,7 +289,12 @@ class AuthController extends Controller{
         // 2. Revocar todos los tokens
         $user->tokens()->delete();
 
-
+        // 3. Cierre de sesión web
+        Auth::guard('web')->logout();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json(['message' => 'Cierre de sesión global exitoso'], 200);
     }
