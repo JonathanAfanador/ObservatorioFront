@@ -109,9 +109,9 @@ window.showNotification = function (type, title, message, duration = 5000) {
 
 // --- Llamada GET a la API (normaliza respuesta paginada y no paginada) ---
 window.apiGet = async function (path) {
-    const headers = { 'Accept': 'application/json' };
+    const headers = window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' };
 
-    const res = await fetch(path, { headers, credentials: 'same-origin' });
+    const res = await fetch(path, { headers });
 
     if (!res.ok) {
         console.error(`Error ${res.status} consultando ${path}`);

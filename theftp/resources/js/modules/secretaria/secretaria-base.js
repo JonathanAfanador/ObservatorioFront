@@ -48,22 +48,15 @@ window.showNotification = function (type, title, message) {
 
 // --- Llamada genérica a la API ---
 window.apiCall = async function (endpoint, method = 'GET', body = null, isFile = false) {
-    const csrfToken = getCookie('XSRF-TOKEN');
-
-    const headers = {
-        'Accept': 'application/json'
-    };
-
-    if (csrfToken) {
-        headers['X-XSRF-TOKEN'] = csrfToken;
-    }
+    const baseHeaders = window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' };
+    const headers = { ...baseHeaders };
 
     // Si NO es archivo, agregamos Content-Type JSON
     if (!isFile && body && !(body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
     }
 
-    const config = { method, headers, credentials: 'same-origin' };
+    const config = { method, headers };
 
     if (body) {
         config.body = (isFile || body instanceof FormData) ? body : JSON.stringify(body);

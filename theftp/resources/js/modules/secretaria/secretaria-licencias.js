@@ -293,7 +293,7 @@ window.openVerificacionLicenciaModal = async function (id) {
         let response = null;
         if (documentoId) {
             response = await fetch(`/api/documentos/${documentoId}/file`, {
-                method: 'GET', headers: { 'Accept': 'application/json' }, credentials: 'same-origin'
+                method: 'GET', headers: window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' }
             });
         }
 
@@ -303,7 +303,7 @@ window.openVerificacionLicenciaModal = async function (id) {
             const latestDocId = await findLatestDocumentByLicencia(item.numero);
             if (latestDocId && latestDocId !== documentoId) {
                 response = await fetch(`/api/documentos/${latestDocId}/file`, {
-                    method: 'GET', headers: { 'Accept': 'application/json' }, credentials: 'same-origin'
+                    method: 'GET', headers: window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' }
                 });
                 if (response.ok) {
                     documentoId = latestDocId;

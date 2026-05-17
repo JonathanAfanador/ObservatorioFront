@@ -175,36 +175,28 @@ class AuthController extends Controller{
             $isMobile = $request->hasHeader('X-App-Client');
             $plataforma = $isMobile ? 'Móvil' : 'Web';
 
-            // --- CORRECCIÓN AUDITORÍA: InicioSesion se registra SOLO tras login exitoso ---
             InicioSesion::create([
-                'direccion_ip' => $request->ip(),
-                'fecha_hora_inicio' => now(),
-                'fecha_ultima_actividad' => now(),
-                'usuario_id' => $usuario->id,
-                'plataforma' => $plataforma,
+                'direccion_ip'          => $request->ip(),
+                'fecha_hora_inicio'     => now(),
+                'fecha_ultima_actividad'=> now(),
+                'usuario_id'            => $usuario->id,
+                'plataforma'            => $plataforma,
             ]);
 
-            // --- SOPORTE MÓVIL ---
-            // Si la petición viene de la app móvil, devolver token Bearer (Sanctum API Token)
-            // Las apps móviles no pueden manejar cookies HttpOnly como los navegadores web
-            $isMobile = $request->hasHeader('X-App-Client');
+            // ✅ PARCHE ESTRATÉGICO: Siempre generar token Bearer para limpiar conflictos de cookies
             if ($isMobile) {
-                // Revocar tokens anteriores de la misma app para no acumularlos
                 $usuario->tokens()->where('name', 'mobile')->delete();
                 $token = $usuario->createToken('mobile')->plainTextToken;
-
-                return response()->json([
-                    'message' => 'Inicio de sesión exitoso',
-                    'token'   => $token,
-                    'user'    => $usuario->load(['persona', 'rol']),
-                ], 200);
+            } else {
+                $usuario->tokens()->where('name', 'web')->delete();
+                $token = $usuario->createToken('web')->plainTextToken;
             }
 
-            // Sanctum SPA: la sesión se establece automáticamente via cookie HttpOnly.
             return response()->json([
                 'message' => 'Inicio de sesión exitoso',
+                'token'   => $token, // El frontend web guardará este token
+                'user'    => $usuario->load(['persona', 'rol']),
             ], 200);
-
         }
 
         return response()->json(['message' => 'Credenciales incorrectas'], 401);
@@ -224,18 +216,14 @@ class AuthController extends Controller{
      * )
      */
     public function logout(Request $request){
-        // Bearer token (móvil) tiene prioridad; sesión web como fallback
-        $user = $request->user() ?? Auth::guard('web')->user();
+        $user = $request->user();
 
         if (!$user) {
             return response()->json(['message' => 'No autenticado'], 401);
         }
 
-        $isMobile   = $request->hasHeader('X-App-Client');
-        $plataforma = $isMobile ? 'Móvil' : 'Web';
+        $plataforma = $request->hasHeader('X-App-Client') ? 'Móvil' : 'Web';
 
-        // 1. Guardar auditoría ANTES de destruir la sesión
-        // Owen-IT Auditing ahora resuelve el usuario via guard 'sanctum' (config/audit.php)
         CierreSesion::create([
             'direccion_ip'      => $request->ip(),
             'fecha_hora_cierre' => now(),
@@ -243,15 +231,8 @@ class AuthController extends Controller{
             'plataforma'        => $plataforma,
         ]);
 
-        // 2. Revocar token Bearer si existe (Móvil)
-        if ($user->currentAccessToken()) {
-            $user->currentAccessToken()->delete();
-        }
-
-        // 3. Cierre de sesión SPA/Web
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // ✅ Revocar solo el token actual
+        $user->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Cierre de sesión exitoso'], 200);
     }

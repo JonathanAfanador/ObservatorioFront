@@ -54,77 +54,62 @@ if (loginFormEl) {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            // Paso 1: Protección CSRF de Sanctum (SPA Auth) - CORREGIDO: credentials 'include'
-            await fetch('/sanctum/csrf-cookie', {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' },
-                credentials: 'include'
-            });
-
-            // Paso 1.5: Login - CORREGIDO: credentials 'include'
+            // ✅ Sin csrf-cookie, sin credentials: 'include'
             const loginResponse = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': data._token
                 },
-                credentials: 'include',
                 body: JSON.stringify(data)
             });
 
             const loginResult = await loginResponse.json();
             if (!loginResponse.ok) throw new Error(loginResult.message || 'Credenciales incorrectas.');
 
-            // El token ahora viaja en la cookie HttpOnly llamada laravel_session.
-            sessionStorage.removeItem('auth_token');
+            // ✅ Guardar token
+            const token = loginResult.token;
+            if (!token) throw new Error('No se recibió token.');
+            sessionStorage.setItem('auth_token', token);
 
-            // Paso 2: Obtener datos del usuario - CORREGIDO: credentials 'include'
+            // ✅ Usar Bearer en /me
             submitButton.innerHTML = 'Verificando rol...';
             const meResponse = await fetch('/api/auth/me', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json' },
-                credentials: 'include'
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
             });
-            if (!meResponse.ok) throw new Error('No se pudo verificar la sesión de usuario.');
+            if (!meResponse.ok) throw new Error('No se pudo verificar la sesión.');
 
             const userResult = await meResponse.json();
             const user = userResult.data ? userResult.data : userResult;
-
-            if (!user || !user.rol_id) {
-                console.error('Respuesta de /api/auth/me no válida:', userResult);
-                throw new Error('Respuesta de usuario inválida. No se encontró el rol_id.');
-            }
+            if (!user?.rol_id) throw new Error('Respuesta de usuario inválida.');
 
             const roleId = parseInt(user.rol_id, 10);
 
-            // Paso 2.5: Obtener descripción del rol - CORREGIDO: credentials 'include'
+            // ✅ Bearer en /rol
             submitButton.innerHTML = 'Cargando datos...';
             let rolDescripcion = 'Invitado';
 
             if (roleId !== 5) {
                 const rolResponse = await fetch(`/api/rol/${roleId}`, {
                     method: 'GET',
-                    headers: { 'Accept': 'application/json' },
-                    credentials: 'include'
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
-
                 if (rolResponse.ok) {
                     const rolResult = await rolResponse.json();
-                    const rol = rolResult.data ? rolResult.data : rolResult;
-                    if (rol && rol.descripcion) {
-                        rolDescripcion = rol.descripcion;
-                    } else {
-                        console.error('Respuesta de /api/rol/{id} no válida:', rolResult);
-                    }
-                } else if (user.rol && user.rol.descripcion) {
+                    const rol = rolResult.data ?? rolResult;
+                    if (rol?.descripcion) rolDescripcion = rol.descripcion;
+                } else if (user.rol?.descripcion) {
                     rolDescripcion = user.rol.descripcion;
-                } else {
-                    console.error('No se pudo cargar la información del rol desde /api/rol/' + roleId);
                 }
             }
 
-            // Calcular ruta del dashboard según rol
             let dashboardPath = '/';
             switch (roleId) {
                 case 1: dashboardPath = '/dashboard/admin'; break;
@@ -133,25 +118,15 @@ if (loginFormEl) {
                 case 4: dashboardPath = '/dashboard/upc'; break;
             }
 
-            // Persistir datos en sessionStorage
             sessionStorage.setItem('user_name', user.name);
             sessionStorage.setItem('user_role_id', roleId);
             sessionStorage.setItem('user_role_desc', rolDescripcion);
             sessionStorage.setItem('user_dashboard_path', dashboardPath);
+            sessionStorage.removeItem('user_empresa_id');
 
-            if (user.empresa_id) {
-                sessionStorage.setItem('user_empresa_id', user.empresa_id);
-                console.log('Empresa vinculada ID:', user.empresa_id);
-            } else {
-                sessionStorage.removeItem('user_empresa_id');
-            }
+            if (user.empresa_id) sessionStorage.setItem('user_empresa_id', user.empresa_id);
+            if (user.rol?.permisos) sessionStorage.setItem('user_permissions', JSON.stringify(user.rol.permisos));
 
-            if (user.rol && user.rol.permisos) {
-                sessionStorage.setItem('user_permissions', JSON.stringify(user.rol.permisos));
-                console.log('Permisos cargados en sesión');
-            }
-
-            // Redirigir a la página principal tras login exitoso
             window.location.href = '/';
 
         } catch (error) {

@@ -80,8 +80,7 @@ window.viewDocumento = async function (id, title) {
     try {
         const response = await fetch(`/api/documentos/${id}/file`, {
             method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            credentials: 'same-origin'
+            headers: window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' }
         });
 
         if (!response.ok) throw new Error('No se pudo acceder al archivo.');

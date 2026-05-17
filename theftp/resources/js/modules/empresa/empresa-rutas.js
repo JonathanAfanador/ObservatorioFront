@@ -45,10 +45,8 @@ async function loadRutas() {
 
         if (window.showNotification) window.showNotification('success', 'Rutas Encontradas', 'Descargando y decodificando mapas espaciales...', 3000);
 
-        const csrfToken = getCookie('XSRF-TOKEN');
         const fetchOptions = {
-            headers: csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {},
-            credentials: 'same-origin'
+            headers: window.getAuthHeaders ? window.getAuthHeaders() : {}
         };
 
         let index = 0;
@@ -202,10 +200,8 @@ window.loadRutas = loadRutas;
 
 window.downloadRuta = async function(id) {
     try {
-        const csrfToken = window.getCookie ? window.getCookie('XSRF-TOKEN') : null;
         const resp = await fetch(`/api/rutas/${id}/file`, {
-            headers: csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {},
-            credentials: 'same-origin'
+            headers: window.getAuthHeaders ? window.getAuthHeaders() : {}
         });
         if (!resp.ok) {
             if(window.showNotification) window.showNotification('error', 'Descarga fallida', 'El archivo original no está disponible.');

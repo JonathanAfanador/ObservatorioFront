@@ -2,7 +2,7 @@
 // app-logout.js
 // Logout manual y cierre automático por inactividad.
 // ============================================================
-import { clearAuthStorage, getCookie } from './app-auth-utils.js';
+import { clearAuthStorage, getCookie, getAuthHeaders } from './app-auth-utils.js';
 
 // ======================== LOGOUT MANUAL ========================
 
@@ -14,15 +14,9 @@ async function handleLogout(e) {
     e.preventDefault();
 
     try {
-        const csrfToken = getCookie('XSRF-TOKEN') || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
         const response = await fetch('/api/auth/logout', {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken })
-            },
-            credentials: 'same-origin'
+            headers: getAuthHeaders()
         });
 
         if (!response.ok) {
@@ -62,15 +56,9 @@ const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutos
 async function logoutDueToInactivity() {
     console.log('Cerrando sesión por inactividad...');
     try {
-        const csrfToken = getCookie('XSRF-TOKEN') || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
         await fetch('/api/auth/logout', {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken })
-            },
-            credentials: 'same-origin'
+            headers: getAuthHeaders()
         });
         console.log('Sesión de API invalidada por inactividad.');
     } catch (error) {

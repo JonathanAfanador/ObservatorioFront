@@ -59,16 +59,12 @@ if (!forgotForm) {
         btnSendCode.textContent = 'Enviando...';
 
         try {
-            await fetch('/sanctum/csrf-cookie', { credentials: 'same-origin' });
-
             const res = await fetch('/api/auth/forgot-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type':  'application/json',
-                    'Accept':        'application/json',
-                    'X-CSRF-TOKEN':  getCsrfToken(),
+                    'Accept':        'application/json'
                 },
-                credentials: 'same-origin',
                 body: JSON.stringify({ email }),
             });
 
@@ -133,10 +129,8 @@ if (!forgotForm) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept':       'application/json',
-                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept':       'application/json'
                 },
-                credentials: 'same-origin',
                 body: JSON.stringify({
                     email:                 userEmail,
                     token:                 token,

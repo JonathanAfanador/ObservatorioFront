@@ -90,14 +90,11 @@ const AdminBase = (function() {
         const csrfToken = getCookie('XSRF-TOKEN');
         let url = `${API_PREFIX}${endpoint}`;
         
-        const headers = {
+        const headers = window.getAuthHeaders ? window.getAuthHeaders() : {
             'Accept': 'application/json'
         };
-        if (csrfToken) {
-            headers['X-XSRF-TOKEN'] = csrfToken;
-        }
-
-        const config = { method, headers, credentials: 'same-origin' };
+        
+        const config = { method, headers };
 
         // Manejo de parámetros GET (Query String)
         if (method === 'GET' && data) {

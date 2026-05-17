@@ -41,13 +41,23 @@ export function showValidationError(field, message) {
     }
 }
 
+export function getAuthHeaders() {
+    const token = sessionStorage.getItem('auth_token');
+    return {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+}
+
 export function clearAuthStorage() {
-    sessionStorage.removeItem('auth_token'); // Por retrocompatibilidad
+    sessionStorage.removeItem('auth_token');
     sessionStorage.removeItem('user_name');
     sessionStorage.removeItem('user_role_id');
     sessionStorage.removeItem('user_role_desc');
     sessionStorage.removeItem('user_dashboard_path');
     sessionStorage.removeItem('user_empresa_id');
+    sessionStorage.removeItem('user_permissions');
 }
 
 /**
@@ -69,4 +79,5 @@ export function getToken() {
 
 // Exponer al scope global para evitar ReferenceError
 window.getToken = getToken;
+window.getAuthHeaders = getAuthHeaders;
 

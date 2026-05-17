@@ -162,10 +162,7 @@ async function apiGet(path) {
   try {
     const response = await fetch(`/api${path}`, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      },
-      credentials: 'same-origin'
+      headers: window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' }
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.json();
@@ -178,15 +175,12 @@ async function apiGet(path) {
 // Wrapper para llamadas POST a la API
 async function apiPost(path, data) {
   try {
-    const csrfToken = getCookie('XSRF-TOKEN');
     const response = await fetch(`/api${path}`, {
       method: 'POST',
-      headers: {
+      headers: window.getAuthHeaders ? window.getAuthHeaders() : {
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken })
+        'Content-Type': 'application/json'
       },
-      credentials: 'same-origin',
       body: JSON.stringify(data)
     });
     if (!response.ok) {
@@ -217,14 +211,11 @@ async function apiPost(path, data) {
 // Wrapper para llamadas POST con archivos
 async function apiPostFile(path, formData) {
   try {
-    const csrfToken = getCookie('XSRF-TOKEN');
     const response = await fetch(`/api${path}`, {
       method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken })
+      headers: window.getAuthHeaders ? window.getAuthHeaders() : {
+        'Accept': 'application/json'
       },
-      credentials: 'same-origin',
       body: formData
     });
 
@@ -249,15 +240,12 @@ async function apiPostFile(path, formData) {
 // Wrapper para llamadas PUT a la API
 async function apiPut(path, data) {
   try {
-    const csrfToken = getCookie('XSRF-TOKEN');
     const response = await fetch(`/api${path}`, {
       method: 'PUT',
-      headers: {
+      headers: window.getAuthHeaders ? window.getAuthHeaders() : {
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken })
+        'Content-Type': 'application/json'
       },
-      credentials: 'same-origin',
       body: JSON.stringify(data)
     });
     if (!response.ok) {
@@ -275,14 +263,11 @@ async function apiPut(path, data) {
 // Wrapper para llamadas DELETE a la API
 async function apiDelete(path) {
   try {
-    const csrfToken = getCookie('XSRF-TOKEN');
     const response = await fetch(`/api${path}`, {
       method: 'DELETE',
-      headers: {
-        'Accept': 'application/json',
-        ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken })
-      },
-      credentials: 'same-origin'
+      headers: window.getAuthHeaders ? window.getAuthHeaders() : {
+        'Accept': 'application/json'
+      }
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.json();

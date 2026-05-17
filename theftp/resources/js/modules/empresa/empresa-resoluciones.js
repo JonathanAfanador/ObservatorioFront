@@ -167,7 +167,7 @@ window.previewResolucion = async function(id) {
   try {
     const response = await fetch(`/api/documentos/${id}/file`, {
       method: 'GET',
-      credentials: 'same-origin'
+      headers: window.getAuthHeaders ? window.getAuthHeaders() : {}
     });
     
     if (!response.ok) throw new Error("No se pudo obtener el archivo del servidor.");
@@ -211,7 +211,7 @@ window.downloadDocumento = async function (id) {
   try {
     const response = await fetch(`/api/documentos/${id}/file`, {
       method: 'GET',
-      credentials: 'same-origin'
+      headers: window.getAuthHeaders ? window.getAuthHeaders() : {}
     });
     if (!response.ok) throw new Error("Archivo no disponible");
     const blob = await response.blob();
