@@ -48,8 +48,8 @@ class AuthController extends Controller{
      *     )
      * )
      */
-    public function me(){
-        $usuario = Auth::user();
+    public function me(Request $request){
+        $usuario = $request->user();
 
         $usuario->load(['persona', 'rol.permisos', 'persona.tipo_ident']);
 
@@ -170,7 +170,7 @@ class AuthController extends Controller{
             return response()->json(['message' => 'El usuario no existe'], 404);
         }
 
-        if(Auth::attempt(['email'=> $datos['email'],'password'=> $datos['password']])){
+        if (Hash::check($datos['password'], $usuario->password)) {
 
             $isMobile = $request->hasHeader('X-App-Client');
             $plataforma = $isMobile ? 'Móvil' : 'Web';
@@ -250,7 +250,7 @@ class AuthController extends Controller{
      * )
      */
     public function globalLogout(Request $request){
-        $user = $request->user() ?? Auth::guard('web')->user();
+        $user = $request->user();
 
         if (!$user) {
             return response()->json(['message' => 'No autenticado'], 401);
@@ -270,10 +270,7 @@ class AuthController extends Controller{
         // 2. Revocar todos los tokens
         $user->tokens()->delete();
 
-        // 3. Cierre de sesión web
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+
 
         return response()->json(['message' => 'Cierre de sesión global exitoso'], 200);
     }
