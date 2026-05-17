@@ -150,56 +150,63 @@ class AuthController extends Controller{
      * )
      */
     public function login(LoginRequest $request){
+        try {
+            $datos = $request->validated();
 
-        $datos = $request->validated();
+            // Validación de Usuario valido
+            $usuario = User::where('email', $datos['email'])->first();
 
-        // Validación de Usuario valido
-        $usuario = User::where('email', $datos['email'])->first();
-
-        if (!$usuario) {
-            return response()->json(['message' => 'Credenciales incorrectas'], 401);
-        }
-
-        // Validar si el usuario está inhabilitado
-        if ($usuario->unable) {
-            return response()->json(['message' => 'El usuario está inhabilitado'], 403);
-        }
-
-        // Validar si el usuario fue eliminado
-        if ($usuario->deleted_at) {
-            return response()->json(['message' => 'El usuario no existe'], 404);
-        }
-
-        if (Hash::check($datos['password'], $usuario->password)) {
-
-            $isMobile = $request->hasHeader('X-App-Client');
-            $plataforma = $isMobile ? 'Móvil' : 'Web';
-
-            InicioSesion::create([
-                'direccion_ip'          => $request->ip(),
-                'fecha_hora_inicio'     => now(),
-                'fecha_ultima_actividad'=> now(),
-                'usuario_id'            => $usuario->id,
-                'plataforma'            => $plataforma,
-            ]);
-
-            // ✅ PARCHE ESTRATÉGICO: Siempre generar token Bearer para limpiar conflictos de cookies
-            if ($isMobile) {
-                $usuario->tokens()->where('name', 'mobile')->delete();
-                $token = $usuario->createToken('mobile')->plainTextToken;
-            } else {
-                $usuario->tokens()->where('name', 'web')->delete();
-                $token = $usuario->createToken('web')->plainTextToken;
+            if (!$usuario) {
+                return response()->json(['message' => 'Credenciales incorrectas'], 401);
             }
 
-            return response()->json([
-                'message' => 'Inicio de sesión exitoso',
-                'token'   => $token, // El frontend web guardará este token
-                'user'    => $usuario->load(['persona', 'rol']),
-            ], 200);
-        }
+            // Validar si el usuario está inhabilitado
+            if ($usuario->unable) {
+                return response()->json(['message' => 'El usuario está inhabilitado'], 403);
+            }
 
-        return response()->json(['message' => 'Credenciales incorrectas'], 401);
+            // Validar si el usuario fue eliminado
+            if ($usuario->deleted_at) {
+                return response()->json(['message' => 'El usuario no existe'], 404);
+            }
+
+            if (Hash::check($datos['password'], $usuario->password)) {
+
+                $isMobile = $request->hasHeader('X-App-Client');
+                $plataforma = $isMobile ? 'Móvil' : 'Web';
+
+                InicioSesion::create([
+                    'direccion_ip'          => $request->ip(),
+                    'fecha_hora_inicio'     => now(),
+                    'fecha_ultima_actividad'=> now(),
+                    'usuario_id'            => $usuario->id,
+                    'plataforma'            => $plataforma,
+                ]);
+
+                // ✅ PARCHE ESTRATÉGICO: Siempre generar token Bearer para limpiar conflictos de cookies
+                if ($isMobile) {
+                    $usuario->tokens()->where('name', 'mobile')->delete();
+                    $token = $usuario->createToken('mobile')->plainTextToken;
+                } else {
+                    $usuario->tokens()->where('name', 'web')->delete();
+                    $token = $usuario->createToken('web')->plainTextToken;
+                }
+
+                return response()->json([
+                    'message' => 'Inicio de sesión exitoso',
+                    'token'   => $token, // El frontend web guardará este token
+                    'user'    => $usuario->load(['persona', 'rol']),
+                ], 200);
+            }
+
+            return response()->json(['message' => 'Credenciales incorrectas'], 401);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Error interno en login',
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString()
+            ], 500);
+        }
     }
 
 
