@@ -36,7 +36,7 @@ Route::get('/forgot-password', function () {
 //  Rutas del Dashboard 
 // ─────────────────────────────────────────────
 
-Route::group(['prefix' => 'dashboard', 'middleware' => ['auth', 'dashboard_access'], 'as' => 'dashboard.'], function () {
+Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
     Route::view('/admin',      'dashboard.admin')->name('admin');
     Route::view('/secretaria', 'dashboard.secretaria')->name('secretaria');
     Route::view('/empresa',    'dashboard.empresa')->name('empresa');

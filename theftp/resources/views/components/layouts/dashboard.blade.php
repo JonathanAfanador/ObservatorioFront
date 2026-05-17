@@ -19,6 +19,13 @@
 
     {{-- Estilos globales, estilos del dashboard y lógica principal (app + dashboard) --}}
     @vite(['resources/css/app.css', 'resources/css/dashboard.css', 'resources/js/app.js', 'resources/js/dashboard.js'])
+
+    {{-- Protector Frontend: Si no hay token Bearer, expulsar al login inmediatamente --}}
+    <script>
+        if (!sessionStorage.getItem('auth_token')) {
+            window.location.href = '/login';
+        }
+    </script>
 </head>
 <body class="font-sans antialiased">
 
