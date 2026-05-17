@@ -35,7 +35,7 @@ if (loginFormEl) {
     if (urlParams.get('status') === 'password_reset') {
         const successMessage = document.getElementById('form-success-message');
         if (successMessage) {
-            successMessage.textContent = '✓ Contraseña actualizada correctamente. Ya puedes iniciar sesión.';
+            successMessage.textContent = '✓ Contraseña actualizada correctamente. Ya puedes inicia sesión.';
             successMessage.classList.remove('hidden');
         }
     }
@@ -54,14 +54,14 @@ if (loginFormEl) {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            // Paso 1: Protección CSRF de Sanctum (SPA Auth)
+            // Paso 1: Protección CSRF de Sanctum (SPA Auth) - CORREGIDO: credentials 'include'
             await fetch('/sanctum/csrf-cookie', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' },
-                credentials: 'same-origin'
+                credentials: 'include'
             });
 
-            // Paso 1.5: Login
+            // Paso 1.5: Login - CORREGIDO: credentials 'include'
             const loginResponse = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
@@ -69,7 +69,7 @@ if (loginFormEl) {
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': data._token
                 },
-                credentials: 'same-origin',
+                credentials: 'include',
                 body: JSON.stringify(data)
             });
 
@@ -77,15 +77,14 @@ if (loginFormEl) {
             if (!loginResponse.ok) throw new Error(loginResult.message || 'Credenciales incorrectas.');
 
             // El token ahora viaja en la cookie HttpOnly llamada laravel_session.
-            // Opcional: limpiar tokens de prueba locales viejos.
             sessionStorage.removeItem('auth_token');
 
-            // Paso 2: Obtener datos del usuario
+            // Paso 2: Obtener datos del usuario - CORREGIDO: credentials 'include'
             submitButton.innerHTML = 'Verificando rol...';
             const meResponse = await fetch('/api/auth/me', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' },
-                credentials: 'same-origin'
+                credentials: 'include'
             });
             if (!meResponse.ok) throw new Error('No se pudo verificar la sesión de usuario.');
 
@@ -99,7 +98,7 @@ if (loginFormEl) {
 
             const roleId = parseInt(user.rol_id, 10);
 
-            // Paso 2.5: Obtener descripción del rol
+            // Paso 2.5: Obtener descripción del rol - CORREGIDO: credentials 'include'
             submitButton.innerHTML = 'Cargando datos...';
             let rolDescripcion = 'Invitado';
 
@@ -107,7 +106,7 @@ if (loginFormEl) {
                 const rolResponse = await fetch(`/api/rol/${roleId}`, {
                     method: 'GET',
                     headers: { 'Accept': 'application/json' },
-                    credentials: 'same-origin'
+                    credentials: 'include'
                 });
 
                 if (rolResponse.ok) {
@@ -132,7 +131,6 @@ if (loginFormEl) {
                 case 2: dashboardPath = '/dashboard/secretaria'; break;
                 case 3: dashboardPath = '/dashboard/empresa'; break;
                 case 4: dashboardPath = '/dashboard/upc'; break;
-                // Rol 5 permanece en '/'
             }
 
             // Persistir datos en sessionStorage
