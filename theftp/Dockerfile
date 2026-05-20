@@ -1,3 +1,13 @@
+# ── Stage 1: Node.js builder ─────────────────────────────────────────────────
+FROM node:20-slim AS node-builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --prefer-offline && npm cache clean --force
+COPY . .
+RUN npm run build
+
+# ── Stage 2: PHP + Apache runtime ────────────────────────────────────────────
 FROM php:8.4-apache
 
 # Instalar dependencias del sistema
@@ -10,22 +20,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN docker-php-ext-install \
     pdo pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd zip
 
-# Instalar Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
-
 # Habilitar mod_rewrite y headers de Apache
 RUN a2enmod rewrite headers  # ← headers es necesario para CORS
 
 WORKDIR /var/www/html
 COPY . /var/www/html
 
+# Copiar los assets compilados desde el builder (reemplaza cualquier dist sin compilar)
+COPY --from=node-builder /app/public/build /var/www/html/public/build
+
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --optimize-autoloader
-
-RUN npm install && npm run build
 
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
