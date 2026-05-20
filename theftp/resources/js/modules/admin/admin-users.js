@@ -21,32 +21,39 @@ let adminUsersStore = {
 let editingUserId = null;
 
 // -----------------------------------------------
-// Carga paginada de personas (evita limite 422)
+// Busqueda asincrona de personas (Optimizacion de Red)
 // -----------------------------------------------
-async function fetchAllPersonas() {
-    let allPersonas = [];
-    let page = 1;
-    let hasMore = true;
-    const limit = 100;
-
-    AdminBase.showNotification('info', 'Cargando Directorio', 'Obteniendo lista completa de personas...');
-
-    while (hasMore) {
-        const res = await AdminBase.apiCall('/personas', 'GET', { page, limit });
-        if (res && res.data) {
-            const data = res.data.data || res.data;
-            if (Array.isArray(data) && data.length > 0) {
-                allPersonas = allPersonas.concat(data);
-                hasMore = data.length >= limit;
-                page++;
-            } else {
-                hasMore = false;
-            }
-        } else {
-            hasMore = false;
-        }
+async function searchPersonasAPI(term = '') {
+    const limit = 30; // Solo traer los primeros 30 resultados
+    let filter = {};
+    
+    if (term.length >= 3) {
+        // Asumiendo que la API soporta filtro por NUI o name
+        // Si no soporta filtro avanzado en el JSON, enviamos todo y filtramos
+        // Pero intentemos usar la estructura de filtro estandar del backend
+        filter = {
+            nui: { "like": `%${term}%` }
+        };
     }
-    return allPersonas;
+    
+    AdminBase.showNotification('info', 'Buscando...', 'Consultando base de datos', 1000);
+    const res = await AdminBase.apiCall('/personas', 'GET', { 
+        limit: limit, 
+        // filter: JSON.stringify(filter) // Si la API backend soporta el json
+    });
+    
+    if (res && res.data) {
+        let list = res.data.data || res.data;
+        if (term.length >= 3) {
+             const lowerTerm = term.toLowerCase();
+             list = list.filter(p => 
+                 String(p.nui).includes(lowerTerm) || 
+                 `${p.name} ${p.last_name}`.toLowerCase().includes(lowerTerm)
+             );
+        }
+        return list;
+    }
+    return [];
 }
 
 // -----------------------------------------------
@@ -102,22 +109,30 @@ function renderPersonasSelect(list, selectedId = null) {
 }
 
 // -----------------------------------------------
-// Buscador de personas dentro del modal
+// Buscador de personas dentro del modal (Asincrono)
 // -----------------------------------------------
+let personaSearchTimeout = null;
 function setupPersonaFilter() {
     const input = document.getElementById('filter-persona-input');
     if (!input) return;
 
     input.addEventListener('keyup', (e) => {
-        const term = e.target.value.toLowerCase();
-        const filtered = adminUsersStore.personas.filter(p => {
-            const fullName = `${p.name} ${p.last_name}`.toLowerCase();
-            return fullName.includes(term) || String(p.nui).includes(term);
-        });
-        const currentVal = document.getElementById('user-persona')?.value
-            ? parseInt(document.getElementById('user-persona').value)
-            : null;
-        renderPersonasSelect(filtered, currentVal);
+        const term = e.target.value;
+        if (term.length < 3 && term.length > 0) return; // Esperar al menos 3 caracteres
+
+        if (personaSearchTimeout) clearTimeout(personaSearchTimeout);
+        personaSearchTimeout = setTimeout(async () => {
+            const select = document.getElementById('user-persona');
+            if (select) select.innerHTML = '<option>Buscando en servidor...</option>';
+            
+            const results = await searchPersonasAPI(term);
+            adminUsersStore.personas = results; // Guardar cache local temporal
+            
+            const currentVal = document.getElementById('user-persona')?.value
+                ? parseInt(document.getElementById('user-persona').value)
+                : null;
+            renderPersonasSelect(results, currentVal);
+        }, 500); // 500ms debounce para no saturar la red
     });
 }
 
@@ -238,12 +253,12 @@ window.openModalUser = async function(id = null) {
         }
     }
 
-    // Cargar personas (paginado, con cache)
+    // Cargar personas (Primeros resultados rapido sin descargar todo)
     if (adminUsersStore.personas.length === 0) {
         const personaSelect = document.getElementById('user-persona');
         if (personaSelect) {
-            personaSelect.innerHTML = '<option>Cargando directorio...</option>';
-            adminUsersStore.personas = await fetchAllPersonas();
+            personaSelect.innerHTML = '<option>Cargando directorio inicial...</option>';
+            adminUsersStore.personas = await searchPersonasAPI('');
             adminUsersStore.personas.sort((a, b) =>
                 (a.name + a.last_name).localeCompare(b.name + b.last_name)
             );
