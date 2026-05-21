@@ -7,8 +7,7 @@ async function loadRutas() {
     if (!container) return;
 
     // Remover estado de carga si existe (limpiar el container HTML)
-    container.innerHTML = '<div id="empresa-rutas-map" style="width: 100%; height: 600px; border-radius: 8px; z-index: 1;'></div>';
-        container.innerHTML = '<div id="empresa-rutas-map" style="width: 100%; height: 600px; border-radius: 8px; z-index: 1;"></div>';
+    container.innerHTML = '<div id="empresa-rutas-map" style="width: 100%; height: 600px; border-radius: 8px; z-index: 1;"></div>';
     // Para evitar conflictos con hojas de estilo, asegurarse de invalidar y limpiar cuando Leaflet se reutiliza.
     if (empresaMapCore) {
         empresaMapCore.map.remove();
