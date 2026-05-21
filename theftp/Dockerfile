@@ -13,7 +13,7 @@ FROM php:8.4-apache
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl libpng-dev libonig-dev libxml2-dev \
-    libzip-dev zip unzip libpq-dev \
+    libzip-dev zip unzip libpq-dev postgresql-client \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instalar extensiones de PHP

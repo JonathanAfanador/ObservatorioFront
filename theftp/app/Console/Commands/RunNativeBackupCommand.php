@@ -32,25 +32,16 @@ class RunNativeBackupCommand extends Command
         $this->info('Iniciando backup nativo de PostgreSQL...');
 
         try {
+            $dbHost = config('database.connections.pgsql.host');
+            $dbPort = config('database.connections.pgsql.port');
+            $dbUser = config('database.connections.pgsql.username');
             $dbName = config('database.connections.pgsql.database');
             $password = config('database.connections.pgsql.password');
             $date = Carbon::now()->format('Y-m-d-H-i-s');
             
             // Buscar pg_dump activamente
-            $pgDumpPathsToTry = [
-                'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe',
-                'C:\Program Files\PostgreSQL\16\bin\pg_dump.exe',
-                config('backup.pg_dump_path') ? rtrim(config('backup.pg_dump_path'), '/\\') . DIRECTORY_SEPARATOR . 'pg_dump.exe' : '',
-                'pg_dump.exe'
-            ];
-            
-            $finalPgDumpPath = 'pg_dump.exe';
-            foreach ($pgDumpPathsToTry as $path) {
-                if ($path !== '' && (file_exists($path) || $path === 'pg_dump.exe')) {
-                    $finalPgDumpPath = $path;
-                    if (file_exists($path)) break;
-                }
-            }
+            $finalPgDumpPath = 'pg_dump';
+
             
             $storageFolder = storage_path('app/backup-manual-nativo');
             if (!is_dir($storageFolder)) {
@@ -62,11 +53,8 @@ class RunNativeBackupCommand extends Command
             $googleFolder = config('backup.backup.name', 'Laravel');
             $googleDestPath = $googleFolder . '/backup-' . $date . '.zip';
 
-            $this->line("- Generando volcado con: {$finalPgDumpPath}");
+            $command = "PGPASSWORD={$password} {$finalPgDumpPath} -h {$dbHost} -p {$dbPort} -U {$dbUser} -F p -f \"{$sqlFile}\" {$dbName} 2>&1";
 
-            // 1. Extraer BD nativamente
-            $command = 'set PGPASSWORD=' . $password . ' && "' . $finalPgDumpPath . '" -h 127.0.0.1 -p 5433 -U postgres -F p -f "' . $sqlFile . '" ' . $dbName . ' 2>&1';
-            $output = shell_exec($command);
             
             if (!file_exists($sqlFile) || filesize($sqlFile) === 0 || strpos((string)$output, 'error:') !== false || strpos((string)$output, 'FATAL') !== false) {
                 throw new Exception("Error al dumpear la base de datos:\n" . $output);
