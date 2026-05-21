@@ -56,16 +56,8 @@ async function loadRutas() {
             if (r.file_name && (r.file_name.toLowerCase().endsWith('.kmz') || r.file_name.toLowerCase().endsWith('.kml'))) {
                 const label = `Ruta Asignada: ${r.name || r.nombre || 'Ruta ' + r.id}`;
                 
-                // Determinar la URL correcta del archivo
-                let fileUrl = r.file_name;
-                // Soporte para rutas antiguas o relativas
-                if (fileUrl && !fileUrl.startsWith('/') && !fileUrl.startsWith('http')) {
-                    fileUrl = `/storage/rutas/${fileUrl}`;
-                }
-                
                 try {
-                    // Usar la URL directa del archivo en lugar de un endpoint de API inexistente
-                    const featureLayer = await empresaMapCore.loadKmz(fileUrl, label, index, fetchOptions, { onlyLines: true });
+                    const featureLayer = await empresaMapCore.loadKmz(r.file_name, label, index, fetchOptions, { onlyLines: true });
                     if (featureLayer) {
                         r.status_kml = 'ok';
                         successCount++;
@@ -73,7 +65,7 @@ async function loadRutas() {
                         r.status_kml = 'empty';
                     }
                 } catch(e) {
-                    console.warn(`[Visor Rutas] No se pudo cargar Trazado KMZ para "${label}" en ${fileUrl}:`, e.message);
+                    console.warn(`[Visor Rutas] No se pudo cargar Trazado KMZ para "${label}" en ${r.file_name}:`, e.message);
                     r.status_kml = 'error';
                 }
             } else {
