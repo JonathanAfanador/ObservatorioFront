@@ -189,11 +189,31 @@ const originalShowView = window.showView;
 if (typeof window.showView === 'function') {
     window.showView = function(viewId) {
         originalShowView(viewId);
-        if (viewId === 'rutas' && empresaMapCore) {
-            empresaMapCore.invalidateSize();
+        if (viewId === 'rutas') {
+            if (empresaMapCore) {
+                empresaMapCore.invalidateSize();
+            } else {
+                loadRutas();
+            }
         }
     };
 }
+
+// Inicialización: llamar loadRutas si la vista activa al cargar la página es 'rutas',
+// o cuando el usuario navega a ella mediante el hash de la URL.
+document.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.substring(1);
+    if (hash === 'rutas') {
+        loadRutas();
+    }
+});
+
+window.addEventListener('hashchange', () => {
+    const view = window.location.hash.substring(1);
+    if (view === 'rutas' && !empresaMapCore) {
+        loadRutas();
+    }
+});
 
 // Solo exponemos loadRutas y downloadRuta, ¡Ya no hay CRUD!
 window.loadRutas = loadRutas;
