@@ -197,7 +197,7 @@ export default class MapCore {
             center: [center.lat, center.lng],
             zoom: center.zoom,
             zoomControl: false,
-            preferCanvas: true,          // Renderizado hiper-rápido usando HTML5 Canvas en vez de SVG (ideal para móviles y KMZs)
+            preferCanvas: false,          // Renderizado hiper-rápido usando HTML5 Canvas en vez de SVG (ideal para móviles y KMZs)
             zoomAnimation: true,         // Animaciones de zoom fluidas
             markerZoomAnimation: true,   // Animar marcadores durante el zoom
             fadeAnimation: true,         // Transición suave entre tiles de mapas
