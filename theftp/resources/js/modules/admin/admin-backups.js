@@ -34,10 +34,7 @@ const AdminBackups = {
 
         try {
             const response = await fetch('/api/backups', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                    'Accept': 'application/json'
-                }
+                headers: getAuthHeaders()
             });
 
             const result = await response.json();
@@ -148,11 +145,7 @@ const AdminBackups = {
         try {
             const response = await fetch('/api/backups', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-                }
+                headers: getAuthHeaders()
             });
 
             const result = await response.json();
@@ -195,11 +188,7 @@ const AdminBackups = {
         try {
             const response = await fetch(`/api/backups/${fileBase64}`, {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-                }
+                headers: getAuthHeaders()
             });
 
             const result = await response.json();
