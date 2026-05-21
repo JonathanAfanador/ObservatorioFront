@@ -366,4 +366,4 @@ window.openModal = openModalUser; // Alias para compatibilidad con AdminBase
 window.destroy = deleteUser;     // Alias para compatibilidad con AdminBase
 window.restore = restoreUser;     // Alias para compatibilidad con AdminBase
 window.setupPersonaFilter = setupPersonaFilter;
-window.fetchAllPersonas = fetchAllPersonas;
+window.fetchAllPersonas = searchPersonasAPI;
