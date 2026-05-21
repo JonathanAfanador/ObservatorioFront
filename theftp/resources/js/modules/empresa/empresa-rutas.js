@@ -45,11 +45,7 @@ async function loadRutas() {
         if (window.showNotification) window.showNotification('success', 'Rutas Encontradas', 'Descargando y decodificando mapas espaciales...', 3000);
 
         const fetchOptions = {
-            headers: {
-                ...(window.getAuthHeaders ? window.getAuthHeaders() : {}),
-                'Cache-Control': 'no-cache',   // ← fuerza 200 en lugar de 304
-                'Pragma': 'no-cache'
-            }
+            headers: window.getAuthHeaders ? window.getAuthHeaders() : {}
         };
 
         let index = 0;
@@ -61,7 +57,7 @@ async function loadRutas() {
                 const label = `Ruta Asignada: ${r.name || r.nombre || 'Ruta ' + r.id}`;
                 
                 try {
-                    const featureLayer = await empresaMapCore.loadKmz(r.file_name, label, index, fetchOptions, { onlyLines: true });
+                    const featureLayer = await empresaMapCore.loadKmz(r.file_name, label, index, {}, { onlyLines: true });
                     if (featureLayer) {
                         r.status_kml = 'ok';
                         successCount++;
