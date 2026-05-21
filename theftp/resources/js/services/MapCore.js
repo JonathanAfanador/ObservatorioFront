@@ -769,105 +769,99 @@ export default class MapCore {
 
     /** Renderiza el layer GeoJSON en el mapa CON flechas de dirección, Inicio/Fin */
     addGeoJsonFeature(geoJson, label, colorIndex, options = {}) {
-        if (!geoJson || !geoJson.features) return null;
+    if (!geoJson || !geoJson.features) return null;
 
-        let features = geoJson.features;
-            // LOG TEMPORAL
-    console.log('=== addGeoJsonFeature ===', label);
-    console.log('Total features antes de filtrar:', features.length);
-    console.log('Tipos de geometría:', features.map(f => f.geometry?.type));
-    console.log('onlyLines:', options.onlyLines);
-        // Filtrar por geometría si se solicita
-                if (options.onlyLines) {
-                    features = features.filter(f => {
-                        if (!f.geometry || !isLineGeometry(f.geometry.type)) return false;
-                        
-                        // Detectar Bounding Boxes ocultos
-                        if (f.geometry.type === 'LineString' && f.geometry.coordinates.length <= 6) {
-                            const c = f.geometry.coordinates;
-                            const lastIdx = c.length - 1;
-                            const diffStartEnd = Math.hypot(c[0][0] - c[lastIdx][0], c[0][1] - c[lastIdx][1]);
-                            if (diffStartEnd < 0.001) return false;  // ← FILTRA DEMASIADO AGRESIVO
-                        }
-                
-                if (f.geometry.type === 'MultiLineString') {
-                    const lineasValidas = f.geometry.coordinates.filter(c => {
-                        if (c.length === 5) {
-                            const diffStartEnd = Math.hypot(c[0][0] - c[4][0], c[0][1] - c[4][1]);
-                            if (diffStartEnd < 0.0001) return false;
-                        }
-                        return true;
-                    });
-                    if (lineasValidas.length === 0) return false;
-                    f.geometry.coordinates = lineasValidas;
-                }
-                
-                const name = (f.properties?.name || '').toLowerCase();
-                if (name.includes('bounding') || name.includes('box') || name.includes('superficie')) return false;
-                return true;
-            });
-        } else if (options.onlyPoints) {
-            features = features.filter(f => f.geometry && isPointGeometry(f.geometry.type));
-        }
-        console.log('Features después de filtrar:', features.length);
-        if (features.length === 0) return null;
-        
-        const filteredGeoJson = { ...geoJson, features: features };
-        const kmzRouteKey = extractRouteKey(label);
-        
-        const layer = L.geoJSON(filteredGeoJson, {
-            style: (feature) => {
-                const geomType = feature.geometry.type;
+    let features = geoJson.features;
+
+    if (options.onlyLines) {
+        features = features.filter(f => {
+            if (!f.geometry || !isLineGeometry(f.geometry.type)) return false;
+            
+            if (f.geometry.type === 'LineString' && f.geometry.coordinates.length <= 6) {
+                const c = f.geometry.coordinates;
+                const lastIdx = c.length - 1;
+                const diffStartEnd = Math.hypot(c[0][0] - c[lastIdx][0], c[0][1] - c[lastIdx][1]);
+                if (diffStartEnd < 0.001) return false;
+            }
+            
+            if (f.geometry.type === 'MultiLineString') {
+                const lineasValidas = f.geometry.coordinates.filter(c => {
+                    if (c.length === 5) {
+                        const diffStartEnd = Math.hypot(c[0][0] - c[4][0], c[0][1] - c[4][1]);
+                        if (diffStartEnd < 0.0001) return false;
+                    }
+                    return true;
+                });
+                if (lineasValidas.length === 0) return false;
+                f.geometry.coordinates = lineasValidas;
+            }
+            
+            const name = (f.properties?.name || '').toLowerCase();
+            if (name.includes('bounding') || name.includes('box') || name.includes('superficie')) return false;
+            return true;
+        });
+    } else if (options.onlyPoints) {
+        features = features.filter(f => f.geometry && isPointGeometry(f.geometry.type));
+    }
+    
+    if (features.length === 0) return null;
+    
+    const filteredGeoJson = { ...geoJson, features: features };
+    const kmzRouteKey = extractRouteKey(label);
+    
+    const layer = L.geoJSON(filteredGeoJson, {
+        style: (feature) => {
+            const geomType = feature.geometry.type;
+            const name = (feature.properties?.name || '').trim();
+            const featKey = extractRouteKey(name) || kmzRouteKey;
+            
+            if (isLineGeometry(geomType)) {
+                const color = getRouteColor(featKey, colorIndex);
+                return lineStyle(color);
+            }
+            return { opacity: 0, fillOpacity: 0, weight: 0 };
+        },
+        pointToLayer: (feature, latlng) => {
+            const name = (feature.properties?.name || '').trim();
+            const featKey = extractRouteKey(name) || kmzRouteKey;
+            const color = getParaderoColor(featKey);
+            return L.marker(latlng, { icon: createParaderoIcon(color) });
+        },
+        onEachFeature: (feature, l) => {
+            const geomType = feature.geometry.type;
+            const n = feature.properties?.name || (isLineGeometry(geomType) ? 'Ruta' : 'Paradero');
+            
+            l.bindTooltip(n, { permanent: false, direction: 'top', className: 'geovisor-tooltip' });
+            
+            if (isLineGeometry(geomType)) {
                 const name = (feature.properties?.name || '').trim();
                 const featKey = extractRouteKey(name) || kmzRouteKey;
-                
-                if (isLineGeometry(geomType)) {
-                    const color = getRouteColor(featKey, colorIndex);
-                    return lineStyle(color);
-                }
-                return { opacity: 0, fillOpacity: 0, weight: 0 };
-            },
-            pointToLayer: (feature, latlng) => {
-                const name = (feature.properties?.name || '').trim();
-                const featKey = extractRouteKey(name) || kmzRouteKey;
-                const color = getParaderoColor(featKey);
-                return L.marker(latlng, { icon: createParaderoIcon(color) });
-            },
-            onEachFeature: (feature, l) => {
-                const geomType = feature.geometry.type;
-                const n = feature.properties?.name || (isLineGeometry(geomType) ? 'Ruta' : 'Paradero');
-                
-                l.bindTooltip(n, { permanent: false, direction: 'top', className: 'geovisor-tooltip' });
-                
-                if (isLineGeometry(geomType)) {
-                    const name = (feature.properties?.name || '').trim();
-                    const featKey = extractRouteKey(name) || kmzRouteKey;
-                    const color = getRouteColor(featKey, colorIndex);
-                    const style = lineStyle(color);
+                const color = getRouteColor(featKey, colorIndex);
+                const style = lineStyle(color);
 
-                    l.on('mouseover', function() { 
-                        this.setStyle(lineStyleHL(color)); 
-                        this.bringToFront(); 
-                    });
-                    l.on('mouseout', function() { 
-                        this.setStyle(style); 
-                    });
-                }
-                
-                l.on('click', (e) => { 
-                    L.DomEvent.stopPropagation(e);
-                    if (this.onFeatureClick) this.onFeatureClick(n, feature.properties, label, e); 
+                l.on('mouseover', function() { 
+                    this.setStyle(lineStyleHL(color)); 
+                    this.bringToFront(); 
+                });
+                l.on('mouseout', function() { 
+                    this.setStyle(style); 
                 });
             }
-        });
+            
+            l.on('click', (e) => { 
+                L.DomEvent.stopPropagation(e);
+                if (this.onFeatureClick) this.onFeatureClick(n, feature.properties, label, e); 
+            });
+        }
+    });
 
-        const groupLayers = [layer];
-        let allLinePoints = [];
+    const groupLayers = [layer];
+    let allLinePoints = [];
 
-        // Extraer endpoints y dibujar FLECHAS de dirección
-        layer.eachLayer((l) => {
-            if (l.feature && isLineGeometry(l.feature.geometry.type)) {
-                // Agregar decoradores de flecha en el sentido del trazado
+    layer.eachLayer((l) => {
+        if (l.feature && isLineGeometry(l.feature.geometry.type)) {
+            // Flechas - protegido contra fallos del plugin
+            try {
                 const arrowDecorator = L.polylineDecorator(l, {
                     patterns: [
                         {
@@ -888,25 +882,27 @@ export default class MapCore {
                     ]
                 });
                 groupLayers.push(arrowDecorator);
-
-                // Extraer vértices para los marcadores de Inicio/Fin
-                if (l.feature.geometry.type === 'LineString') {
-                    allLinePoints.push(...l.feature.geometry.coordinates);
-                } else if (l.feature.geometry.type === 'MultiLineString') {
-                    l.feature.geometry.coordinates.forEach(line => allLinePoints.push(...line));
-                }
+            } catch(decoratorErr) {
+                console.warn('[MapCore] polylineDecorator no disponible:', decoratorErr.message);
             }
-        });
 
-        // Agregar marcadores de Inicio y Fin
-        if (allLinePoints.length >= 2) {
-            const startCoord = allLinePoints[0];
-            const endCoord = allLinePoints[allLinePoints.length - 1];
-            
-            const latDiff = Math.abs(startCoord[1] - endCoord[1]);
-            const lngDiff = Math.abs(startCoord[0] - endCoord[0]);
-            const isOverlapping = (latDiff < 0.0003 && lngDiff < 0.0003);
-            
+            if (l.feature.geometry.type === 'LineString') {
+                allLinePoints.push(...l.feature.geometry.coordinates);
+            } else if (l.feature.geometry.type === 'MultiLineString') {
+                l.feature.geometry.coordinates.forEach(line => allLinePoints.push(...line));
+            }
+        }
+    });
+
+    if (allLinePoints.length >= 2) {
+        const startCoord = allLinePoints[0];
+        const endCoord = allLinePoints[allLinePoints.length - 1];
+        
+        const latDiff = Math.abs(startCoord[1] - endCoord[1]);
+        const lngDiff = Math.abs(startCoord[0] - endCoord[0]);
+        const isOverlapping = (latDiff < 0.0003 && lngDiff < 0.0003);
+        
+        try {
             const startMarker = L.marker([startCoord[1], startCoord[0]], { 
                 icon: createStartIcon(isOverlapping ? -60 : 0), 
                 interactive: false 
@@ -916,67 +912,73 @@ export default class MapCore {
                 interactive: false 
             });
             groupLayers.push(startMarker, endMarker);
+        } catch(markerErr) {
+            console.warn('[MapCore] Error creando marcadores Inicio/Fin:', markerErr.message);
         }
+    }
 
+    try {
         const group = L.featureGroup(groupLayers);
         group.addTo(this.map);
-
-        // NUEVO: verificar que realmente se agregó al mapa
-        if (!group._map) {
-            console.warn('[MapCore] El grupo no pudo agregarse al mapa (mapa no listo):', label);
-            return null; // No guardar en overlayGroups si falló
-        }
-
         this.overlayGroups[label] = group;
-    }
 
-    fitAllOverlays() {
-        const boundsList = Object.values(this.overlayGroups).map(g => {
-            try { return g.getBounds(); } catch(e) { return null; }
-        }).filter(b => b && b.isValid());
-
-        if (boundsList.length > 0) {
-            const combined = boundsList.reduce((acc, b) => acc.extend(b), boundsList[0]);
-            this.map.fitBounds(combined, { padding: [40, 40] });
-            this.initialView.bounds = combined;
+        if (this.nativeLayerControl) {
+            this.nativeLayerControl.addOverlay(group, label);
         }
-    }
 
-    clearAllOverlays() {
-        Object.keys(this.overlayGroups).forEach(label => {
-            const group = this.overlayGroups[label];
-            if(this.map.hasLayer(group)) this.map.removeLayer(group);
-            if(this.nativeLayerControl) this.nativeLayerControl.removeLayer(group);
+        return group;
+    } catch(groupErr) {
+        console.error('[MapCore] Error creando featureGroup:', groupErr);
+        return null;
+    }
+}
+
+fitAllOverlays() {
+    const boundsList = Object.values(this.overlayGroups).map(g => {
+        try { return g.getBounds(); } catch(e) { return null; }
+    }).filter(b => b && b.isValid());
+
+    if (boundsList.length > 0) {
+        const combined = boundsList.reduce((acc, b) => acc.extend(b), boundsList[0]);
+        this.map.fitBounds(combined, { padding: [40, 40] });
+        this.initialView.bounds = combined;
+    }
+}
+
+clearAllOverlays() {
+    Object.keys(this.overlayGroups).forEach(label => {
+        const group = this.overlayGroups[label];
+        if(this.map.hasLayer(group)) this.map.removeLayer(group);
+        if(this.nativeLayerControl) this.nativeLayerControl.removeLayer(group);
+    });
+    this.overlayGroups = {};
+}
+
+organizeLayerControl() {
+    if (!this.nativeLayerControl) return;
+    setTimeout(() => {
+        const controlContainer = document.querySelector('.leaflet-control-layers-overlays');
+        if (!controlContainer) return;
+        const labels = Array.from(controlContainer.querySelectorAll('label'));
+        controlContainer.querySelectorAll('.leaflet-layer-control-header').forEach(h => h.remove());
+        let hasRutasHeader = false;
+        let hasParaderosHeader = false;
+        labels.forEach(label => {
+            const text = label.textContent.trim();
+            if (text.startsWith('Ruta Asignada:') && !hasRutasHeader) {
+                const header = document.createElement('div');
+                header.className = 'leaflet-layer-control-header';
+                header.textContent = 'Rutas Asignadas';
+                controlContainer.insertBefore(header, label);
+                hasRutasHeader = true;
+            } else if (text.startsWith('Paraderos:') && !hasParaderosHeader) {
+                const header = document.createElement('div');
+                header.className = 'leaflet-layer-control-header';
+                header.textContent = 'Paraderos Oficiales';
+                controlContainer.insertBefore(header, label);
+                hasParaderosHeader = true;
+            }
         });
-        this.overlayGroups = {};
-    }
-
-    organizeLayerControl() {
-        if (!this.nativeLayerControl) return;
-        setTimeout(() => {
-            const controlContainer = document.querySelector('.leaflet-control-layers-overlays');
-            if (!controlContainer) return;
-            const labels = Array.from(controlContainer.querySelectorAll('label'));
-            // Eliminar cabeceras previas para evitar duplicados
-            controlContainer.querySelectorAll('.leaflet-layer-control-header').forEach(h => h.remove());
-            let hasRutasHeader = false;
-            let hasParaderosHeader = false;
-            labels.forEach(label => {
-                const text = label.textContent.trim();
-                if (text.startsWith('Ruta Asignada:') && !hasRutasHeader) {
-                    const header = document.createElement('div');
-                    header.className = 'leaflet-layer-control-header';
-                    header.textContent = 'Rutas Asignadas';
-                    controlContainer.insertBefore(header, label);
-                    hasRutasHeader = true;
-                } else if (text.startsWith('Paraderos:') && !hasParaderosHeader) {
-                    const header = document.createElement('div');
-                    header.className = 'leaflet-layer-control-header';
-                    header.textContent = 'Paraderos Oficiales';
-                    controlContainer.insertBefore(header, label);
-                    hasParaderosHeader = true;
-                }
-            });
-        }, 100);
-    }
+    }, 100);
+}
 }
