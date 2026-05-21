@@ -916,13 +916,14 @@ export default class MapCore {
 
         const group = L.featureGroup(groupLayers);
         group.addTo(this.map);
-        this.overlayGroups[label] = group;
 
-        if (this.nativeLayerControl) {
-            this.nativeLayerControl.addOverlay(group, label);
+        // NUEVO: verificar que realmente se agregó al mapa
+        if (!group._map) {
+            console.warn('[MapCore] El grupo no pudo agregarse al mapa (mapa no listo):', label);
+            return null; // No guardar en overlayGroups si falló
         }
 
-        return group;
+        this.overlayGroups[label] = group;
     }
 
     fitAllOverlays() {

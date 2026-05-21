@@ -6,45 +6,30 @@ async function loadRutas() {
     const container = document.getElementById('empresa-rutas-map-container');
     if (!container) return;
 
-    // NUEVO: esperar a que el contenedor sea visible
-    await new Promise(resolve => {
-        if (container.offsetParent !== null) {
-            resolve();
-        } else {
-            const observer = new MutationObserver(() => {
-                if (container.offsetParent !== null) {
-                    observer.disconnect();
-                    resolve();
-                }
-            });
-            observer.observe(document.body, { 
-                attributes: true, 
-                subtree: true, 
-                attributeFilter: ['style', 'class'] 
-            });
-        }
-    });
+    // Evitar doble ejecución simultánea
+    if (window._loadRutasRunning) return;
+    window._loadRutasRunning = true;
 
+    // Limpiar el contenedor
     container.innerHTML = '<div id="empresa-rutas-map" style="width: 100%; height: 600px; border-radius: 8px; z-index: 1;"></div>';
-    
+
     if (empresaMapCore) {
         empresaMapCore.map.remove();
         empresaMapCore = null;
     }
 
+    // Esperar que el contenedor sea visible antes de inicializar Leaflet
+    await new Promise(resolve => setTimeout(resolve, 400));
+
     empresaMapCore = new MapCore('empresa-rutas-map', {
-        useNativeLayerControl: true, // Deja que el panel interactivo cambie las capas
+        useNativeLayerControl: true,
         onFeatureClick: (name, props, sourceName) => {
-            // Un popup nativo o una notificación visual
             if (window.showNotification) {
                 window.showNotification('info', name, `Elemento de: ${sourceName}`);
             }
         }
     });
 
-    // Filtro ELIMINADO: TenantScope ahora protege automáticamente la ruta a nivel de Backend.
-    // Al llamar a /rutas, el servidor detecta quién es el usuario y le devuelve
-    // únicamente las rutas asignadas a su empresa en la tabla pivote, y traemos los 'paraderos' y el nombre del archivo KMZ.
     const endpoint = '/rutas?include=empresas,paraderos';
 
     try {
@@ -57,14 +42,11 @@ async function loadRutas() {
 
         if (uniqueRutas.length === 0) {
             if (window.showNotification) window.showNotification('info', 'Rutas', 'No tienes rutas asignadas actualmente.');
+            window._loadRutasRunning = false;
             return;
         }
 
         if (window.showNotification) window.showNotification('success', 'Rutas Encontradas', 'Descargando y decodificando mapas espaciales...', 3000);
-
-        const fetchOptions = {
-            headers: window.getAuthHeaders ? window.getAuthHeaders() : {}
-        };
 
         let index = 0;
         let successCount = 0;
@@ -76,12 +58,15 @@ async function loadRutas() {
                 
                 try {
                     const featureLayer = await empresaMapCore.loadKmz(r.file_name, label, index, {}, { onlyLines: true });
-                     console.log('KMZ resultado:', label, featureLayer); 
-                    if (featureLayer) {
+                    if (featureLayer && featureLayer._map) {
                         r.status_kml = 'ok';
                         successCount++;
                     } else {
                         r.status_kml = 'empty';
+                        // Si el grupo se creó pero sin mapa, limpiarlo de overlayGroups
+                        if (empresaMapCore.overlayGroups[label]) {
+                            delete empresaMapCore.overlayGroups[label];
+                        }
                     }
                 } catch(e) {
                     console.warn(`[Visor Rutas] No se pudo cargar Trazado KMZ para "${label}" en ${r.file_name}:`, e.message);
@@ -94,7 +79,7 @@ async function loadRutas() {
         }
 
         // --- PASO 2: Cargar todos los paraderos después ---
-        index = 0; // Reiniciar index para colores si se desea o seguir
+        index = 0;
         for (const r of uniqueRutas) {
             const dbParaderos = r.paraderos?.data || r.paraderos; 
             if (Array.isArray(dbParaderos) && dbParaderos.length > 0) {
@@ -114,7 +99,7 @@ async function loadRutas() {
                 };
                 try {
                     const labelParaderos = `Paraderos: ${r.nombre || r.name}`;
-                    empresaMapCore.addGeoJsonFeature(puntosGeoJson, labelParaderos, index + 20); // Diferente color range
+                    empresaMapCore.addGeoJsonFeature(puntosGeoJson, labelParaderos, index + 20);
                     successCount++; 
                 } catch(e) {
                     console.error('[Visor Rutas] Error pintando paraderos:', e);
@@ -184,6 +169,9 @@ async function loadRutas() {
     } catch (err) {
         console.error('Error cargando supervisor GIS:', err);
         if (window.showNotification) window.showNotification('error', 'Error Geográfico', 'No se pudieron recuperar los trazos de ruta.');
+    } finally {
+        // Siempre liberar el flag, pase lo que pase
+        window._loadRutasRunning = false;
     }
 }
 
