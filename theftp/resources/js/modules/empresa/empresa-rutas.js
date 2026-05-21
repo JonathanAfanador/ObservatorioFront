@@ -7,7 +7,7 @@ async function loadRutas() {
     if (!container) return;
 
     // Remover estado de carga si existe (limpiar el container HTML)
-    container.innerHTML = '<div id="empresa-rutas-map" style="width: 100%; height: 600px; border-radius: 8px; z-index: 1;"></div>';
+    container.innerHTML = '<div id="empresa-rutas-map" style="width: 100%; height: 600px; border-radius: 8px; z-index: 1;'></div>';
 
     // Para evitar conflictos con hojas de estilo, asegurarse de invalidar y limpiar cuando Leaflet se reutiliza.
     if (empresaMapCore) {
@@ -27,8 +27,8 @@ async function loadRutas() {
 
     // Filtro ELIMINADO: TenantScope ahora protege automáticamente la ruta a nivel de Backend.
     // Al llamar a /rutas, el servidor detecta quién es el usuario y le devuelve
-    // únicamente las rutas asignadas a su empresa en la tabla pivote, y traemos los 'paraderos' de BD.
-    const endpoint = '/rutas?include=empresas,paraderos'; 
+    // únicamente las rutas asignadas a su empresa en la tabla pivote, y traemos los 'paraderos' y el nombre del archivo KMZ.
+    const endpoint = '/rutas?include=empresas,paraderos,file_name';
 
     try {
         const response = await apiGet(endpoint);
@@ -63,7 +63,7 @@ async function loadRutas() {
                 if (fileUrl && !fileUrl.startsWith('/') && !fileUrl.startsWith('http')) {
                     fileUrl = `/storage/rutas/${fileUrl}`;
                 }
-
+                
                 try {
                     // Usar la URL directa del archivo en lugar de un endpoint de API inexistente
                     const featureLayer = await empresaMapCore.loadKmz(fileUrl, label, index, fetchOptions, { onlyLines: true });
@@ -135,7 +135,7 @@ async function loadRutas() {
             
             uniqueRutas.forEach(r => {
                 const nombre = r.name || r.nombre || `Ruta ${r.id}`;
-                const safeNombre = nombre.replace(/[&<>"']/g, function(m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] });
+                const safeNombre = nombre.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
                 const isActiva = r.estado !== false;
                 
                 const cardStyle = isActiva ? "" : "filter: grayscale(1); opacity: 0.7; background-color: #f8fafc; border: 1px solid #e2e8f0;";
@@ -143,17 +143,11 @@ async function loadRutas() {
                 
                 let estatus = '';
                 if (r.status_kml === 'ok') {
-                    estatus = `<span style="display:inline-flex; align-items:center; color:#16a34a; font-size:0.75rem; font-weight:600;">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Mapa Cartográfico Activo
-                               </span>`;
+                    estatus = `<span style="display:inline-flex; align-items:center; color:#16a34a; font-size:0.75rem; font-weight:600;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Mapa Cartográfico Activo</span>`;
                 } else if (r.status_kml === 'error') {
-                    estatus = `<span style="display:inline-flex; align-items:center; color:#dc2626; font-size:0.75rem; font-weight:600;">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Archivo Inválido
-                               </span>`;
+                    estatus = `<span style="display:inline-flex; align-items:center; color:#dc2626; font-size:0.75rem; font-weight:600;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Archivo Inválido</span>`;
                 } else {
-                    estatus = `<span style="display:inline-flex; align-items:center; color:#f59e0b; font-size:0.75rem; font-weight:600;">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Pendiente por Trazado
-                               </span>`;
+                    estatus = `<span style="display:inline-flex; align-items:center; color:#f59e0b; font-size:0.75rem; font-weight:600;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Pendiente por Trazado</span>`;
                 }
                 
                 html += `
