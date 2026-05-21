@@ -45,7 +45,11 @@ async function loadRutas() {
         if (window.showNotification) window.showNotification('success', 'Rutas Encontradas', 'Descargando y decodificando mapas espaciales...', 3000);
 
         const fetchOptions = {
-            headers: window.getAuthHeaders ? window.getAuthHeaders() : {}
+            headers: {
+                ...(window.getAuthHeaders ? window.getAuthHeaders() : {}),
+                'Cache-Control': 'no-cache',   // ← fuerza 200 en lugar de 304
+                'Pragma': 'no-cache'
+            }
         };
 
         let index = 0;
