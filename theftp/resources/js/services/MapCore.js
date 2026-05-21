@@ -772,7 +772,11 @@ export default class MapCore {
         if (!geoJson || !geoJson.features) return null;
 
         let features = geoJson.features;
-        
+            // LOG TEMPORAL
+    console.log('=== addGeoJsonFeature ===', label);
+    console.log('Total features antes de filtrar:', features.length);
+    console.log('Tipos de geometría:', features.map(f => f.geometry?.type));
+    console.log('onlyLines:', options.onlyLines);
         // Filtrar por geometría si se solicita
                 if (options.onlyLines) {
                     features = features.filter(f => {
@@ -805,7 +809,7 @@ export default class MapCore {
         } else if (options.onlyPoints) {
             features = features.filter(f => f.geometry && isPointGeometry(f.geometry.type));
         }
-        
+        console.log('Features después de filtrar:', features.length);
         if (features.length === 0) return null;
         
         const filteredGeoJson = { ...geoJson, features: features };
