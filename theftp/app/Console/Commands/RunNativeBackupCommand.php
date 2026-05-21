@@ -54,7 +54,7 @@ class RunNativeBackupCommand extends Command
             $googleDestPath = $googleFolder . '/backup-' . $date . '.zip';
 
             $command = "PGPASSWORD={$password} {$finalPgDumpPath} -h {$dbHost} -p {$dbPort} -U {$dbUser} -F p -f \"{$sqlFile}\" {$dbName} 2>&1";
-
+            $output = shell_exec($command);
             
             if (!file_exists($sqlFile) || filesize($sqlFile) === 0 || strpos((string)$output, 'error:') !== false || strpos((string)$output, 'FATAL') !== false) {
                 throw new Exception("Error al dumpear la base de datos:\n" . $output);
