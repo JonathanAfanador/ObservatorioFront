@@ -27,7 +27,7 @@ async function loadRutas() {
     // Filtro ELIMINADO: TenantScope ahora protege automáticamente la ruta a nivel de Backend.
     // Al llamar a /rutas, el servidor detecta quién es el usuario y le devuelve
     // únicamente las rutas asignadas a su empresa en la tabla pivote, y traemos los 'paraderos' y el nombre del archivo KMZ.
-    const endpoint = '/rutas?include=empresas,paraderos,file_name';
+    const endpoint = '/rutas?include=empresas,paraderos';
 
     try {
         const response = await apiGet(endpoint);
