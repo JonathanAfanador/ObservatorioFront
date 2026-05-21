@@ -19,7 +19,7 @@ async function loadRutas() {
     }
 
     // Esperar que el contenedor sea visible antes de inicializar Leaflet
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await new Promise(resolve => setTimeout(resolve, 600));
 
     empresaMapCore = new MapCore('empresa-rutas-map', {
         useNativeLayerControl: true,
@@ -122,6 +122,10 @@ console.log('Mapa listo:', empresaMapCore.map._loaded);
 
         if (successCount > 0) {
             empresaMapCore.fitAllOverlays();
+            setTimeout(() => {
+                  empresaMapCore.map.invalidateSize();
+        empresaMapCore.fitAllOverlays(); // llamar de nuevo después de invalidar
+    }, 300);
         } else {
             console.warn('[Visor Rutas] Las rutas encontradas no tienen archivos válidos para trazar en el mapa.');
         }
