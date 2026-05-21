@@ -774,17 +774,17 @@ export default class MapCore {
         let features = geoJson.features;
         
         // Filtrar por geometría si se solicita
-        if (options.onlyLines) {
-            features = features.filter(f => {
-                if (!f.geometry || !isLineGeometry(f.geometry.type)) return false;
-                
-                // Detectar Bounding Boxes ocultos
-                if (f.geometry.type === 'LineString' && f.geometry.coordinates.length <= 6) {
-                    const c = f.geometry.coordinates;
-                    const lastIdx = c.length - 1;
-                    const diffStartEnd = Math.hypot(c[0][0] - c[lastIdx][0], c[0][1] - c[lastIdx][1]);
-                    if (diffStartEnd < 0.001) return false;
-                }
+                if (options.onlyLines) {
+                    features = features.filter(f => {
+                        if (!f.geometry || !isLineGeometry(f.geometry.type)) return false;
+                        
+                        // Detectar Bounding Boxes ocultos
+                        if (f.geometry.type === 'LineString' && f.geometry.coordinates.length <= 6) {
+                            const c = f.geometry.coordinates;
+                            const lastIdx = c.length - 1;
+                            const diffStartEnd = Math.hypot(c[0][0] - c[lastIdx][0], c[0][1] - c[lastIdx][1]);
+                            if (diffStartEnd < 0.001) return false;  // ← FILTRA DEMASIADO AGRESIVO
+                        }
                 
                 if (f.geometry.type === 'MultiLineString') {
                     const lineasValidas = f.geometry.coordinates.filter(c => {

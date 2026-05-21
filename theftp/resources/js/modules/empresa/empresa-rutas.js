@@ -58,6 +58,7 @@ async function loadRutas() {
                 
                 try {
                     const featureLayer = await empresaMapCore.loadKmz(r.file_name, label, index, {}, { onlyLines: true });
+                     console.log('KMZ resultado:', label, featureLayer); 
                     if (featureLayer) {
                         r.status_kml = 'ok';
                         successCount++;
