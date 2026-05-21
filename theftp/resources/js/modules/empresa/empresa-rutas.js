@@ -6,9 +6,27 @@ async function loadRutas() {
     const container = document.getElementById('empresa-rutas-map-container');
     if (!container) return;
 
-    // Remover estado de carga si existe (limpiar el container HTML)
+    // NUEVO: esperar a que el contenedor sea visible
+    await new Promise(resolve => {
+        if (container.offsetParent !== null) {
+            resolve();
+        } else {
+            const observer = new MutationObserver(() => {
+                if (container.offsetParent !== null) {
+                    observer.disconnect();
+                    resolve();
+                }
+            });
+            observer.observe(document.body, { 
+                attributes: true, 
+                subtree: true, 
+                attributeFilter: ['style', 'class'] 
+            });
+        }
+    });
+
     container.innerHTML = '<div id="empresa-rutas-map" style="width: 100%; height: 600px; border-radius: 8px; z-index: 1;"></div>';
-    // Para evitar conflictos con hojas de estilo, asegurarse de invalidar y limpiar cuando Leaflet se reutiliza.
+    
     if (empresaMapCore) {
         empresaMapCore.map.remove();
         empresaMapCore = null;
@@ -176,11 +194,14 @@ if (typeof window.showView === 'function') {
     window.showView = function(viewId) {
         originalShowView(viewId);
         if (viewId === 'rutas') {
-            if (empresaMapCore) {
-                empresaMapCore.invalidateSize();
-            } else {
-                loadRutas();
-            }
+            // Dar tiempo al DOM para mostrar el contenedor antes de inicializar Leaflet
+            setTimeout(() => {
+                if (empresaMapCore) {
+                    empresaMapCore.invalidateSize();
+                } else {
+                    loadRutas();
+                }
+            }, 350); // ← esperar la transición CSS
         }
     };
 }
