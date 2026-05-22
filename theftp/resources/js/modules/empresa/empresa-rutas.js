@@ -30,10 +30,7 @@ async function loadRutas() {
         }
     });
 // LOG TEMPORAL - DIAGNÓSTICO
-console.log('=== MAPA CREADO ===');
-console.log('Contenedor visible:', document.getElementById('empresa-rutas-map')?.offsetParent);
-console.log('Tamaño del mapa:', empresaMapCore.map.getSize());
-console.log('Mapa listo:', empresaMapCore.map._loaded);
+
     const endpoint = '/rutas?include=empresas,paraderos';
 
     try {
@@ -62,11 +59,7 @@ console.log('Mapa listo:', empresaMapCore.map._loaded);
                 
                 try {
                     const featureLayer = await empresaMapCore.loadKmz(r.file_name, label, index, {}, { onlyLines: true });
-                    console.log('=== KMZ CARGADO ===', label);
-                    console.log('featureLayer:', featureLayer);
-                    console.log('featureLayer._map:', featureLayer?._map);
-                    console.log('Layers dentro del grupo:', featureLayer?._layers);
-                    console.log('overlayGroups después:', Object.keys(empresaMapCore.overlayGroups));
+                  
                     if (featureLayer && featureLayer._map) {
                         r.status_kml = 'ok';
                         successCount++;

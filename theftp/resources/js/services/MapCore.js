@@ -612,7 +612,7 @@ export default class MapCore {
         console.group('[TripPlanner] Análisis por Números Lógicos');
         sorted.forEach((o, i) => {
             const mark = i === 0 ? '>>>' : '   ';
-            console.log(`${mark} ${o.routeName}: Sube #${o.numA} -> Baja #${o.numB} (Caminata: ${o.walkDist}m)`);
+            
         });
         console.groupEnd();
 
