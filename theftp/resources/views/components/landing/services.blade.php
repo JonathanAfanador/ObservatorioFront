@@ -35,10 +35,10 @@
 
         <h3>Aplicación Móvil</h3>
 
-        <a href="{{ asset('downloads/observatorio-transporte.apk') }}"
+        <a href="https://expo.dev/artifacts/eas/rqFjaDCWWeDphKnyBPFfrW.apk"
            class="service-image-link"
            aria-label="Descargar la aplicación móvil Observatorio de Transporte"
-           download>
+           target="_blank">
           <img src="{{ asset('images/app-portada.jpg') }}" alt="Aplicación móvil Viaja!" />
         </a>
 
@@ -47,9 +47,9 @@
         <p>Descárgala y disfruta de sus funcionalidades.</p>
 
         <div class="btn-row">
-          <a href="{{ asset('downloads/observatorio-transporte.apk') }}"
+          <a href="https://expo.dev/artifacts/eas/rqFjaDCWWeDphKnyBPFfrW.apk"
              class="btn btn-primary"
-             download
+             target="_blank"
              aria-label="Descargar APK para Android">
              Descarga Android APK  
           </a>
