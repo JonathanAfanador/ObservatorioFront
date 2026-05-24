@@ -95,7 +95,7 @@ const AdminPropietarios = (function() {
             { 
                 header: 'Tarjeta Propiedad', 
                 render: (r) => r.documento 
-                    ? `<button onclick="AdminBase.previewDocument('/storage/${r.documento.url}', 'Tarjeta de Propiedad - ${r.persona ? r.persona.name : 'S/N'}')" 
+                    ? `<button onclick="AdminBase.previewDocument(${r.documento.id}, 'Tarjeta de Propiedad - ${r.persona ? r.persona.name : 'S/N'}')" 
                                class="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-black text-[11px] uppercase tracking-wider group transition-all">
                         <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                         Ver Soporte
@@ -285,9 +285,28 @@ const AdminPropietarios = (function() {
         try {
             let res;
             if (editingId) {
-                // Laravel requiere _method=PUT para FormData
-                formData.append('_method', 'PUT');
-                res = await AdminBase.apiCall(`/propietarios/${editingId}`, 'POST', formData);
+                // Al editar: enviar JSON con PUT (el archivo de tarjeta ya fue subido antes al crear)
+                const jsonData = {
+                    persona_id,
+                    empresa_id,
+                    fecha_registro
+                };
+                // Si hay archivo nuevo, primero lo subimos como documento y luego actualizamos
+                if (fileInput.files[0]) {
+                    const docFormData = new FormData();
+                    docFormData.append('file', fileInput.files[0]);
+                    docFormData.append('observaciones', 'Tarjeta de Propiedad - Actualizada');
+                    docFormData.append('tipo_doc_id', 1);
+                    // Usar apiPostFile si está disponible, sino llamada directa
+                    const headers = window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' };
+                    delete headers['Content-Type'];
+                    const docRes = await fetch('/api/documentos', { method: 'POST', headers, body: docFormData });
+                    if (docRes.ok) {
+                        const docJson = await docRes.json();
+                        if (docJson?.data?.id) jsonData.documento_id = docJson.data.id;
+                    }
+                }
+                res = await AdminBase.apiCall(`/propietarios/${editingId}`, 'PUT', jsonData);
             } else {
                 res = await AdminBase.apiCall('/propietarios', 'POST', formData);
             }

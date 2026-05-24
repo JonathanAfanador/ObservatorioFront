@@ -102,7 +102,7 @@ const AdminDocumentos = (function() {
                     }
 
                     return `
-                        <button onclick="AdminBase.previewDocument('${fileUrl}', 'Auditoría: ${fileName}')" 
+                        <button onclick="AdminBase.previewDocument(${r.id}, 'Auditoría: ${fileName}')" 
                                 class="flex items-center gap-2 px-3 py-2 rounded-xl bg-sky-50 text-sky-600 hover:bg-sky-600 hover:text-white hover:scale-105 transition-all duration-300 border border-sky-100 shadow-sm group">
                              <svg class="w-4 h-4 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -183,7 +183,7 @@ const AdminDocumentos = (function() {
         let endpoint = '/documentos';
         if (editingId) {
             endpoint += `/${editingId}`;
-            formData.append('_method', 'POST');
+            formData.append('_method', 'PUT');
         }
 
         const btnSubmit = document.querySelector('#form-documento button[type="submit"]');

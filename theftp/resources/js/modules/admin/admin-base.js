@@ -110,6 +110,9 @@ const AdminBase = (function() {
         // Manejo de Body (POST/PUT)
         else if (data) {
             if (data instanceof FormData) {
+                // MUY IMPORTANTE: Eliminar Content-Type para que el navegador genere
+                // automáticamente el Content-Type multipart/form-data con el boundary correcto.
+                delete headers['Content-Type'];
                 config.body = data;
             } else {
                 headers['Content-Type'] = 'application/json';
@@ -509,11 +512,13 @@ const AdminBase = (function() {
 
     /**
      * VISUALIZADOR UNIVERSAL DE DOCUMENTOS (IN-APP)
-     * Soporta: PDF, Imágenes, Audio, Video y Fichas Técnicas para otros formatos.
-     * @param {string} url - Ruta del archivo
+     * Descarga el archivo vía el endpoint autenticado /api/documentos/{id}/file
+     * y genera un Blob URL temporal para evitar el 404 por acceso directo a /storage/.
+     * @param {number|string} documentoId - ID del registro en la tabla documentos
      * @param {string} title - Título para el header
+     * @param {string} fallbackExt - Extensión hint cuando no se puede detectar del blob (opcional)
      */
-    function previewDocument(url, title = 'Visualizador de Soporte') {
+    async function previewDocument(documentoId, title = 'Visualizador de Soporte', fallbackExt = 'pdf') {
         const modal = document.getElementById('modal-preview-doc');
         const content = document.getElementById('preview-doc-content');
         const titleEl = document.getElementById('modal-preview-title');
@@ -522,68 +527,101 @@ const AdminBase = (function() {
         if (!modal || !content) return;
 
         titleEl.textContent = title;
-        downloadBtn.href = url;
-        
-        // Detectar extensión
-        const ext = url.split('.').pop().toLowerCase();
-        content.innerHTML = '<div class="flex items-center justify-center h-full"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800"></div></div>';
-
-        // Pequeño timeout para suavizar la transición de carga
-        setTimeout(() => {
-            if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
-                content.innerHTML = `<img src="${url}" alt="Soporte" class="max-w-full max-h-full object-contain shadow-2xl rounded-lg border-4 border-white">`;
-            } else if (ext === 'pdf') {
-                content.innerHTML = `<iframe src="${url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH" class="w-full h-full border-0 rounded-sm shadow-inner" style="background: #525659;"></iframe>`;
-            } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
-                content.innerHTML = `
-                    <div class="w-full max-w-3xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
-                        <video controls class="w-full h-full">
-                            <source src="${url}" type="video/${ext === 'mp4' ? 'mp4' : ext}">
-                            Tu navegador no soporta la reproducción de video.
-                        </video>
-                    </div>`;
-            } else if (['mp3', 'wav', 'aac'].includes(ext)) {
-                content.innerHTML = `
-                    <div class="bg-white p-12 rounded-3xl shadow-2xl border border-slate-100 flex flex-col items-center gap-6 max-w-md w-full">
-                        <div class="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-500 animate-pulse">
-                            <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-                        </div>
-                        <div class="text-center">
-                            <h4 class="font-black text-slate-800 uppercase tracking-widest text-sm mb-1">Archivo de Audio</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tight italic">Auditoría de Evidencia Sonora</p>
-                        </div>
-                        <audio controls class="w-full">
-                            <source src="${url}" type="audio/${ext === 'mp3' ? 'mpeg' : ext}">
-                        </audio>
-                    </div>`;
-            } else {
-                // Ficha Técnica para formatos no renderizables (Office, CSV, GeoJSON, KML)
-                const formatIcons = {
-                    xls: 'Excel', xlsx: 'Excel', csv: 'Datos CSV',
-                    doc: 'Word', docx: 'Word',
-                    ppt: 'PowerPoint', pptx: 'PowerPoint',
-                    geojson: 'GeoJSON', kml: 'KML'
-                };
-                const formatLabel = formatIcons[ext] || `Archivo .${ext.toUpperCase()}`;
-                
-                content.innerHTML = `
-                    <div class="bg-white p-10 rounded-3xl shadow-2xl border border-slate-100 flex flex-col items-center gap-6 max-w-sm w-full transition-all hover:scale-[1.02]">
-                        <div class="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100 shadow-inner">
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                        </div>
-                        <div class="text-center">
-                            <h4 class="font-black text-slate-800 uppercase tracking-widest text-sm mb-1">${formatLabel}</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tight italic">Este formato requiere descarga para auditoría</p>
-                        </div>
-                        <a href="${url}" download class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors shadow-lg">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V3"></path></svg>
-                            Descargar Ahora
-                        </a>
-                    </div>`;
-            }
-        }, 300);
-
+        downloadBtn.href = '#';
+        downloadBtn.onclick = null;
         modal.style.display = 'flex';
+        
+        content.innerHTML = '<div class="flex flex-col items-center justify-center h-full gap-3 text-slate-400"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800"></div><p class="text-xs font-bold uppercase tracking-widest">Cargando documento seguro...</p></div>';
+
+        try {
+            const headers = window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' };
+            // Eliminar Content-Type para que fetch no interfiera con la respuesta binaria
+            delete headers['Content-Type'];
+
+            const response = await fetch(`/api/documentos/${documentoId}/file`, {
+                method: 'GET',
+                headers
+            });
+
+            if (!response.ok) throw new Error(`El servidor devolvió ${response.status}. El archivo puede no existir en el servidor.`);
+
+            const blob = await response.blob();
+
+            // Revocar URL anterior si existe
+            if (window._adminPreviewBlobUrl) {
+                window.URL.revokeObjectURL(window._adminPreviewBlobUrl);
+            }
+            const blobUrl = window.URL.createObjectURL(blob);
+            window._adminPreviewBlobUrl = blobUrl;
+
+            // Configurar botón de descarga
+            downloadBtn.href = blobUrl;
+            downloadBtn.download = title || 'documento';
+
+            // Detectar tipo por MIME type del blob o fallback
+            const mime = blob.type || '';
+            const isImage = mime.startsWith('image/');
+            const isPdf = mime === 'application/pdf' || fallbackExt === 'pdf';
+            const isVideo = mime.startsWith('video/');
+            const isAudio = mime.startsWith('audio/');
+
+            setTimeout(() => {
+                if (isImage) {
+                    content.innerHTML = `<img src="${blobUrl}" alt="Soporte" class="max-w-full max-h-full object-contain shadow-2xl rounded-lg border-4 border-white">`;
+                } else if (isPdf) {
+                    content.innerHTML = `<iframe src="${blobUrl}" class="w-full h-full border-0 rounded-sm shadow-inner" style="background: #525659;"></iframe>`;
+                } else if (isVideo) {
+                    content.innerHTML = `
+                        <div class="w-full max-w-3xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
+                            <video controls class="w-full h-full">
+                                <source src="${blobUrl}" type="${mime}">
+                                Tu navegador no soporta la reproducción de video.
+                            </video>
+                        </div>`;
+                } else if (isAudio) {
+                    content.innerHTML = `
+                        <div class="bg-white p-12 rounded-3xl shadow-2xl border border-slate-100 flex flex-col items-center gap-6 max-w-md w-full">
+                            <div class="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-500 animate-pulse">
+                                <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                            </div>
+                            <div class="text-center">
+                                <h4 class="font-black text-slate-800 uppercase tracking-widest text-sm mb-1">Archivo de Audio</h4>
+                            </div>
+                            <audio controls class="w-full">
+                                <source src="${blobUrl}" type="${mime}">
+                            </audio>
+                        </div>`;
+                } else {
+                    content.innerHTML = `
+                        <div class="bg-white p-10 rounded-3xl shadow-2xl border border-slate-100 flex flex-col items-center gap-6 max-w-sm w-full">
+                            <div class="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100 shadow-inner">
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div class="text-center">
+                                <h4 class="font-black text-slate-800 uppercase tracking-widest text-sm mb-1">Formato de archivo especial</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tight italic">Este formato requiere descarga para auditoría</p>
+                            </div>
+                            <a href="${blobUrl}" download="${title || 'documento'}" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors shadow-lg">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V3"></path></svg>
+                                Descargar Ahora
+                            </a>
+                        </div>`;
+                }
+            }, 100);
+
+        } catch (err) {
+            content.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
+                    <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-400">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="font-black text-red-500 uppercase tracking-widest text-xs mb-1">Error al cargar el documento</p>
+                        <p class="text-slate-400 text-[10px]">${err.message}</p>
+                    </div>
+                </div>`;
+            console.error('previewDocument error:', err);
+        }
     }
 
     // Inicializar cierre y eventos del visualizador al cargar AdminBase
