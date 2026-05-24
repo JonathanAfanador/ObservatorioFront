@@ -543,7 +543,16 @@ const AdminBase = (function() {
                 headers
             });
 
-            if (!response.ok) throw new Error(`El servidor devolvió ${response.status}. El archivo puede no existir en el servidor.`);
+            if (!response.ok) {
+                let errorMsg = `El servidor devolvió ${response.status}.`;
+                try {
+                    const errData = await response.json();
+                    if (errData && errData.message) errorMsg = errData.message;
+                } catch (e) {
+                    errorMsg = `El servidor devolvió ${response.status}. El archivo puede no existir en el servidor.`;
+                }
+                throw new Error(errorMsg);
+            }
 
             const blob = await response.blob();
 
