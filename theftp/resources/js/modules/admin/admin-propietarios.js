@@ -285,28 +285,10 @@ const AdminPropietarios = (function() {
         try {
             let res;
             if (editingId) {
-                // Al editar: enviar JSON con PUT (el archivo de tarjeta ya fue subido antes al crear)
-                const jsonData = {
-                    persona_id,
-                    empresa_id,
-                    fecha_registro
-                };
-                // Si hay archivo nuevo, primero lo subimos como documento y luego actualizamos
-                if (fileInput.files[0]) {
-                    const docFormData = new FormData();
-                    docFormData.append('file', fileInput.files[0]);
-                    docFormData.append('observaciones', 'Tarjeta de Propiedad - Actualizada');
-                    docFormData.append('tipo_doc_id', 1);
-                    // Usar apiPostFile si está disponible, sino llamada directa
-                    const headers = window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' };
-                    delete headers['Content-Type'];
-                    const docRes = await fetch('/api/documentos', { method: 'POST', headers, body: docFormData });
-                    if (docRes.ok) {
-                        const docJson = await docRes.json();
-                        if (docJson?.data?.id) jsonData.documento_id = docJson.data.id;
-                    }
-                }
-                res = await AdminBase.apiCall(`/propietarios/${editingId}`, 'PUT', jsonData);
+                // Laravel requiere _method=PUT para procesar FormData como PUT.
+                // Como ya reparamos admin-base.js, PHP ahora sí leerá correctamente el _method.
+                formData.append('_method', 'PUT');
+                res = await AdminBase.apiCall(`/propietarios/${editingId}`, 'POST', formData);
             } else {
                 res = await AdminBase.apiCall('/propietarios', 'POST', formData);
             }

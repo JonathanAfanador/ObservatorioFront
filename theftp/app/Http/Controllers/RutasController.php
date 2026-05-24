@@ -213,7 +213,7 @@ class RutasController extends Controller
                         @unlink($oldPath);
                     }
                 } else {
-                    $previousFilePath = str_replace('/storage/', '', $data->file_name);
+                    $previousFilePath = preg_replace('/^.*\/storage\//', '', $data->file_name);
                     Storage::disk('local')->delete($previousFilePath);
                 }
             }
@@ -362,7 +362,7 @@ class RutasController extends Controller
             return response()->json(['status' => false, 'message' => 'Archivo no establecido.'], 404);
         }
 
-        $filePath = str_replace('/storage/', '', $model->file_name);
+        $filePath = preg_replace('/^.*\/storage\//', '', $model->file_name);
         if (!Storage::disk('local')->exists($filePath)) {
             return response()->json(['status' => false, 'message' => 'Archivo no encontrado en el servidor.'], 404);
         }

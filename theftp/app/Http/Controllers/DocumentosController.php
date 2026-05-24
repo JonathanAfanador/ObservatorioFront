@@ -314,8 +314,8 @@ class DocumentosController extends Controller{
             return;
         }
 
-        // Obtener la ruta del archivo anterior y eliminarlo del disco público
-        $previousFilePath = str_replace('/storage/', '', $documento->url);
+        // Obtener la ruta del archivo anterior y eliminarlo del disco público (soporta URLs absolutas y relativas)
+        $previousFilePath = preg_replace('/^.*\/storage\//', '', $documento->url);
         Storage::disk('public')->delete($previousFilePath);
 
         // Almacenar el nuevo archivo en el disco público
@@ -424,7 +424,7 @@ class DocumentosController extends Controller{
             return response()->json(['status' => false, 'message' => 'Archivo no establecido.'], 404);
         }
 
-        $filePath = str_replace('/storage/', '', $model->url);
+        $filePath = preg_replace('/^.*\/storage\//', '', $model->url);
         if (!Storage::disk('public')->exists($filePath)) {
             return response()->json(['status' => false, 'message' => 'Archivo no encontrado en el servidor.'], 404);
         }
