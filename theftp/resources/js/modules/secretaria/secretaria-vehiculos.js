@@ -182,11 +182,11 @@ window.openAuditVehiculoModal = async function (id) {
 /**
  * Configura los visores de documentos dentro del modal
  */
-function setupDocumentViewer(type, doc) {
+async function setupDocumentViewer(type, doc) {
     const actionContainer = document.getElementById(`${type}-actions`);
     const viewerContainer = document.getElementById(`${type}-viewer-container`);
 
-    if (!doc || !doc.url) {
+    if (!doc || !doc.id) {
         actionContainer.innerHTML = `<span class="text-[9px] font-bold text-red-500 uppercase tracking-widest">Documento No Adjunto</span>`;
         viewerContainer.innerHTML = `
             <div class="h-full flex flex-col items-center justify-center text-slate-400 p-8 text-center bg-red-50 border-2 border-dashed border-red-100 rounded-lg mx-4">
@@ -198,30 +198,54 @@ function setupDocumentViewer(type, doc) {
         return;
     }
 
-    // Botones de acción independientes (Estilo Licencias)
-    actionContainer.innerHTML = `
-        <button type="button" class="px-3 py-1 text-indigo-600 text-[9px] font-bold flex items-center gap-1.5 hover:bg-indigo-50 rounded-lg transition-colors uppercase tracking-widest" onclick="window.open('${doc.url}', '_blank')">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-            Original
-        </button>
-        <a href="${doc.url}" download class="px-3 py-1 text-indigo-600 text-[9px] font-bold flex items-center gap-1.5 hover:bg-indigo-50 rounded-lg transition-colors uppercase tracking-widest">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V3"></path></svg>
-            Descargar
-        </a>
-    `;
+    viewerContainer.innerHTML = '<div class="h-full flex items-center justify-center text-slate-400"><svg class="w-6 h-6 animate-spin mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Cargando documento...</div>';
+    actionContainer.innerHTML = '';
 
-    // Visor Integrado
-    const isImage = doc.url.match(/\.(jpeg|jpg|gif|png|webp)$/i);
-    if (isImage) {
-        viewerContainer.innerHTML = `
-            <div class="h-full w-full overflow-auto bg-slate-200 p-4 flex items-center justify-center">
-                <img src="${doc.url}" class="max-w-full shadow-2xl rounded-lg border border-white">
-            </div>
+    try {
+        const response = await fetch(`/api/documentos/${doc.id}/file`, {
+            method: 'GET',
+            headers: window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) throw new Error('No se pudo acceder al archivo en el servidor.');
+
+        const blob = await response.blob();
+        
+        // Revoke prev url if exists to free memory
+        if (window[`currentDocUrl_${type}`]) {
+            window.URL.revokeObjectURL(window[`currentDocUrl_${type}`]);
+        }
+        
+        const blobUrl = window.URL.createObjectURL(blob);
+        window[`currentDocUrl_${type}`] = blobUrl;
+
+        // Botones de acción independientes (Estilo Licencias)
+        actionContainer.innerHTML = `
+            <button type="button" class="px-3 py-1 text-indigo-600 text-[9px] font-bold flex items-center gap-1.5 hover:bg-indigo-50 rounded-lg transition-colors uppercase tracking-widest" onclick="window.open('${blobUrl}', '_blank')">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                Original
+            </button>
+            <a href="${blobUrl}" download="${(doc.observaciones || type) + '.pdf'}" class="px-3 py-1 text-indigo-600 text-[9px] font-bold flex items-center gap-1.5 hover:bg-indigo-50 rounded-lg transition-colors uppercase tracking-widest">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V3"></path></svg>
+                Descargar
+            </a>
         `;
-    } else {
-        viewerContainer.innerHTML = `
-            <iframe src="${doc.url}" class="w-full h-full border-none" style="filter: contrast(1.1);"></iframe>
-        `;
+
+        // Visor Integrado
+        const isImage = (doc.url || '').match(/\.(jpeg|jpg|gif|png|webp)$/i) || blob.type.startsWith('image/');
+        if (isImage) {
+            viewerContainer.innerHTML = `
+                <div class="h-full w-full overflow-auto bg-slate-200 p-4 flex items-center justify-center">
+                    <img src="${blobUrl}" class="max-w-full shadow-2xl rounded-lg border border-white">
+                </div>
+            `;
+        } else {
+            viewerContainer.innerHTML = `
+                <iframe src="${blobUrl}" class="w-full h-full border-none" style="filter: contrast(1.1);"></iframe>
+            `;
+        }
+    } catch (e) {
+        viewerContainer.innerHTML = `<div class="h-full flex items-center justify-center text-red-500 p-4 text-center font-bold text-xs"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Error al cargar el documento: ${e.message}</div>`;
     }
 }
 
