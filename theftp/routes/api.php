@@ -92,8 +92,8 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'thrott
     Route::get('/tipo_doc/{id}', [TipoDocController::class, 'show']);
     
     Route::get('/documentos', [DocumentosController::class, 'index']);
-    Route::get('/documentos/{id}', [DocumentosController::class, 'show']);
     Route::get('/documentos/{id}/file', [DocumentosController::class, 'getFile']);
+    Route::get('/documentos/{id}', [DocumentosController::class, 'show']);
     
     Route::get('/categorias_licencia', [CategoriasLicenciaController::class, 'index']);
     Route::get('/categorias_licencia/{id}', [CategoriasLicenciaController::class, 'show']);
@@ -126,8 +126,8 @@ Route::group(['middleware' => [ForceJsonResponse::class, 'auth:sanctum', 'thrott
     Route::get('/empresas/{id}', [EmpresasController::class, 'show']);
     
     Route::get('/rutas', [RutasController::class, 'index']);
-    Route::get('/rutas/{id}', [RutasController::class, 'show']);
     Route::get('/rutas/{id}/file', [RutasController::class, 'getFile']);
+    Route::get('/rutas/{id}', [RutasController::class, 'show']);
     
     Route::get('/users', [UsersController::class, 'index']);
     Route::get('/users/{id}', [UsersController::class, 'show']);
