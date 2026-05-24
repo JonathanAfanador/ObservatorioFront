@@ -211,11 +211,17 @@ async function apiPost(path, data) {
 // Wrapper para llamadas POST con archivos
 async function apiPostFile(path, formData) {
   try {
+    let headers = window.getAuthHeaders ? window.getAuthHeaders() : {
+      'Accept': 'application/json'
+    };
+    
+    // MUY IMPORTANTE: Eliminar Content-Type para que el navegador genere 
+    // automáticamente el Content-Type multipart/form-data con el boundary correcto.
+    delete headers['Content-Type'];
+
     const response = await fetch(`/api${path}`, {
       method: 'POST',
-      headers: window.getAuthHeaders ? window.getAuthHeaders() : {
-        'Accept': 'application/json'
-      },
+      headers: headers,
       body: formData
     });
 
