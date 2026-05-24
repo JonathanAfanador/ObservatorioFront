@@ -260,7 +260,8 @@ document.getElementById('form-secretaria-ruta')?.addEventListener('submit', asyn
 
     let url = '/rutas';
     if (id) {
-        url = `/rutas/${id}`; // Se respeta POST definido en api.php para subida de archivos
+        url = `/rutas/${id}`;
+        formData.append('_method', 'PUT'); // Requerido por Laravel para procesar FormData en rutas PUT
     } else {
         if (fileInput.files.length === 0) {
             window.showNotification('error', 'Requerido', 'Debe adjuntar el archivo KMZ para oficializar una nueva ruta.');
@@ -361,9 +362,8 @@ document.getElementById('form-secretaria-paraderos')?.addEventListener('submit',
         // 2. Enviar JSON estructurado al nuevo ParaderosController
         const response = await fetch(`/api/rutas/${rutaId}/paraderos/bulk`, {
             method: 'POST',
-            headers: {
+            headers: window.getAuthHeaders ? window.getAuthHeaders() : {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Accept': 'application/json'
             },
             body: JSON.stringify({ paraderos: paraderosExtraidos, replace: true })

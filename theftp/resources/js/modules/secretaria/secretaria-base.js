@@ -51,8 +51,10 @@ window.apiCall = async function (endpoint, method = 'GET', body = null, isFile =
     const baseHeaders = window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' };
     const headers = { ...baseHeaders };
 
-    // Si NO es archivo, agregamos Content-Type JSON
-    if (!isFile && body && !(body instanceof FormData)) {
+    // Si es archivo o FormData, eliminamos Content-Type para que el navegador asigne el multipart/form-data y su boundary
+    if (isFile || (body && body instanceof FormData)) {
+        delete headers['Content-Type'];
+    } else if (body) {
         headers['Content-Type'] = 'application/json';
     }
 
@@ -161,7 +163,7 @@ window.applyGlobalSearch = function (query, tableId) {
 };
 
 // --- Visualizador Universal de Documentos ---
-window.previewDocument = function (url, title = 'Documento de Soporte') {
+window.previewDocument = async function (documentoId, title = 'Documento de Soporte') {
     const modal = document.getElementById('modal-preview-doc');
     const content = document.getElementById('preview-doc-content');
     const titleEl = document.getElementById('modal-preview-title');
@@ -169,22 +171,47 @@ window.previewDocument = function (url, title = 'Documento de Soporte') {
 
     if (!modal || !content) return;
 
-    // Configurar Header y descarga
     if (titleEl) titleEl.textContent = title;
-    if (downloadBtn) {
-        downloadBtn.href = url;
-        downloadBtn.className = downloadBtn.className.replace('pointer-events-none opacity-50', '');
-    }
-
-    // Identificar extensión
-    const ext = url.split('.').pop().toLowerCase();
+    
     content.innerHTML = '<div class="flex items-center justify-center h-full"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>';
+    modal.style.display = 'flex';
 
-    setTimeout(() => {
+    try {
+        const headers = window.getAuthHeaders ? window.getAuthHeaders() : { 'Accept': 'application/json' };
+        
+        const response = await fetch(`/api/documentos/${documentoId}/file`, {
+            method: 'GET',
+            headers
+        });
+
+        if (!response.ok) {
+            let errorMsg = `El servidor devolvió ${response.status}.`;
+            try {
+                const errData = await response.json();
+                if (errData && errData.message) errorMsg = errData.message;
+            } catch (e) {
+                errorMsg = `El servidor devolvió ${response.status}. El archivo puede no existir en el servidor.`;
+            }
+            throw new Error(errorMsg);
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+
+        if (downloadBtn) {
+            downloadBtn.href = objectUrl;
+            downloadBtn.download = `Soporte_${documentoId}`;
+            downloadBtn.className = downloadBtn.className.replace('pointer-events-none opacity-50', '');
+        }
+
+        // Identificar extensión por Content-Disposition o mimetype si es posible (asumimos pdf por defecto)
+        const extMatch = response.headers.get('content-disposition')?.match(/\.([a-z0-9]+)"?$/i);
+        let ext = extMatch ? extMatch[1].toLowerCase() : (blob.type.includes('image/') ? 'jpg' : 'pdf');
+
         if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
-            content.innerHTML = `<img src="${url}" alt="Soporte" class="max-w-full max-h-full object-contain shadow-lg rounded-sm">`;
+            content.innerHTML = `<img src="${objectUrl}" alt="Soporte" class="max-w-full max-h-full object-contain shadow-lg rounded-sm">`;
         } else if (ext === 'pdf') {
-            content.innerHTML = `<iframe src="${url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH" class="w-full h-full border-0 rounded-sm shadow-inner" style="background: #525659;"></iframe>`;
+            content.innerHTML = `<iframe src="${objectUrl}#toolbar=1&navpanes=0&scrollbar=1&view=FitH" class="w-full h-full border-0 rounded-sm shadow-inner" style="background: #525659;"></iframe>`;
         } else {
             content.innerHTML = `
                 <div class="text-center p-8 bg-white rounded-xl shadow-xl border border-slate-200 mx-4 max-w-sm">
@@ -194,9 +221,18 @@ window.previewDocument = function (url, title = 'Documento de Soporte') {
                     <p class="font-bold text-sm uppercase tracking-widest text-center">Este tipo de archivo (.${ext}) no permite previsualización directa.<br>Por favor, utilice el botón de descarga.</p>
                 </div>`;
         }
-    }, 400);
-
-    modal.style.display = 'flex';
+    } catch (error) {
+        console.error('previewDocument error:', error);
+        content.innerHTML = `
+            <div class="text-center p-8 bg-white rounded-xl shadow-xl border border-slate-200 mx-4 max-w-sm">
+                <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500 mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <p class="font-black text-red-600 uppercase tracking-widest text-sm mb-1">ERROR AL CARGAR EL DOCUMENTO</p>
+                <p class="text-xs text-slate-500 font-medium">${error.message}</p>
+            </div>
+        `;
+    }
 };
 
 // Inicializar eventos del visualizador al cargar la página
