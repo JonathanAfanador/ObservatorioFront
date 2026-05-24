@@ -59,4 +59,5 @@ CMD ["/bin/sh", "-c", \
     php artisan cache:clear && \
     php artisan route:clear && \
     php artisan migrate --force && \
+    php artisan schedule:work & \
     apache2-foreground"]
