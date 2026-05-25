@@ -215,7 +215,7 @@
                     <p class="text-sm text-gray-500 mt-1">Historial oficial de actos administrativos y circulares.</p>
                 </div>
                 {{-- Botón para abrir modal de carga --}}
-                <button onclick="document.getElementById('modal-upload-resolucion').style.display='flex'" class="btn-primary flex items-center gap-2">
+                <button onclick="if(window.resetResolucionForm) window.resetResolucionForm(); document.getElementById('modal-upload-resolucion').style.display='flex'" class="btn-primary flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Nueva Resolución
                 </button>
@@ -229,13 +229,14 @@
         <div id="modal-upload-resolucion" class="modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
             <div class="modal-content" style="background:#fff; border-radius:12px; width:100%; max-width:550px; display:flex; flex-direction:column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
                 <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
-                    <h2 class="text-xl font-bold text-slate-800">Nueva Resolución Oficial</h2>
+                    <h2 id="modal-res-title" class="text-xl font-bold text-slate-800">Nueva Resolución Oficial</h2>
                     <button type="button" onclick="document.getElementById('modal-upload-resolucion').style.display='none'" class="text-slate-400 hover:text-slate-600 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
                 <div class="modal-body" style="padding: 1.5rem;">
                     <form id="form-resolucion" class="flex flex-col gap-4">
+                        <input type="hidden" id="res-id">
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-1">Detalle / Número de Resolución</label>
                             <input type="text" id="res-obs" class="w-full border-gray-300 rounded-md shadow-sm text-sm" placeholder="Ej: Resolución No. 005 - Aprobación tarifas" required>
@@ -254,7 +255,7 @@
                         </div>
                         <div class="flex justify-end gap-3 mt-4">
                             <button type="button" class="btn-secondary" onclick="document.getElementById('modal-upload-resolucion').style.display='none'">Cancelar</button>
-                            <button type="submit" class="btn-primary shadow-md">Subir y Publicar</button>
+                            <button type="submit" id="btn-submit-res" class="btn-primary shadow-md">Subir y Publicar</button>
                         </div>
                     </form>
                 </div>

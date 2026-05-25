@@ -38,8 +38,14 @@ window.loadResoluciones = async function () {
                 <td class="font-medium">${doc.observaciones || 'Sin detalle'}</td>
                 <td>${nombreEmpresa}</td>
                 <td>${fecha}</td>
-                <td class="text-right">
-                    <button onclick="viewDocumento(${doc.id}, '${doc.observaciones || 'Resolución'}')" class="btn-action text-blue-600 hover:text-blue-800 flex items-center gap-1 ml-auto" title="Ver PDF">
+                <td class="text-right flex items-center justify-end gap-3">
+                    <button onclick="prepareEditResolucion(${doc.id}, '${(doc.observaciones || '').replace(/^Resolución:\s*/, '').replace(/'/g, "\\'")}', '${doc.empresa_id || ''}')" class="text-indigo-600 hover:text-indigo-800 transition-colors" title="Editar">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </button>
+                    <button onclick="deleteResolucion(${doc.id})" class="text-red-500 hover:text-red-700 transition-colors" title="Eliminar">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                    <button onclick="viewDocumento(${doc.id}, '${(doc.observaciones || 'Resolución').replace(/'/g, "\\'")}')" class="btn-action text-blue-600 hover:text-blue-800 flex items-center gap-1 ml-3" title="Ver PDF">
                         <svg style="width:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                         Ver Documento
                     </button>
@@ -117,12 +123,15 @@ window.closePdfViewer = function() {
     }
 };
 
-// --- Manejar formulario de subir resolución ---
+// --- Manejar formulario de subir/editar resolución ---
 window.handleSubirResolucion = async function (e) {
     e.preventDefault();
+    const idInput = document.getElementById('res-id');
     const fileInput = document.getElementById('res-file');
     const obsInput = document.getElementById('res-obs');
     const empresaInput = document.getElementById('res-empresa');
+
+    const isEdit = idInput && idInput.value;
 
     if (fileInput.files.length === 0)
         return showNotification('warning', 'Requerido', 'Selecciona un archivo PDF.');
@@ -140,17 +149,50 @@ window.handleSubirResolucion = async function (e) {
         formData.append('empresa_id', empresaInput.value);
     }
 
-    showNotification('info', 'Subiendo', 'Procesando documento oficial...');
-    const result = await apiCall('/documentos', 'POST', formData, true);
+    const endpoint = isEdit ? `/documentos/${idInput.value}` : '/documentos';
+    const method = 'POST'; // El backend espera POST para ambos (store y edit con archivo)
+
+    showNotification('info', isEdit ? 'Actualizando' : 'Subiendo', 'Procesando documento oficial...');
+    const result = await apiCall(endpoint, method, formData, true);
 
     if (result && result.status) {
-        showNotification('success', 'Éxito', 'Resolución publicada correctamente.');
-        document.getElementById('form-resolucion').reset();
-        
-        // Cerrar modal de carga
+        showNotification('success', 'Éxito', isEdit ? 'Resolución actualizada correctamente.' : 'Resolución publicada correctamente.');
+        resetResolucionForm();
         document.getElementById('modal-upload-resolucion').style.display = 'none';
-        
         loadResoluciones();
+    }
+};
+
+window.resetResolucionForm = function() {
+    document.getElementById('form-resolucion').reset();
+    document.getElementById('res-id').value = '';
+    document.getElementById('modal-res-title').textContent = 'Nueva Resolución Oficial';
+    document.getElementById('btn-submit-res').textContent = 'Subir y Publicar';
+};
+
+window.prepareEditResolucion = function(id, obs, empresaId) {
+    document.getElementById('res-id').value = id;
+    document.getElementById('res-obs').value = obs;
+    document.getElementById('res-empresa').value = empresaId || '';
+    document.getElementById('res-file').value = ''; // Debe re-subir el PDF según reglas del backend
+    
+    document.getElementById('modal-res-title').textContent = 'Editar Resolución Oficial';
+    document.getElementById('btn-submit-res').textContent = 'Actualizar y Publicar';
+    document.getElementById('modal-upload-resolucion').style.display = 'flex';
+};
+
+window.deleteResolucion = async function(id) {
+    if (confirm('¿Está seguro de eliminar esta resolución? Esta acción no se puede deshacer.')) {
+        try {
+            const res = await apiCall(`/documentos/${id}`, 'DELETE');
+            if (res && res.status) {
+                showNotification('success', 'Eliminado', 'La resolución ha sido eliminada.');
+                loadResoluciones();
+            }
+        } catch (e) {
+            console.error(e);
+            showNotification('error', 'Error', 'No se pudo eliminar la resolución.');
+        }
     }
 };
 
