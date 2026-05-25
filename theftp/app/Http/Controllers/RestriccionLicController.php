@@ -203,6 +203,10 @@ class RestriccionLicController extends Controller
      */
     public function store(StoreRestriccionLicRequest $request)
     {
+        $user = auth()->user();
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value, \App\Enums\RolesEnum::SECRETARIA->value])) {
+            $request->merge(['empresa_id' => $user->empresa_id]);
+        }
 
         return parent::baseStore($request);
     }
@@ -233,6 +237,10 @@ class RestriccionLicController extends Controller
      */
     public function update(string $id, UpdateRestriccionLicRequest $request)
     {
+        $user = auth()->user();
+        if ($user && !in_array($user->rol_id, [\App\Enums\RolesEnum::ADMIN->value, \App\Enums\RolesEnum::SUBADMIN->value, \App\Enums\RolesEnum::SECRETARIA->value])) {
+            $request->merge(['empresa_id' => $user->empresa_id]);
+        }
 
         return parent::baseUpdate($id, $request);
     }

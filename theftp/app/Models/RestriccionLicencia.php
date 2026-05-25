@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Scopes\TenantScope;
+use App\Models\Empresa;
 
 /**
  * @OA\Schema(
@@ -68,6 +70,12 @@ class RestriccionLicencia extends Model implements Auditable
     use HasFactory;
     use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new TenantScope);
+    }
+
     /**
     * La tabla asociada con el modelo.
     */
@@ -75,10 +83,15 @@ class RestriccionLicencia extends Model implements Auditable
 
     protected $fillable = [
         'descripcion',
-        'estado'
+        'estado',
+        'empresa_id'
     ];
 
     public function licencias(){
         return $this->hasMany(Licencia::class, 'restriccion_lic_id');
+    }
+
+    public function empresa(){
+        return $this->belongsTo(Empresa::class, 'empresa_id');
     }
 }
