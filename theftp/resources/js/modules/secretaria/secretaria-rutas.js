@@ -260,8 +260,7 @@ document.getElementById('form-secretaria-ruta')?.addEventListener('submit', asyn
 
     let url = '/rutas';
     if (id) {
-        url = `/rutas/${id}`;
-        formData.append('_method', 'PUT'); // Requerido por Laravel para procesar FormData en rutas PUT
+        url = `/rutas/${id}`; // Se respeta POST definido en api.php para subida de archivos
     } else {
         if (fileInput.files.length === 0) {
             window.showNotification('error', 'Requerido', 'Debe adjuntar el archivo KMZ para oficializar una nueva ruta.');
