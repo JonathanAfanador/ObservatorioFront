@@ -226,7 +226,7 @@ export default function RegisterScreen({ navigation }) {
               />
             </Field>
 
-            <Field label="Teléfono (opcional)" error={errors.phone_number}>
+            <Field label="Teléfono" error={errors.phone_number}>
               <StyledInput
                 placeholder="Ej: 3001234567"
                 value={form.phone_number}

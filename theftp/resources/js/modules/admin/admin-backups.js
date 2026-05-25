@@ -107,9 +107,9 @@ const AdminBackups = {
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
-                            <a href="/api/backups/download/${fileNameEncoded}" target="_blank" class="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" title="Descargar">
+                            <button onclick="AdminBackups.downloadBackup('${fileNameEncoded}', '${backup.file_name}')" class="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" title="Descargar">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            </a>
+                            </button>
                             <button onclick="AdminBackups.deleteBackup('${fileNameEncoded}')" class="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm" title="Eliminar">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
@@ -202,6 +202,67 @@ const AdminBackups = {
         } catch (error) {
             console.error(error);
             if (window.showNotification) showNotification('No se pudo eliminar: ' + error.message, 'error');
+        }
+    },
+
+    async downloadBackup(fileBase64, fileName) {
+        try {
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'Descargando...',
+                    text: 'Obteniendo archivo desde el servidor.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            } else if (window.showNotification) {
+                showNotification('Iniciando descarga...', 'info');
+            }
+
+            const response = await fetch(`/api/backups/download/${fileBase64}`, {
+                method: 'GET',
+                headers: getAuthHeaders()
+            });
+
+            if (!response.ok) {
+                let errorMessage = 'Error al descargar el archivo';
+                try {
+                    const result = await response.json();
+                    if (result.message) errorMessage = result.message;
+                } catch (e) {
+                    errorMessage = response.statusText;
+                }
+                throw new Error(errorMessage);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileName || 'backup.zip';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+            
+            if (window.Swal) Swal.close();
+            
+        } catch (error) {
+            console.error(error);
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de descarga',
+                    text: error.message || 'No se pudo descargar el respaldo',
+                    confirmButtonColor: '#ef4444'
+                });
+            } else if (window.showNotification) {
+                showNotification('Error: ' + error.message, 'error');
+            } else {
+                alert('Error: ' + error.message);
+            }
         }
     }
 };
