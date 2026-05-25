@@ -32,8 +32,12 @@ class TenantScope implements Scope
                         $q->where('empresas.id', $user->empresa_id);
                     });
                 } else {
-                    // Resto de los modelos fluyen normal
-                    $builder->where($model->getTable() . '.empresa_id', $user->empresa_id);
+                    // Resto de los modelos fluyen normal: pueden ver los suyos o los generales (empresa_id null)
+                    $tableName = $model->getTable();
+                    $builder->where(function ($q) use ($tableName, $user) {
+                        $q->where($tableName . '.empresa_id', $user->empresa_id)
+                          ->orWhereNull($tableName . '.empresa_id');
+                    });
                 }
             } else {
                 // Si el usuario no es Admin/UPC y NO tiene empresa_id, bloqueamos radicalmente
