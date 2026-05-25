@@ -196,3 +196,10 @@ window.deleteResolucion = async function(id) {
     }
 };
 
+// --- Vincular eventos DOM ---
+document.addEventListener('DOMContentLoaded', () => {
+    const fRes = document.getElementById('form-resolucion');
+    if (fRes) {
+        fRes.addEventListener('submit', window.handleSubirResolucion);
+    }
+});
