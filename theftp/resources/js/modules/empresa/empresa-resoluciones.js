@@ -13,68 +13,87 @@ async function loadResoluciones(page = 1) {
   
   container.innerHTML = '<div class="loading-state" style="padding:2rem; text-align:center; color:#666;"><p>Buscando documentos...</p></div>';
 
-  let endpoint = `/documentos?include=tipo_documento&limit=${window.resolucionesLimit}&page=${page}`;
-  
-  // Construcción de Filtros
-  let filtros = [];
-  
-  // 1. Siempre filtrar por tipo "Resolución" (basado en observaciones como palabra clave según lógica previa)
-  filtros.push({
-    "column": "observaciones",
-    "operator": "like",
-    "value": "%Resolución%"
-  });
-
-  // 2. Filtro por Empresa
-  if (window.myEmpresaId) {
-    filtros.push({
-      "column": "empresa_id",
-      "operator": "=",
-      "value": window.myEmpresaId
-    });
-  }
-
-  // 3. Filtros de búsqueda del usuario
+  // Filtros de búsqueda del usuario (opcionales)
   const searchText = document.getElementById('resolucion-search-text').value;
   const searchDate = document.getElementById('resolucion-search-date').value;
 
+  // Filtro base: solo resoluciones
+  const baseFilter = [{ "column": "observaciones", "operator": "like", "value": "%Resolución%" }];
+  
+  // Añadir filtros de búsqueda del usuario si existen
   if (searchText) {
-    filtros.push({
-      "column": "observaciones",
-      "operator": "like",
-      "value": `%${searchText}%`
-    });
+    baseFilter.push({ "column": "observaciones", "operator": "like", "value": `%${searchText}%` });
   }
   if (searchDate) {
-    // Asumiendo que buscamos por created_at truncado a fecha
-    filtros.push({
-      "column": "created_at",
-      "operator": ">=",
-      "value": searchDate + ' 00:00:00'
-    });
-    filtros.push({
-      "column": "created_at",
-      "operator": "<=",
-      "value": searchDate + ' 23:59:59'
-    });
+    baseFilter.push({ "column": "created_at", "operator": ">=", "value": searchDate + ' 00:00:00' });
+    baseFilter.push({ "column": "created_at", "operator": "<=", "value": searchDate + ' 23:59:59' });
   }
 
-  const filtroJson = encodeURIComponent(JSON.stringify(filtros));
-  endpoint += `&filter=${filtroJson}&orderBy=created_at&orderDirection=desc`;
-
   try {
-    const res = await apiGet(endpoint);
-    // El backend retorna { status, data: { data: [], meta: {} }, total } o { status, data: [], total }
-    const docs = normalizeList(res);
-    
-    // Extraer metadatos de paginación (Laravel paginator o meta de Resource)
-    const meta = res.data?.meta || res.data || {};
-    window.resolucionesLastPage = meta.last_page || Math.ceil((res.total || 0) / window.resolucionesLimit) || 1;
+    let docs = [];
 
-    if (docs.length === 0) {
-      container.innerHTML = '<div style="padding:3rem; text-align:center; background:#f9fafb; border-radius:8px; color:#6b7280;"><p>No se encontraron resoluciones con los filtros aplicados.</p></div>';
-      paginationDiv.style.display = 'none';
-      return;
+    if (window.myEmpresaId) {
+      // Hacemos DOS peticiones en paralelo:
+      // 1. Resoluciones generales (empresa_id = null → sin filtro de empresa)
+      // 2. Resoluciones específicas de esta empresa
+      const filtroGeneral = [...baseFilter, { "column": "empresa_id", "operator": "null" }];
+      const filtroEmpresa = [...baseFilter, { "column": "empresa_id", "operator": "=", "value": window.myEmpresaId }];
+
+      const [resGeneral, resEmpresa] = await Promise.all([
+        apiGet(`/documentos?include=tipo_documento&limit=100&orderBy=created_at&orderDirection=desc&filter=${encodeURIComponent(JSON.stringify(filtroGeneral))}`),
+        apiGet(`/documentos?include=tipo_documento&limit=100&orderBy=created_at&orderDirection=desc&filter=${encodeURIComponent(JSON.stringify(filtroEmpresa))}`)
+      ]);
+
+      const generales = normalizeList(resGeneral);
+      const especificas = normalizeList(resEmpresa);
+
+      // Unir y ordenar por fecha descendente, eliminando duplicados por id
+      const combined = [...generales, ...especificas];
+      const unique = combined.filter((item, index, self) => self.findIndex(i => i.id === item.id) === index);
+      unique.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      // Paginación manual
+      const total = unique.length;
+      const start = (page - 1) * window.resolucionesLimit;
+      docs = unique.slice(start, start + window.resolucionesLimit);
+      window.resolucionesLastPage = Math.ceil(total / window.resolucionesLimit) || 1;
+
+      // Actualizar paginación UI con totales manuales
+      if (docs.length === 0) {
+        container.innerHTML = '<div style="padding:3rem; text-align:center; background:#f9fafb; border-radius:8px; color:#6b7280;"><p>No se encontraron resoluciones con los filtros aplicados.</p></div>';
+        paginationDiv.style.display = 'none';
+        return;
+      }
+
+      paginationDiv.style.display = 'flex';
+      const from = start + 1;
+      const to = start + docs.length;
+      document.getElementById('resol-pagi-info').textContent = `${from} - ${to} de ${total}`;
+      document.getElementById('btn-resol-prev').disabled = (page <= 1);
+      document.getElementById('btn-resol-next').disabled = (page >= window.resolucionesLastPage);
+
+    } else {
+      // Sin empresa asignada: mostrar solo las generales
+      const filtroJson = encodeURIComponent(JSON.stringify(baseFilter));
+      const res = await apiGet(`/documentos?include=tipo_documento&limit=${window.resolucionesLimit}&page=${page}&orderBy=created_at&orderDirection=desc&filter=${filtroJson}`);
+      docs = normalizeList(res);
+      const meta = res.data?.meta || res.data || {};
+      window.resolucionesLastPage = meta.last_page || Math.ceil((res.total || 0) / window.resolucionesLimit) || 1;
+
+      if (docs.length === 0) {
+        container.innerHTML = '<div style="padding:3rem; text-align:center; background:#f9fafb; border-radius:8px; color:#6b7280;"><p>No se encontraron resoluciones con los filtros aplicados.</p></div>';
+        paginationDiv.style.display = 'none';
+        return;
+      }
+
+      paginationDiv.style.display = 'flex';
+      const meta2 = res.data?.meta || res.data || {};
+      const from = meta2.from || ((page - 1) * window.resolucionesLimit + 1);
+      const to = meta2.to || (from + docs.length - 1);
+      const total = res.total || meta2.total || 0;
+      document.getElementById('resol-pagi-info').textContent = `${from} - ${to} de ${total}`;
+      document.getElementById('btn-resol-prev').disabled = (page <= 1);
+      document.getElementById('btn-resol-next').disabled = (page >= window.resolucionesLastPage);
     }
 
     // Renderizar Tabla
@@ -115,15 +134,6 @@ async function loadResoluciones(page = 1) {
     });
     html += '</tbody></table>';
     container.innerHTML = html;
-
-    // Actualizar Paginación UI
-    paginationDiv.style.display = 'flex';
-    const from = meta.from || ((page - 1) * window.resolucionesLimit + 1);
-    const to = meta.to || (from + docs.length - 1);
-    const total = res.total || meta.total || 0;
-    document.getElementById('resol-pagi-info').textContent = `${from} - ${to} de ${total}`;
-    document.getElementById('btn-resol-prev').disabled = (page <= 1);
-    document.getElementById('btn-resol-next').disabled = (page >= window.resolucionesLastPage);
 
   } catch (error) {
     console.error("Error loading resolutions:", error);
