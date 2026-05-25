@@ -30,7 +30,7 @@ window.navigateToView = function(viewName) {
                     'conductores': 'Reporte de Conductores',
                     'vehiculos': 'Reporte de Vehículos',
                     'rutas': 'Reporte de Rutas Autorizadas',
-                    'documentos': 'Reporte de Resoluciones',
+                    'documentos': 'Reporte de Documentos',
                     'estadisticas': 'Estadísticas'
                 };
                 headerTitle.textContent = names[viewName] || viewName;
