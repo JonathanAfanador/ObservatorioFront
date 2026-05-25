@@ -29,11 +29,11 @@
                                 style="display:none; color: #666; margin-top: 0.5rem; font-size: 0.85rem;"></small>
                         </div>
                         <div class="form-group">
-                            <label>Género</label>
+                            <label>Sexo Biológico</label>
                             <select id="conductor-genero" required>
                                 <option value="">Seleccione</option>
-                                <option value="Hombre">Hombre</option>
-                                <option value="Mujer">Mujer</option>
+                                <option value="Hombre">Masculino</option>
+                                <option value="Mujer">Femenino</option>
                             </select>
                         </div>
                         <div class="form-group">

@@ -33,8 +33,8 @@ const C = {
 
 // ── Datos del backend ─────────────────────────────────────────────────────────
 const GENERO_OPTIONS   = [
-  { label: 'Hombre', value: 'Hombre' },
-  { label: 'Mujer',  value: 'Mujer'  },
+  { label: 'Masculino', value: 'Hombre' },
+  { label: 'Femenino',  value: 'Mujer'  },
 ];
 const TIPO_IDENT_DEFAULT = 1;
 
@@ -182,7 +182,7 @@ export default function RegisterScreen({ navigation }) {
             {/* ─ Sección: Identificación ─ */}
             <Text style={s.sectionTitle}>Identificación</Text>
 
-            <Field label="Número de cédula" error={errors.nui}>
+            <Field label="Número de identificación" error={errors.nui}>
               <StyledInput
                 placeholder="Ej: 1070586623"
                 value={form.nui}
@@ -235,8 +235,8 @@ export default function RegisterScreen({ navigation }) {
               />
             </Field>
 
-            {/* Género */}
-            <Field label="Género" error={errors.gender}>
+            {/* Sexo Biológico */}
+            <Field label="Sexo Biológico" error={errors.gender}>
               <TouchableOpacity
                 style={[s.pickerBtn, errors.gender && s.inputError]}
                 onPress={() => setShowGenderPicker(true)}
@@ -313,7 +313,7 @@ export default function RegisterScreen({ navigation }) {
         >
           <View style={s.modalBox}>
             <View style={s.modalHandle} />
-            <Text style={s.modalTitle}>Seleccionar género</Text>
+            <Text style={s.modalTitle}>Seleccionar sexo biológico</Text>
             {GENERO_OPTIONS.map((opt) => (
               <TouchableOpacity
                 key={opt.value}

@@ -36,9 +36,9 @@ async function loadConductores() {
     (`Conductor ${index}: NUI=${nui}, Nombre=${nombreCompleto}, Telefono=${telefono}, Genero=${genero}, TipoIdent=${tipoIdentDesc}`);
 
     const generoDisplay = genero === 'Hombre' 
-      ? `<div style="display:flex;align-items:center;gap:4px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 11a4 4 0 100-8 4 4 0 000 8zM5 21a7 7 0 0114 0"/></svg> Hombre</div>` 
+      ? `<div style="display:flex;align-items:center;gap:4px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 11a4 4 0 100-8 4 4 0 000 8zM5 21a7 7 0 0114 0"/></svg> Masculino</div>` 
       : genero === 'Mujer' 
-        ? `<div style="display:flex;align-items:center;gap:4px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 11a4 4 0 100-8 4 4 0 000 8zM5 21a7 7 0 0114 0M12 12v9m-3-3h6"/></svg> Mujer</div>` 
+        ? `<div style="display:flex;align-items:center;gap:4px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 11a4 4 0 100-8 4 4 0 000 8zM5 21a7 7 0 0114 0M12 12v9m-3-3h6"/></svg> Femenino</div>` 
         : 'N/A';
 
     html += `
@@ -66,7 +66,7 @@ async function loadConductores() {
                         <span class="info-value">${telefono}</span>
                     </div>
                     <div class="conductor-info-row">
-                        <span class="info-label">Género:</span>
+                        <span class="info-label">Sexo Biológico:</span>
                         <span class="info-value">${generoDisplay}</span>
                     </div>
                     <div class="conductor-info-row">
@@ -289,7 +289,7 @@ async function saveConductor(e) {
   const birthDate = document.getElementById('conductor-birth-date').value;
 
   if (!tipoIdent || !nui || !nombres || !apellidos || !telefono || !genero || !birthDate) {
-    showNotification('warning', 'Campos incompletos', 'Por favor complete todos los campos requeridos:\n- Tipo de Identificación\n- Número de Identificación\n- Nombres\n- Apellidos\n- Teléfono\n- Género\n- Fecha de Nacimiento');
+    showNotification('warning', 'Campos incompletos', 'Por favor complete todos los campos requeridos:\n- Tipo de Identificación\n- Número de Identificación\n- Nombres\n- Apellidos\n- Teléfono\n- Sexo Biológico\n- Fecha de Nacimiento');
     return;
   }
 

@@ -67,13 +67,13 @@
                     <span id="error-nui" class="text-xs text-red-600 hidden"></span>
                 </div>
 
-                {{-- Género --}}
+                {{-- Sexo Biológico --}}
                 <div class="form-group">
-                    <label for="gender" class="font-medium text-sm text-gray-700">Género</label>
+                    <label for="gender" class="font-medium text-sm text-gray-700">Sexo Biológico</label>
                     <select id="gender" name="gender" class="form-select" required>
                         <option value="" disabled selected>Seleccione una opción...</option>
-                        <option value="Hombre">Hombre</option>
-                        <option value="Mujer">Mujer</option>
+                        <option value="Hombre">Masculino</option>
+                        <option value="Mujer">Femenino</option>
                     </select>
                     <span id="error-gender" class="text-xs text-red-600 hidden"></span>
                 </div>
