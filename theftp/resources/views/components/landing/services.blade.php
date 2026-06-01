@@ -35,24 +35,18 @@
 
         <h3>Aplicación Móvil</h3>
 
-        <a href="https://expo.dev/artifacts/eas/rqFjaDCWWeDphKnyBPFfrW.apk"
-           class="service-image-link"
-           aria-label="Descargar la aplicación móvil Observatorio de Transporte"
-           target="_blank">
-          <img src="{{ asset('images/app-portada.jpg') }}" alt="Aplicación móvil Viaja!" />
-        </a>
+        <div class="service-image-link" style="display: flex; justify-content: center; align-items: center; padding: 15px 0;">
+          <img src="{{ asset('images/qr_code_apk.png') }}" alt="Código QR para descargar la aplicación móvil" style="max-width: 200px; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
+        </div>
 
         <h4>Ingresa a la Aplicación móvil y &ldquo;Viaja!&rdquo;</h4>
 
         <p>Descárgala y disfruta de sus funcionalidades.</p>
 
         <div class="btn-row">
-          <a href="https://expo.dev/artifacts/eas/rqFjaDCWWeDphKnyBPFfrW.apk"
-             class="btn btn-primary"
-             target="_blank"
-             aria-label="Descargar APK para Android">
-             Descarga Android APK  
-          </a>
+          <span class="btn btn-primary" style="cursor: default; pointer-events: none; opacity: 0.9; font-weight: bold;">
+             Escanea este QR para la app móvil
+          </span>
         </div>
 
       </div>
