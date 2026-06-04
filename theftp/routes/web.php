@@ -19,6 +19,27 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/debug-err', function () {
+    $logPath = storage_path('logs/laravel.log');
+    $dbStatus = "Checking database connection...";
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        $dbStatus = "Database connection successful!";
+    } catch (\Exception $e) {
+        $dbStatus = "Database connection failed: " . $e->getMessage();
+    }
+    
+    $logsTail = "";
+    if (file_exists($logPath)) {
+        $logs = file_get_contents($logPath);
+        $logsTail = substr($logs, -10000); // last 10KB of logs
+    } else {
+        $logsTail = "Log file does not exist at " . $logPath;
+    }
+    
+    return response("<pre>DB STATUS: \n" . $dbStatus . "\n\nLAST LOGS:\n" . htmlspecialchars($logsTail) . "</pre>");
+});
+
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');

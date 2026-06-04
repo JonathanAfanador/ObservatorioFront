@@ -179,6 +179,10 @@ class AuthController extends Controller{
                 if (!$isMobile) {
                     Auth::login($usuario);
                     $request->session()->regenerate();
+                } else {
+                    // Establecer el usuario en el contexto actual para que la auditoría lo asocie al login móvil
+                    Auth::setUser($usuario);
+                    Auth::guard('sanctum')->setUser($usuario);
                 }
 
                 InicioSesion::create([
