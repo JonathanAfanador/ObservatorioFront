@@ -47,7 +47,7 @@ document.querySelectorAll('.btn-logout').forEach(button => {
 // ======================== INACTIVIDAD ========================
 
 let inactivityTimer;
-const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutos
+const INACTIVITY_TIMEOUT = 90 * 60 * 1000; // 90 minutos (1 hora y media)
 // const INACTIVITY_TIMEOUT = 5000; // Para pruebas rápidas
 
 /**
